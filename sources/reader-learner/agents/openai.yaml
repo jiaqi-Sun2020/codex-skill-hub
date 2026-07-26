@@ -1,0 +1,4 @@
+interface:
+  display_name: "Reader Learner"
+  short_description: "Maintain learner profiles and visible knowledge wikis"
+  default_prompt: "Use $reader-learner to safely import my feedback, update the learner profile, and synchronize all stable profile records into the visible Obsidian wiki."
