@@ -31,7 +31,7 @@ skill-registry/
 
 ## 常用命令
 
-以下命令均从 `D:\AI\skill\skill-registry` 运行。
+以下命令均从仓库内的 `50-core-utils/skill-registry` 运行。
 
 验证中央注册中心：
 
@@ -39,34 +39,28 @@ skill-registry/
 python .\tools\skill_registry.py registry-check --registry .
 ```
 
-检查 PAPER 项目：
-
-```powershell
-python .\tools\skill_registry.py check --project "C:\Users\SSS\Desktop\PAPER"
-```
-
 检查 PaperTrace 项目：
 
 ```powershell
-python .\tools\skill_registry.py check --project "D:\AI\PaperTrace"
+python .\tools\skill_registry.py check --project "<project-root>"
 ```
 
 查看一个 Skill 的文件差异：
 
 ```powershell
-python .\tools\skill_registry.py diff --project "D:\AI\PaperTrace" --skill reader-learner
+python .\tools\skill_registry.py diff --project "<project-root>" --skill <skill-id>
 ```
 
 预览更新：
 
 ```powershell
-python .\tools\skill_registry.py sync --project "D:\AI\PaperTrace" --skill reader-learner
+python .\tools\skill_registry.py sync --project "<project-root>" --skill <skill-id>
 ```
 
 确认差异后应用更新：
 
 ```powershell
-python .\tools\skill_registry.py sync --project "D:\AI\PaperTrace" --skill reader-learner --apply
+python .\tools\skill_registry.py sync --project "<project-root>" --skill <skill-id> --apply
 ```
 
 从中央源码发布新版本时，先预览：
@@ -81,7 +75,9 @@ python .\tools\skill_registry.py release --registry . --skill reader-learner --v
 python .\tools\skill_registry.py release --registry . --skill reader-learner --version 1.0.1 --apply
 ```
 
-然后在项目的 `skills.manifest.json` 中把版本改为 `1.0.1`，执行 `diff`、预览 `sync`，最后显式应用。
+然后在项目的 `skills.manifest.json` 中选择新版本，执行 `diff`、预览 `sync`，最后显式应用。
+
+当前 PaperTrace 的实现包含项目专属的聊天画像、reader-v3 和教学接口，已全部登记为 `forked`；中央 `reader-learner 1.0.0` 仅作为历史发布保留，不会覆盖 PaperTrace。
 
 ## 状态含义
 

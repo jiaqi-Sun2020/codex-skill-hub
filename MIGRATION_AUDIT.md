@@ -4,8 +4,8 @@
 
 比较来源：
 
-- PAPER：`C:\Users\SSS\Desktop\PAPER\skills`
-- PaperTrace：`D:\AI\PaperTrace\skills`
+- 已退役 PAPER 项目的原 Skill 目录
+- PaperTrace 项目的 `skills/` 目录
 
 ## 分类结论
 
@@ -38,3 +38,9 @@
 - `ai-quantum-news-briefing`、`nature-reader`、`reader-skill` 存在实质脚本、测试、契约和新增文件差异。
 
 这些项先登记为 `forked`。只有经过单独的行为契约审计、测试对齐和项目适配设计后，才允许升级为 `vendored` 或 `shared+overlay`。
+
+## 后续状态
+
+2026-07-26，PAPER 项目的 `skills/` 被移除，PAPER 不再是中央注册中心的受管项目。本文件保留首次迁移时的历史差异证据；当前受管项目以各项目现存的 `skills.manifest.json` 和 `skills.lock.json` 为准。
+
+2026-09-13，PaperTrace 的 `reader-learner` 已增加聊天画像接入和 reader-v3 恢复契约，形成明确的项目专属依赖，因此从 `vendored` 调整为 `forked`。中央 `1.0.0` 发布保持不可变，仅作为历史证据保留。
