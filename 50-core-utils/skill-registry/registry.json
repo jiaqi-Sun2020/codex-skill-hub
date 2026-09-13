@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "skills": {
+    "reader-learner": {
+      "current_version": "1.0.0",
+      "description": "Manage a project-local learner profile, guarded feedback imports, review scheduling, and visible-Wiki projection.",
+      "releases": {
+        "1.0.0": {
+          "path": "releases/reader-learner/1.0.0",
+          "released_at": "2026-07-26T08:47:01+00:00",
+          "sha256": "28c963b7faa5f522aaea4099a78e7d1603b5313d2f596a8015a032c615f8c6c6"
+        }
+      },
+      "source": "sources/reader-learner"
+    }
+  }
+}
