@@ -2,30 +2,34 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source, navigation, and version-governance repository for Codex Skills and compatible agents. It directly maintains reusable research utilities, an academic-figure workflow, and a personal teaching Skill, while providing a unified catalog for independently maintained [S Paper Skills](https://github.com/jiaqi-Sun2020/S_paper_skills) and [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace).
+`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eight active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-13, the catalog contains **25 active Skills**: 8 maintained directly in this repository, 8 in S Paper Skills, and 9 in PaperTrace. `skill-registry` is version-governance infrastructure and is not counted as a Skill.
+As of 2026-09-13, this repository contains:
 
-> This public repository contains reusable instructions, scripts, tests, templates, and documentation. Manuscripts, experimental data, learner profiles, conversation records, credentials, and machine-local state are not public artifacts.
+- eight directly maintained active Skills;
+- one integrated version registry under `50-core-utils/skill-registry/`;
+- lightweight indexes for two external Skill projects, without duplicating their project-owned source.
+
+> The public repository contains reusable instructions, scripts, tests, templates, and documentation. Manuscripts, experimental data, learner profiles, conversation records, credentials, and machine-local state are outside its publication scope.
 
 ## Quick start
 
 ```powershell
 git clone https://github.com/jiaqi-Sun2020/codex-skill-hub.git
-cd codex-skill-hub
+Set-Location .\codex-skill-hub
 ```
 
-For a directly maintained Skill, give Codex the corresponding `SKILL.md` path or install that Skill directory into your Skill search path. Obtain project-owned S Paper Skills and PaperTrace Skills from their own repositories instead of copying them here.
+To use a Skill, ask Codex to read the `SKILL.md` in its directory or install the entire Skill directory into your Skill search path. Do not copy only `SKILL.md`: related `scripts/`, `references/`, `assets/`, and `templates/` may be part of the execution contract.
 
-## Repository layout
+## Repository structure
 
 ```text
 codex-skill-hub/
 |-- README.md / README.en.md
-|-- .agents/                         Agent context and durable knowledge entrypoint
-|-- .codex/                          Project-scoped Codex startup hook
+|-- .agents/                         Project context and durable knowledge
+|-- .codex/                          Project-local Codex bootstrap
 |-- 10-paper-build/
-|   `-- academic-figure-workflow/    Canonical academic-figure source
+|   `-- academic-figure-workflow/    Academic figure workflow
 |-- 50-core-utils/
 |   |-- project-agent-generator-skill/
 |   |-- research-project-pipeline/
@@ -33,249 +37,322 @@ codex-skill-hub/
 |   |-- skill-audit-refactor/
 |   |-- training-code-architecture-skill/
 |   |-- neat-freak/
-|   `-- skill-registry/              Integrated shared-version registry
+|   `-- skill-registry/              Version infrastructure, not an active Skill
 `-- 90-personal/
     `-- logic-chain-tutor/
 ```
 
-## Skill selection guide
+## Choosing a Skill from this repository
 
-| Goal | Primary Skill |
+| Goal | Skill |
 |---|---|
-| Determine whether an idea has a mechanism-level contribution | `research-logic` |
-| Convert an idea into a reviewer-ready experiment plan | `experiment-design` |
-| Analyze experimental results and statistical evidence | `data-analysis` |
-| Build, restructure, or deliver a LaTeX manuscript | `latex-paper-build-skill` |
-| Create paper figures, architecture diagrams, or multi-panel plots | `academic-figure-workflow` |
-| Generate project-local Agent context | `project-agent-generator-skill` |
-| Govern a complete research workspace | `research-workspace-governance` |
-| Audit or simplify an existing Skill | `skill-audit-refactor` |
-| Read a paper and build a bilingual reader | `nature-reader` → `reader-skill` |
-| Maintain a personal reading-knowledge profile | `reader-learner` |
-| Learn an unfamiliar concept from the current point of confusion | `logic-chain-tutor` |
+| Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
+| Generate `.agents/`, durable project knowledge, and Codex bootstrap loading | `project-agent-generator-skill` |
+| Onboard or migrate a complete new or legacy research project | `research-project-pipeline` |
+| Design research directories, evidence lifecycles, provenance, and archival rules | `research-workspace-governance` |
+| Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
+| Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
+| Maintain `.agents/memory/` and audit project knowledge and bootstrap loading | `neat-freak` |
+| Learn a concept or formula from the exact point of confusion | `logic-chain-tutor` |
 
-## Paper and research-building Skills (9)
-
-Eight Skills are maintained in [S Paper Skills](https://github.com/jiaqi-Sun2020/S_paper_skills); the canonical `academic-figure-workflow` source lives in this repository.
-
-### `research-logic`
-
-- **Domain:** Method integration, mechanism analysis, contribution diagnosis, and disciplined paper claims.
-- **Output:** Shallow-stacking diagnosis, mechanism-level connections, state/transition logic, and testable claims.
-- **Examples:** “Determine whether CTQW and a dynamic graph network form a mechanism-level contribution.”; “Rewrite this contribution claim with explicit evidence boundaries.”
-- **Source:** `S_paper_skills/research-logic-skill/`.
-
-### `experiment-design`
-
-- **Domain:** Experimental design for machine learning, graph learning, physics-inspired models, and method papers.
-- **Output:** Research questions, hypotheses, datasets, baselines, ablations, metrics, mechanism checks, and failure cases.
-- **Examples:** “Design an experiment matrix that tests the model's three central claims.”; “Add baselines, ablations, and statistical tests until this plan is reviewer-ready.”
-- **Source:** `S_paper_skills/experiment-design-skill/`.
-
-### `data-analysis`
-
-- **Domain:** Statistical analysis of CSV/JSON/NPZ files, training logs, repeated experiments, and paper results.
-- **Output:** Integrity checks, significance tests, effect sizes, confidence intervals, and report-ready interpretation.
-- **Examples:** “Compare five models across seeds with means, 95% confidence intervals, and effect sizes.”; “Check whether the available evidence supports the claimed performance gain.”
-- **Source:** `S_paper_skills/data-analsys-skill/`; the historical directory spelling is preserved for compatibility.
-
-### `research-html-report`
-
-- **Domain:** Research briefs, paper-planning pages, mechanism explanations, and printable academic HTML.
-- **Output:** Standalone reports with figures, tables, equations, citations, and explicit risk boundaries.
-- **Examples:** “Turn the research logic and experiment plan into a shareable HTML brief.”; “Build a paper-style page with equations, ablation tables, and explanations for every figure.”
-- **Source:** `S_paper_skills/util_skills/research-html-report/`.
-
-### `latex-paper-build-skill`
-
-- **Domain:** LaTeX project scaffolding, monolith splitting, REVTeX/ctex, BibTeX, and submission checks.
-- **Output:** Compilable manuscript structure, unified `figures/` and `.bib` management, build instructions, and delivery audits.
-- **Examples:** “Split this monolithic `main.tex` into maintainable sections without changing labels.”; “Create a REVTeX project for this QCT paper and audit figures, citations, and compilation.”
-- **Source:** `S_paper_skills/latex-paper-build-skill/`.
-
-### `paper-polishing-skill`
-
-- **Domain:** Post-approval translation, Nature/PRL/PRA polishing, and argument-structure revision.
-- **Output:** English manuscript text or revision notes that preserve equations, labels, citations, facts, and claim boundaries.
-- **Examples:** “Translate this approved Chinese results section into PRL-style English without changing the claims.”; “Audit repeated values against the canonical table and tighten the introduction.”
-- **Boundary:** Do not produce a final English manuscript before the author approves the scientific content.
-- **Source:** `S_paper_skills/paper-polishing-skill/`.
-
-### `interactive-skill-builder`
-
-- **Domain:** Converting a repeated workflow into a Codex Skill through an interview-first process.
-- **Output:** An approved Skill specification, resource plan, implementation, and validation record.
-- **Examples:** “Interview me to turn my experiment-retrospective workflow into a Skill.”; “Audit the triggers and output contract before updating this existing Skill.”
-- **Source:** `S_paper_skills/util_skills/interactive-skill-builder/`.
-
-### `prl-manuscript-polisher`
-
-- **Domain:** Physical Review Letters fit, compression, evidence audit, and REVTeX consistency.
-- **Output:** PRL-fit audit, section revisions, word budget, claim-evidence checks, and a submission checklist.
-- **Examples:** “Audit whether this manuscript fits PRL and identify the three issues most likely to affect editorial screening.”; “Compress the abstract and introduction without changing the physics.”
-- **Source:** `S_paper_skills/util_skills/prl-manuscript-polisher/`.
+## 1. Academic figure workflow
 
 ### `academic-figure-workflow`
 
-- **Domain:** Academic mechanism diagrams, neural-network architecture figures, real-data plots, multi-panel assembly, and submission QA.
-- **Output:** Editable SVG/Draw.io/PowerPoint sources, reproducible plots, captions, evidence traces, and final-size checks.
-- **Examples:** “Create an editable neural-network architecture diagram from this model code and verify every edge.”; “Turn the experiment data into a Nature-style multi-panel figure with captions and final-size readability checks.”
-- **Source:** [`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-figure-workflow/).
+**Domain**
 
-## Central core utilities (6)
+Formal figures for papers, theses, and research reports: mechanism schematics, neural-network or system diagrams, real-data plots, multi-panel compositions, editable PowerPoint figure kits, captions, and pre-submission visual QA.
+
+**Use it when**
+
+- a figure set must be planned from manuscript claims and evidence rather than appearance alone;
+- a reference image should guide visual language without copying its scientific content;
+- the deliverable must remain editable and reproducible in Draw.io, SVG, Matplotlib, PDF, PNG, or PPTX;
+- typography, strokes, legends, markers, colour, accessibility, and layout must be checked at final publication size;
+- figures, captions, data, code, and manuscript claims need an inspectable provenance chain.
+
+**Typical inputs and outputs**
+
+- Inputs: manuscript passages, model code, datasets, equations, sketches, reference images, target venue, and final dimensions.
+- Outputs: editable sources, SVG/PDF/PNG exports, PPT figure kits, `caption.md`, style manifests, evidence traces, and rendered QA results.
+
+**Critical boundary**
+
+The workflow does not invent data, units, uncertainty, mechanisms, or model components. Data-backed figures require source and uncertainty checks, and complex figures are not complete until reviewed at their intended final size.
+
+**Example prompts**
+
+> Build an editable Draw.io neural-network architecture figure from the model code and manuscript methods, then verify every connection.
+
+> Turn these CSV results into a Nature-style multi-panel figure with an editable PPT kit, caption, and final-size QA.
+
+Source: [`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-figure-workflow/)
+
+## 2. Central utilities
 
 ### `project-agent-generator-skill`
 
-- **Domain:** Repository onboarding, Agent context, durable knowledge entrypoints, and project-scoped Codex startup loading.
-- **Output:** `.agents/` documentation, an `AGENTS.md` entrypoint, memory index, and a safe project hook.
-- **Examples:** “Inspect this repository and generate Agent context without changing business code.”; “Safely refresh the existing `.agents` bundle while preserving owner-confirmed knowledge.”
-- **Source:** [`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/).
+**Domain**
+
+Generate repository-local Agent context for unfamiliar or long-lived projects so Codex can work from verified facts about architecture, commands, configuration, decisions, and safety boundaries.
+
+**Core capabilities**
+
+- Generate or safely refresh an `.agents/` documentation bundle.
+- Initialize the `.agents/memory/` durable-knowledge index.
+- Install a project-local `.codex/` hook that loads `.agents/AGENTS.md` on startup and resume.
+- Preserve owner-authored content when refreshing and create a recovery backup before forced regeneration.
+- Reject paths outside the project, link targets, and suspected credential content.
+
+**Typical output**
+
+`AGENTS.md`, `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `CONFIG_SPEC.md`, `RUNBOOK.md`, `DECISIONS.md`, a documentation index, a knowledge baseline, and the project bootstrap hook.
+
+**Example prompts**
+
+> Inspect this repository and generate project-local `.agents` context. Preview all destinations first and do not modify application code.
+
+> Refresh the existing Agent documentation while preserving owner-verified architecture, commands, and durable knowledge.
+
+Source: [`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/)
 
 ### `research-project-pipeline`
 
-- **Domain:** End-to-end onboarding, migration, governance, and handoff for new or legacy research projects.
-- **Output:** Read-only discovery, workspace design, reviewed migration, Agent context, knowledge audit, and adversarial acceptance.
-- **Examples:** “Onboard this legacy research project: inventory first, then propose migration.”; “Create the complete pipeline from workspace governance to Agent handoff for a new study.”
-- **Source:** [`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/).
+**Domain**
+
+Initialize a new research project or integrate a legacy one when the task spans workspace governance, migration, Agent context, knowledge audits, and final acceptance.
+
+**Core capabilities**
+
+- Begin with read-only discovery and separate facts, risks, and unresolved choices.
+- Use research-workspace rules to design the target structure.
+- Produce a reviewable and reversible migration plan.
+- Generate or preserve project Agent context.
+- Run knowledge, bootstrap, and adversarial acceptance checks.
+
+**Difference from adjacent Skills**
+
+- For `.agents/` generation alone, use `project-agent-generator-skill`.
+- For research-directory and evidence policy alone, use `research-workspace-governance`.
+- Use this Skill when both are required together with migration and handoff.
+
+**Example prompts**
+
+> Integrate this legacy research project into the standard workflow: inventory it read-only, propose a migration plan, and wait for review before applying it.
+
+> Set up a new research project from workspace structure through Agent context and adversarial acceptance.
+
+Source: [`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
 
 ### `research-workspace-governance`
 
-- **Domain:** Research directory design, evidence lifecycle, provenance, archiving, and cleanup policy.
-- **Output:** SOURCE/derived/intermediate/final/temporary boundaries, artifact inventories, and reproducibility rules.
-- **Examples:** “Design a research directory that cannot confuse raw data with generated results.”; “Audit whether each experiment artifact traces back to configuration, code, and source data.”
-- **Source:** [`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/).
+**Domain**
+
+Govern the lifecycle of a research workspace, especially when raw evidence, derived outputs, temporary files, and final deliverables have become mixed or results are difficult to trace.
+
+**Core capabilities**
+
+- Define roles such as `source`, `derived`, `intermediate`, `final`, and `temporary`.
+- Trace data, configuration, code, runs, figures, and manuscript claims.
+- Design experiment isolation, naming, retention, archival, and cleanup rules.
+- Protect immutable evidence and provide failure-safe migration and cleanup policies.
+- Audit reproducibility and handoff readiness.
+
+**Boundary**
+
+This Skill owns research-workspace and evidence governance. It does not replace scientific-method design, training-code architecture, Skill refactoring, or ordinary desktop tidying.
+
+**Example prompts**
+
+> Design a research directory that cannot confuse raw data, processed results, and manuscript deliverables, and define each artifact lifecycle.
+
+> Audit whether every result can be traced to its data, configuration, code revision, and run record.
+
+Source: [`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
 
 ### `skill-audit-refactor`
 
-- **Domain:** Skill triggering, context cost, resource decomposition, and safety-boundary review.
-- **Output:** Prioritized findings, simplification plan, split recommendations, and capability-preserving refactors.
-- **Examples:** “Audit whether this Skill is too long, broad, or easy to trigger incorrectly.”; “Move conditional details into references without losing behavior.”
-- **Source:** [`50-core-utils/skill-audit-refactor/`](50-core-utils/skill-audit-refactor/).
+**Domain**
+
+Audit and refactor existing Codex Skills, especially when triggers are vague, instructions are bloated, scope is overloaded, resources are duplicated, validation is missing, or safety boundaries are unclear.
+
+**Core capabilities**
+
+- Review frontmatter, triggers, body instructions, scripts, references, templates, and Agent metadata.
+- Classify content as keep, compress, move to resources, or delete.
+- Decide whether a Skill should remain whole, split into sub-Skills, or only decompose resources.
+- Reduce context cost without losing critical capability or safety rules.
+- Validate the refactor and explain residual risk.
+
+**Example prompts**
+
+> Audit whether this Skill is too long, broad, or easy to trigger incorrectly. Give me prioritized findings and a refactor plan first.
+
+> Move conditional details into `references/` while preserving every safety gate and output-quality contract.
+
+Source: [`50-core-utils/skill-audit-refactor/`](50-core-utils/skill-audit-refactor/)
 
 ### `training-code-architecture`
 
-- **Domain:** Reusable machine-learning training systems, configuration-driven experiments, and multi-task adaptation.
-- **Output:** A thin `main.py → train(args)` entrypoint, factories, adapters, checkpoints, logs, and result contracts.
-- **Examples:** “Refactor this training script into a configuration-driven reproducible architecture.”; “Preserve the training framework while supporting static and dynamic graph tasks through adapters.”
-- **Source:** [`50-core-utils/training-code-architecture-skill/`](50-core-utils/training-code-architecture-skill/).
+**Domain**
+
+Extract a reusable machine-learning training architecture from existing code. It preserves execution structure and interfaces, not the special logic of one dataset, model, or task.
+
+**Core capabilities**
+
+- Establish a thin `main.py → train(args)` entry point.
+- Organize experiment, data, model, training, task, and output settings in JSON.
+- Use factories for model, optimizer, scheduler, and component construction.
+- Isolate batching, graph structure, model calls, losses, and metrics behind a `TaskAdapter`.
+- Standardize checkpoints, logs, copied configuration, history, and final metrics.
+- Reuse one training engine across static-graph, dynamic-graph, sequence, or other tasks.
+
+**Critical boundary**
+
+Fixed tensor shapes, preprocessing rules, graph assumptions, losses, and model names from the example project are not hard-coded as universal architecture.
+
+**Example prompts**
+
+> Convert this training script into a reusable configuration-driven template while preserving the `main.py → train(args)` workflow.
+
+> Isolate task logic behind adapters so one training engine supports both static and dynamic graph experiments.
+
+Source: [`50-core-utils/training-code-architecture-skill/`](50-core-utils/training-code-architecture-skill/)
 
 ### `neat-freak`
 
-- **Domain:** `.agents/memory/`, project documentation, knowledge deduplication, and Codex bootstrap audits.
-- **Output:** Read-only audits, hash-bound update plans, reconciled knowledge, and bootstrap verification.
-- **Examples:** “Check the MEMORY index, topic files, and project documentation for conflicts.”; “Create an auditable plan for this durable decision, then apply it explicitly.”
-- **Source:** [`50-core-utils/neat-freak/`](50-core-utils/neat-freak/).
+**Domain**
 
-## PaperTrace Skills (9)
+Maintain repository-local Markdown knowledge and Agent documentation while preventing contradictions and duplication across `.agents/memory/`, README files, architecture documentation, and current code.
 
-These Skills are maintained independently in [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills) and registered as project-owned `forked` implementations.
+**Core capabilities**
 
-### `adaptive-teach`
+- Audit the knowledge index, topic files, project documentation, and provenance without writing.
+- Initialize only missing knowledge baselines.
+- Update durable knowledge through a hash-bound `plan → apply` workflow.
+- Audit `.agents/AGENTS.md` and project-local Codex hooks for correct loading.
+- Reconcile duplicate knowledge, repair indexes, and prepare durable handoff context.
 
-- **Domain:** Learner-profile-backed diagnosis, teaching, review, and transfer practice.
-- **Output:** A one-topic learning decision, short lesson, diagnostic task, and validated teaching-feedback handoff.
-- **Examples:** “Use my learner profile to choose the next concept I should repair.”; “Schedule a due review and judge mastery from actual performance evidence.”
+**Critical boundary**
 
-### `ai-quantum-news-briefing`
+Requests phrased as “audit,” “check,” or “review” are read-only. Writing requires an explicit initialize, sync, repair, or maintenance request.
 
-- **Domain:** AI and quantum-technology papers, model releases, policy, research blogs, and industry news.
-- **Output:** Source-grounded briefing, concept fable, interactive HTML, and feedback JSON.
-- **Examples:** “Create a briefing on the most important AI and quantum-computing developments from the last three days.”; “Turn today's briefing into an interactive feedback-enabled HTML page.”
+**Example prompts**
 
-### `allegory-teach`
+> Audit the MEMORY index, topic files, and project documentation for conflicts. Do not modify anything.
 
-- **Domain:** Intuition-first explanation of one advanced technical concept through a Chinese fable.
-- **Output:** A causal story with delayed concept reveal, definition, analogy limits, misconception warning, and mapping table.
-- **Examples:** “Choose one concept near my research boundary and explain it through a fable without naming it first.”; “Explain quantum error correction as a story and state exactly where the analogy breaks.”
-- **Boundary:** It does not mutate the learner profile, collect news, or own teaching-session state.
+> Prepare a hash-bound update plan for this durable decision, then apply it only after review.
 
-### `nature-reader`
+Source: [`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
 
-- **Domain:** Building a traceable bilingual evidence layer from PDF, DOI, arXiv, publisher HTML, or pasted text.
-- **Output:** Source anchors, translation, equation/figure/table extraction, source map, and reader bundle.
-- **Examples:** “Read this paper and build paragraph-level Chinese-English alignment with source anchors.”; “Extract every figure, table, and equation while preserving page-level provenance.”
-
-### `reader-skill`
-
-- **Domain:** Converting a paper evidence bundle into a standalone interactive bilingual reader.
-- **Output:** HTML reader, translation-fidelity checks, learner annotations, and feedback export.
-- **Examples:** “Turn this `paper_reader` directory into a browser-ready bilingual reader.”; “Audit whether the reader covers the complete paper and exports valid feedback.”
-
-### `reader-learner`
-
-- **Domain:** Importing reading, news, and teaching feedback, maintaining a learner profile, and projecting a visible knowledge wiki.
-- **Output:** Validated concept states, events, sources, review queue, and Obsidian pages.
-- **Examples:** “Import `reader_feedback.json` and synchronize the visible wiki.”; “List learning and due-review concepts without hand-editing the profile.”
-- **Version note:** The central registry retains the generic `1.0.0` historical release. PaperTrace now owns a fork with chat-profile and reader-v3 integration.
-
-### `chat-knowledge-profile`
-
-- **Domain:** Extracting reviewable learning signals from local ChatGPT, Claude, DeepSeek, and similar conversation exports.
-- **Output:** Bounded evidence events, conversation summaries, candidate profile signals, and human-reviewed patches.
-- **Examples:** “Extract concepts I repeatedly struggle with from these chat exports, but do not mutate my profile.”; “Generate a reviewable profile patch with provenance for every proposed signal.”
-
-### `demo-skill`
-
-- **Domain:** Bilingual project demo pages built from verified README and Agent contracts.
-- **Output:** Chinese and English HTML demos, pipeline storytelling, interaction, and pre-publication audit.
-- **Examples:** “Build a bilingual demo page for the four project pipelines from the current README.”; “Audit the demo against repository facts and repair incorrect claims.”
-
-### `lean-html-skill`
-
-- **Domain:** PaperTrace's shared HTML shell, visual system, and feedback-export components.
-- **Output:** Embedded CSS/JS, interactive feedback panels, copy/download JSON, and consistent page styling.
-- **Examples:** “Add the shared feedback-export panel to this paper reader.”; “Refactor the briefing HTML onto the shared shell without duplicating CSS and JavaScript.”
-
-## Personal Skill (1)
+## 3. Personal teaching Skill
 
 ### `logic-chain-tutor`
 
-- **Domain:** Prerequisite diagnosis, step-by-step derivation, conceptual distinctions, physical meaning, and paper-method teaching.
-- **Output:** A logical chain from the learner's current blockage, small examples, misconception repair, and contract-aware depth.
-- **Examples:** “I forgot the linear-algebra prerequisites; explain graph convolution starting from eigenvectors.”; “Derive this formula step by step and distinguish mathematical objects, operations, and information carriers.”
-- **Boundary:** Do not use it for short factual lookups or execution-only tasks.
-- **Source:** [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/).
+**Domain**
 
-## Recommended workflows
+Teach an unfamiliar concept, mathematical expression, physical meaning, or paper method from the learner's exact point of confusion. It is designed for questions such as “what is it?”, “why does this follow?”, “where does this formula come from?”, and “how do these two objects differ?”
+
+**Core capabilities**
+
+- Diagnose the missing prerequisite instead of restarting an entire course mechanically.
+- Present a map from known anchor to missing bridge, target idea, and application.
+- Explain each symbol's type, shape, operation, and physical meaning step by step.
+- Repair misconceptions with the smallest complete example, counterexample, and explicit comparison.
+- Respect output contracts such as concise explanation, prompt-only, or localized rewrite.
+
+**Boundary**
+
+It should not trigger for simple factual lookup or execution-only work. It adapts teaching within the current exchange and does not mutate an external learner profile.
+
+**Example prompts**
+
+> I have forgotten the linear-algebra prerequisites. Explain graph convolution from eigenvectors and justify each step.
+
+> Distinguish a quantum state, operator, eigenvalue, and measurement outcome, then use one minimal example to show why they are not interchangeable.
+
+Source: [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/)
+
+## Skill Registry infrastructure
+
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a ninth active Skill and is no longer published as a separate repository.
+
+| Path | Purpose |
+|---|---|
+| `registry.json` | Records governed Skill versions and integrity metadata |
+| `sources/` | Editable canonical source |
+| `releases/` | Immutable published snapshots |
+| `tools/skill_registry.py` | Registry checking, release, and synchronization tool |
+| `tests/` | Registry behavior tests |
+
+The registry supports two project relationships:
+
+- `vendored`: a project consumes a locked central release;
+- `forked`: a project owns its implementation and central synchronization must not overwrite it.
+
+The central `reader-learner 1.0.0` is retained as a traceable historical release. PaperTrace's current `reader-learner` is a project-owned fork and must not be overwritten from this registry.
+
+## Common compositions
 
 ```text
-Research idea → research-logic → experiment-design → training-code-architecture
-              → data-analysis → academic-figure-workflow → research-html-report
-              → latex-paper-build-skill → paper-polishing-skill / prl-manuscript-polisher
+Research project governance
+research-workspace-governance
+  → project-agent-generator-skill
+  → neat-freak
+  → research-project-pipeline (when full orchestration is required)
 
-Paper learning → nature-reader → reader-skill → reader-learner
-               → adaptive-teach / allegory-teach
+Machine-learning engineering
+existing code → training-code-architecture → reusable training template
 
-Governance → research-workspace-governance → project-agent-generator-skill
-           → neat-freak → research-project-pipeline (for complete orchestration)
+Paper figures
+claim / code / data → academic-figure-workflow → editable source + exports + QA
+
+Concept learning
+current blockage → logic-chain-tutor → prerequisite bridge → derivation / example / check
 ```
 
-## Skill Registry
+## External Skill projects at a glance
 
-`50-core-utils/skill-registry/` manages shared Skills that must enter a project as locked copies:
+The following Skills are not maintained in this repository. This is navigation only; consult each linked repository for complete documentation, current scripts, and project-specific constraints.
 
-- `sources/`: editable canonical sources.
-- `releases/`: immutable release snapshots.
-- `forked`: the project owns the implementation and central sync cannot overwrite it.
-- `vendored`: the project consumes a locked central release.
+| External repository | Broad purpose | Included Skills |
+|---|---|---|
+| [S Paper Skills](https://github.com/jiaqi-Sun2020/S_paper_skills) | Research logic, experiment design, data analysis, LaTeX paper construction, polishing, and venue adaptation | `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `interactive-skill-builder`, `prl-manuscript-polisher` |
+| [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills) | Paper evidence extraction, bilingual readers, learner profiles, teaching, news briefings, and HTML presentation | `nature-reader`, `reader-skill`, `reader-learner`, `adaptive-teach`, `allegory-teach`, `chat-knowledge-profile`, `ai-quantum-news-briefing`, `demo-skill`, `lean-html-skill` |
 
-All nine current PaperTrace Skills are registered as project-owned `forked` implementations. Central `reader-learner 1.0.0` is retained only as a traceable historical release.
+Obtain external Skills from their own repositories. Their presence in this README index is not a reason to copy them into this repository.
+
+## Acknowledgements and influences
+
+We thank the authors and maintainers of the following open-source Skills. The Skill-level influences that can be traced explicitly in this repository are concentrated in `academic-figure-workflow`. The local implementation has been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
+
+- [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), from the `nature-skills` project maintained by Yuan1z0825 (Apache-2.0). This repository draws on its ideas for claim-driven multi-panel information architecture, semantic colour, editable SVG, and pre-submission QA.
+- [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill), maintained by Haojae (MIT). This repository draws on its data-first visualization-advisor approach—understand the data and argument before selecting a chart—and its active interception of common scientific-plotting anti-patterns.
+
+We also thank the authors of the public figure and accessibility guidance from Nature, PLOS, Springer Nature, Elsevier, IEEE, ACM, SIGACCESS, and JCB. Those sources ground the publication-quality, accessibility, and export checks in this repository. Exact links are recorded in [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md).
+
+When a future Skill explicitly draws from another open-source Skill, its author, project link, scope of influence, and license should be added here during integration rather than being recorded only in a commit message.
 
 ## Validation
 
-Run from the repository root:
+Run all commands from the repository root:
 
 ```powershell
+Set-Location C:\path\to\codex-skill-hub
+
 python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\<skill-folder>"
+
 python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
+
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 ```
 
 ## Maintenance and licensing
 
-1. Every Skill has one canonical source location; project-owned Skills remain in their own repositories.
-2. Never edit immutable `releases/` directly; create a new version when an upgrade is appropriate.
-3. Inspect staged changes, tests, sensitive information, and licenses before pushing.
-4. Never publish manuscripts, experimental data, learner profiles, conversation records, or credentials.
+1. Keep one canonical source location for each Skill.
+2. Keep project-owned external Skills in their projects instead of duplicating them here.
+3. Never edit immutable Registry `releases/` directly; create a new version for an upgrade.
+4. Review diffs, tests, sensitive information, machine-specific paths, and license compatibility before pushing.
+5. Never publish manuscripts, experimental data, learner profiles, conversation records, or credentials.
 
-Each Skill and external repository retains its own license and provenance. This repository does not apply one blanket license to all content until per-Skill compatibility has been confirmed.
+Each Skill and external repository retains its own provenance and licensing boundary. This repository does not apply one blanket license to all content until per-Skill compatibility has been confirmed.
