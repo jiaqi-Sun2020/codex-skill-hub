@@ -1,0 +1,34 @@
+# Machine-local navigation
+*.lnk
+
+# Staging, archives, and generated backups
+98-inbox/
+99-archive/
+50-core-utils/.pipeline-interface-backups/
+.agents/.project-agent-generator-backups/
+**/.skill-registry/backups/
+*.bundle
+
+# Python and test caches
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+**/*.pem
+**/*.pfx
+**/*.key
+**/*credential*
+**/*secret*
+**/*token*
+
+# Editor and OS state
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

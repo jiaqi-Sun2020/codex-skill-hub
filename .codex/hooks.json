@@ -1,0 +1,32 @@
+{
+  "description": "Load the canonical project instructions kept under .agents.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -X utf8 -B \".codex/hooks/load_project_agents.py\"",
+            "commandWindows": "python -X utf8 -B \".codex\\hooks\\load_project_agents.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading bundle-local AGENTS.md"
+          }
+        ],
+        "matcher": "startup|resume|clear|compact"
+      }
+    ],
+    "SubagentStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -X utf8 -B \".codex/hooks/load_project_agents.py\"",
+            "commandWindows": "python -X utf8 -B \".codex\\hooks\\load_project_agents.py\"",
+            "timeout": 10,
+            "statusMessage": "Loading bundle-local AGENTS.md"
+          }
+        ]
+      }
+    ]
+  }
+}

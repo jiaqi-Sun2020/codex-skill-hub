@@ -1,0 +1,63 @@
+{
+  "template_id": "academic-model-diagram-default-v1",
+  "display_name": "Default editable academic model diagram",
+  "asset": "default-model-diagram-template.pptx",
+  "created_from": {
+    "project": "spectrum-paper1",
+    "source_artifact": "Figure1_spectrum_to_temperature_v6.pptx",
+    "source_role": "user-refined approved visual and layout exemplar",
+    "packaged_on": "2026-08-30"
+  },
+  "sha256": "CB8CB8D648B5FD3FBABA5392116EC6F16D3CF4DEDA0C3A8FE873F60DB8BB179C",
+  "slide_size_px": [1600, 900],
+  "slides": [
+    {
+      "number": 1,
+      "role": "publication model figure exemplar",
+      "content_is_example_only": true
+    },
+    {
+      "number": 2,
+      "role": "editable component board and style tokens",
+      "content_is_example_only": true
+    }
+  ],
+  "editability": {
+    "native_powerpoint_objects": 291,
+    "vector_svg_objects": 0,
+    "raster_objects": 0
+  },
+  "locked_visual_grammar": {
+    "canvas": "white 1600x900",
+    "font_family": "Arial",
+    "structural_ink": "#173153",
+    "semantic_fills": {
+      "input": "#B7CAE8",
+      "preprocess": "#C7E2B8",
+      "features": "#F7E5B2",
+      "model": "#E3DFF2",
+      "physical": "#DDB8E9",
+      "fusion": "#D6CBE8",
+      "output": "#F1B9BC"
+    },
+    "tensor_mapping": "ribbon width=L; representative stack depth=C; batch omitted for 1-D tensors",
+    "vector_mapping": "strip length=D; grouped cells allowed with exact labels",
+    "connector_mapping": "solid learned path; dashed physical path; elbow only for branch/residual/cross-lane routes"
+  },
+  "template_precedence": [
+    "explicit user reference deck",
+    "project-locked user-approved model template or style manifest",
+    "bundled default template"
+  ],
+  "scientific_content_policy": "Replace all example-specific architecture, dimensions, labels, caption, and sources with target-project evidence.",
+  "qa": {
+    "pptx_reopened": true,
+    "slide_count": 2,
+    "theme_parts_preserved_byte_for_byte": true,
+    "theme_part_count": 2,
+    "rendered_preview_reviewed": true,
+    "out_of_canvas_objects": 0,
+    "duplicate_object_names": 0,
+    "known_tooling_limitation": "slides_test.py could not create its enlarged temporary PPTX under the managed Windows policy; artifact-tool layout-bound checks and full-slide renders are used instead."
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Project Pipeline"
+  short_description: "Orchestrate safe research setup, context, and verification"
+  default_prompt: "Use $research-project-pipeline to plan and safely integrate a research project workspace."

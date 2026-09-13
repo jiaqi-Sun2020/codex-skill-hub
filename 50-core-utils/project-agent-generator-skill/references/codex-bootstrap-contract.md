@@ -1,0 +1,42 @@
+# Codex bootstrap contract
+
+Use this contract when the canonical project instructions stay below the project
+root, normally at `.agents/AGENTS.md`.
+
+## Managed surfaces
+
+- Enable hooks in `<project>/.codex/config.toml` without replacing unrelated keys.
+- Merge one managed `SessionStart` handler and one managed `SubagentStart` handler
+  into `<project>/.codex/hooks.json`.
+- Keep the loader at `.codex/hooks/load_project_agents.py`.
+- Keep the optional PowerShell launcher at `<out-dir>/scripts/start-codex.ps1`.
+- Never create or copy a root `AGENTS.md`.
+
+## Loading behavior
+
+- Run on `startup`, `resume`, `clear`, and `compact`.
+- Resolve the project root from the loader's own verified location.
+- Load only `<out-dir>/AGENTS.md`; let that file route task-relevant memory.
+- Reject missing, empty, non-UTF-8, linked, junction-based, or over-12-KiB
+  instruction files.
+- Emit successful content as Hook `additionalContext`.
+- Emit a visible stopped Hook result for invalid state; never silently continue
+  as though project instructions were loaded.
+- Add the same context for subagents.
+
+## Configuration safety
+
+- Require a trusted project for project-local config and hooks.
+- Preserve existing TOML keys and unrelated JSON Hook events.
+- Refuse an explicit `features.hooks = false`.
+- Refuse to replace an unmarked loader or launcher without `--force`.
+- Back up changed existing project config under the generator backup directory.
+- Do not modify user-level Codex config, Git hooks, or other projects.
+
+## Verification
+
+1. Validate TOML and JSON syntax.
+2. Invoke the loader with synthetic `SessionStart` and `SubagentStart` JSON.
+3. Confirm the output names the correct event and contains the bundle heading.
+4. Re-run generation and confirm no changes.
+5. Confirm no root `AGENTS.md` or `00-overview/` was created.

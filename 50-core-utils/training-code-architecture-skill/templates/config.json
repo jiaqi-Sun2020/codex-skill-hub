@@ -1,0 +1,36 @@
+{
+  "experiment": {
+    "name": "exp001",
+    "variant": "Full",
+    "seed": 42
+  },
+  "data": {
+    "dataset_name": "placeholder_dataset",
+    "num_samples": 128,
+    "input_dim": 16,
+    "target_dim": 1,
+    "batch_size": 16
+  },
+  "task": {
+    "adapter": "static_graph",
+    "objective": "regression",
+    "primary_metric": "loss",
+    "primary_metric_mode": "min"
+  },
+  "model": {
+    "name": "toy_mlp",
+    "hidden_dim": 32
+  },
+  "training": {
+    "num_epochs": 5,
+    "lr": 0.001,
+    "weight_decay": 0.0001,
+    "save_freq": 1,
+    "patience": 10,
+    "grad_clip_norm": 1.0,
+    "device": "auto"
+  },
+  "output": {
+    "root": "outputs/runs"
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Workspace Governance"
+  short_description: "Govern reproducible research projects and artifact lifecycles"
+  default_prompt: "Use $research-workspace-governance to design, audit, or manage a reproducible research project."

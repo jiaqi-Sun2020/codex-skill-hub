@@ -1,0 +1,4 @@
+interface:
+  display_name: "Logic Chain Tutor｜逻辑链导师"
+  short_description: "Explain unfamiliar ideas through complete logical chains."
+  default_prompt: "Use $logic-chain-tutor to explain this unfamiliar concept through prerequisites, examples, derivation, physical meaning, and a check of my understanding."

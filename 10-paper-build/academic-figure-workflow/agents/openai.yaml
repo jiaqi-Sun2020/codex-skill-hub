@@ -1,0 +1,4 @@
+interface:
+  display_name: "Academic Figure Workflow"
+  short_description: "Create consistent figures and editable PowerPoint kits."
+  default_prompt: "Use $academic-figure-workflow to lock a reference-derived paper style, create evidence-backed editable diagrams and real-data plots, and assemble them into a validated PowerPoint figure kit."

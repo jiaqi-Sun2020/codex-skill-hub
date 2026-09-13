@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Audit Refactor"
+  short_description: "Audit, slim, and split Codex skills."
+  default_prompt: "Use $skill-audit-refactor to review a skill, reduce bloat, and decide whether it should be split."

@@ -1,0 +1,47 @@
+---
+type: project
+---
+
+# Skill hub governance
+
+## Durable decisions
+
+- `My_skills` is the canonical local source and navigation hub for reusable Codex skills.
+- Its public GitHub repository is `jiaqi-Sun2020/codex-skill-hub`.
+- `README.md` and `README.en.md` are the Chinese and English human-facing entrypoints. They must describe every active skill's application domain and include practical invocation examples.
+- The hub directly maintains the six core utility skills under `50-core-utils/`, `academic-figure-workflow` under `10-paper-build/`, and `logic-chain-tutor` under `90-personal/`.
+- `50-core-utils/skill-registry` is integrated version-management infrastructure inside the hub, not a separate GitHub repository and not one of the direct active skills.
+- The registry's central `reader-learner` `1.0.0` release is retained as historical reproducibility material. PaperTrace owns its current project-specific `reader-learner` fork because that implementation depends on PaperTrace chat-profile integration and reader-v3 recovery behavior.
+- Project-owned skills remain in their canonical projects and are linked from the hub; do not copy them into this repository merely for publication.
+- `S_paper_skills/util_skills/project-agent-generator-skill` is retired. The canonical implementation is `50-core-utils/project-agent-generator-skill`.
+- The retired `skill-audit-refactor` and `training-code-architecture-skill` copies under `S_paper_skills/util_skills/` are also removed in favor of their canonical hub sources.
+- `research-workspace-governance` owns research-workspace architecture, evidence traceability, and artifact-lifecycle policy.
+- `research-project-pipeline` orchestrates governance, project-Agent generation, knowledge/bootstrap audit, and adversarial verification without absorbing component ownership.
+- `academic-figure-workflow` remains a central paper-building skill and does not receive a separate project-level `.agents/` bundle.
+- Personal skill source lives directly under `90-personal/`; `logic-chain-tutor` is maintained there as a single canonical source.
+- `project-agent-generator-skill` initializes or preserves project-local `.agents/memory/` by default; `--without-project-knowledge` is an explicit opt-out.
+- `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it on startup, resume, clear, compact, and subagent start.
+- `project-agent-generator-skill` owns bootstrap generation and safe repair; `neat-freak bootstrap-audit` independently verifies the loading contract.
+- `neat-freak` is the canonical audit and reconciliation workflow for project knowledge. Durable topic changes use its hash-bound `plan` / `apply` flow.
+
+### Publication contract
+
+- Before publishing, validate all JSON, scan tracked files for secrets and machine-specific paths, and run the relevant skill tests or validators.
+- Compare every linked project against its fetched upstream immediately before committing; never force-push.
+- Keep generated backups, local inbox material, shortcut files, caches, credentials, and private environment files out of the public repository.
+- Preserve the independent registry history when integrating it into the hub, and retain a recoverable local backup until the remote push is verified.
+
+### Evidence
+
+- `README.md`
+- `README.en.md`
+- `.gitignore`
+- `.agents/DECISIONS.md`
+- `50-core-utils/skill-registry/README.md`
+- `50-core-utils/skill-registry/MIGRATION_AUDIT.md`
+- `50-core-utils/research-workspace-governance/SKILL.md`
+- `50-core-utils/research-project-pipeline/SKILL.md`
+- `50-core-utils/project-agent-generator-skill/SKILL.md`
+- `50-core-utils/neat-freak/SKILL.md`
+- `10-paper-build/academic-figure-workflow/SKILL.md`
+- `90-personal/logic-chain-tutor/SKILL.md`

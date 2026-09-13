@@ -1,0 +1,4 @@
+interface:
+  display_name: "Neat-Freak"
+  short_description: "Audit .agents knowledge and startup loading"
+  default_prompt: "Use $neat-freak to audit and maintain this project's .agents knowledge and verify its project-local Codex startup bootstrap."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Agent Generator"
+  short_description: "Generate .agents context, memory, and startup loading"
+  default_prompt: "Use $project-agent-generator-skill to generate or refresh this project's .agents context, nested memory, and project-local Codex startup bootstrap."

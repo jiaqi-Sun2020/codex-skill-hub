@@ -1,0 +1,137 @@
+[
+  {
+    "id": 1,
+    "prompt": "Use $academic-figure-workflow to decide how to create three thesis figures: a mechanism diagram, a software workflow, and a photorealistic cover-like illustration. Include confirmation gates.",
+    "expected": "Chooses SVG for the mechanism, Draw.io for workflow, OpenAI image generation only after explicit confirmation and API availability check."
+  },
+  {
+    "id": 2,
+    "prompt": "用 $academic-figure-workflow 为论文画一个稍复杂的机理图，要求默认可编辑、适合投稿、先给出图规格而不是直接生成图片。",
+    "expected": "Responds in Chinese, selects SVG, creates a figure spec, and asks for confirmation before complex drawing."
+  },
+  {
+    "id": 3,
+    "prompt": "Use $academic-figure-workflow to create a draw.io architecture diagram from a real codebase summary. Avoid invented services and list validation checks.",
+    "expected": "Selects Draw.io, requires code-backed nodes/edges, avoids unsupported architecture, and defines validation checks."
+  },
+  {
+    "id": 4,
+    "prompt": "Use $academic-figure-workflow to generate a Nature-grade multi-panel Matplotlib figure from a panel spec and source CSV files. I need editable SVG/PDF, PNG preview, and QA evidence that panel claims are non-redundant.",
+    "expected": "Requests source data and panel spec if missing, uses the Nature multi-panel generator when available, exports editable SVG/PDF/PNG, and reports QA issues such as duplicate claims, missing data, outlined text, or label overlap."
+  },
+  {
+    "id": 5,
+    "prompt": "Use $academic-figure-workflow to review a manuscript figure plan with six panels and decide whether any panels are redundant or unsupported by evidence before drawing.",
+    "expected": "Creates a figure argument contract, checks panel necessity and evidence traceability, flags redundant or unsupported panels, and stops at a spec/storyboard when evidence is incomplete."
+  },
+  {
+    "id": 6,
+    "prompt": "用 $academic-figure-workflow 为一张投稿用工程架构图制定 draw.io 制图规范，要求检查最终栏宽可读性、颜色可访问性、导出可编辑性和来源依据。",
+    "expected": "Responds in Chinese, selects Draw.io, applies visual standards, accessibility/color standards, export/editability standards, draw.io engineering standards, and uses the publisher source map rather than inventing venue rules."
+  },
+  {
+    "id": 7,
+    "prompt": "Use $academic-figure-workflow to QA a figure package with editable draw.io/SVG sources, PNG/PDF exports, captions, and claim anchors before submission.",
+    "expected": "Checks source/export/caption completeness, maps panels or figure IDs to claim anchors, flags missing editable sources or exports, and recommends the figure package QA hook."
+  },
+  {
+    "id": 8,
+    "prompt": "参考这张 Nature 论文模型图的风格，为我的网络生成架构图，并保留 drawio。",
+    "expected": "Analyzes visual language without copying content, creates or updates style_manifest.yaml and style_report.md, uses editable Draw.io as source, and exports SVG/PDF/PNG."
+  },
+  {
+    "id": 9,
+    "prompt": "读取 results.xlsx，用刚才的风格生成模型对比图。",
+    "expected": "Reads the locked project style, validates columns, units, groups, sample size, missingness, metrics, and uncertainty provenance, then generates source-backed Python/SVG/PDF/PNG without inventing data."
+  },
+  {
+    "id": 10,
+    "prompt": "把架构图、ablation 图和 comparison 图拼成一张四 panel Figure，并生成可编辑 PPT。",
+    "expected": "Uses hybrid Figure Assembly, keeps each panel independent, uses native panel labels and annotations, preserves SVG and raster assets separately, generates caption.md and speaker notes, adds a supporting native editable Caption & Interpretation surface with one section per panel, and produces PPTX, manifest, and rendered QA preview."
+  },
+  {
+    "id": 11,
+    "prompt": "把所有模块另外放在 PPT 第二页，我需要自己拖动重新组合。",
+    "expected": "Creates a Component Board on slide 2 with independently movable native/vector/raster components and an editability legend while preserving source trace."
+  },
+  {
+    "id": 12,
+    "prompt": "以后所有 Fig.1–Fig.8 都继续使用 reference_01 的视觉语言。",
+    "expected": "Reads and updates the existing project manifest, resolves conflicts in favor of primary_style subject to scientific and accessibility constraints, locks approved tokens, and prevents per-figure random palettes."
+  },
+  {
+    "id": 13,
+    "prompt": "审核并重排一个 1600×900 的可编辑神经网络 PPT 图，准备按 183 mm 双栏宽度插入论文。当前图有概览和完整架构两层、示意光谱、粗箭头和大量圆角卡片。",
+    "expected": "Calculates the physical scale factor and final text size, rejects unreadably small labels, verifies branch transformations against evidence, requires real or visibly schematic data-like traces, removes redundant overview content, makes parallel and residual paths explicit, filters figure titles and production notes from the publication slide, preserves a separate component board, and produces a versioned editable output."
+  },
+  {
+    "id": 14,
+    "prompt": "重排一个双分支温度回归网络图。当前 Seven physical descriptors 是拥挤的居中段落，物理分支箭头颜色过浅，框内 padding 不一致，圆内点偏心，Regression head 文字重叠，输出单位被纵向拆开，模块间距不固定。",
+    "expected": "Applies the publication architecture layout gate; uses a structured descriptor matrix; converts all structural connectors to a high-contrast foreground with semantics carried by line style; enforces named module templates, an 8 px grid, fixed peer gaps and aligned peer heights; uses concentric native geometry for junction dots; separates regression title and body regions; uses a wide readable prediction output; renders and checks arrow direction, clipping, padding consistency, canvas coverage, and final-size typography."
+  },
+  {
+    "id": 15,
+    "prompt": "修正一个双分支光谱网络图：Measured spectrum 到 Shape preparation 的线被框体遮住且自动弯折；Block 1 和 Block 2 的通道箭头换行不一致；Shape preparation 与 seven descriptors 混用自然语言和不统一数学格式；两个分支之间存在大块空白。",
+    "expected": "Uses a visible native split junction after the shared spectrum input; uses a straight explicit-anchor connector for the adjacent shape path and elbow routing only for the lower branch; rejects hidden connector segments; builds Block 1 and Block 2 with identical fixed operator slots and a non-wrapping mapping row; converts preprocessing and descriptors to consistent key-value/grouped notation with function parentheses; compresses the inter-branch gap to the manifest range; and verifies connector continuity, operator alignment, notation consistency, branch density, clipping, and final-size readability in the rendered PPTX."
+  },
+  {
+    "id": 16,
+    "prompt": "Fig. 2(a) 里的灰色配置说明太干扰数据，请移到图注；PPT 生成后还要给我对应的完整 figure caption。",
+    "expected": "Removes nonessential configuration prose from the plotting area, preserves only decoding-critical labels, creates caption.md with panel methods, sample counts, transformations, uncertainty and split scope, writes the same caption to publication-slide speaker notes, and records the caption path in the PPT manifest."
+  },
+  {
+    "id": 17,
+    "prompt": "生成完成后清理论文图片工作区：每张图单独放置，保留最终文件和可复现源文件，删除预览、layout、inspect、缓存和临时 QA 文件。",
+    "expected": "Classifies final, reproducibility, and transient files; verifies exact deletion targets; preserves user-edited figures, raw data, references and locked styles; creates one folder per figure; deletes only explicit temporary artifacts after validation; and rechecks manifest paths and final PPTX openability."
+  },
+  {
+    "id": 18,
+    "prompt": "Matplotlib 图放入 1600×900 PPT 后字体被纵向拉长。请按 183 mm 论文宽度重新生成，不要靠拉伸填满。",
+    "expected": "Creates one shared plot-to-PPT layout contract, derives the Matplotlib canvas from each final panel slot, avoids content-dependent tight cropping, preserves the SVG viewBox ratio, fails when scale anisotropy exceeds 1%, computes final-size typography, and inspects the round-trip PPT render."
+  },
+  {
+    "id": 19,
+    "prompt": "Training spectra 的浅色细线在 PPT 缩小后几乎看不见，但不要把 174 条曲线全部加深成色块。",
+    "expected": "Uses layered context/summary/claim encoding, separates pale fills from darker signal outlines, enforces final-size stroke and alpha thresholds from the style manifest, preserves all observations and scientific values, and verifies full-size, downscaled, and grayscale previews."
+  },
+  {
+    "id": 20,
+    "prompt": "PPT 中图 (a) 没有被拉伸，但光谱坐标区仍然显得又高又窄，旁边还有色条；请重新平衡长宽比。",
+    "expected": "Distinguishes outer asset anisotropy from the main data-axes aspect, derives axes geometry from the shared canvas and subplot margins, reserves colorbar width explicitly, keeps ordinary line/scatter axes within the declared 0.95–1.30 range and peer panels within 10%, avoids equal data-unit aspect, and reruns final-size PPT render QA."
+  },
+  {
+    "id": 21,
+    "prompt": "删除图 (b) 右上角的方程和指标文字，把 Training spectra 改成 Data spectra，并重写图注，详细解释坐标轴、每一种点线、误差棒和比较方法。",
+    "expected": "Removes the requested in-panel callout without deleting the underlying calibration, uses the exact approved legend term consistently, and moves the complete explanation to caption.md and PPT notes. The caption defines both axes, units, raw versus transformed values, observation grain, display-only jitter, individual data, median, IQR, fitted baseline, equation, metrics, comparison roles, and data-split exclusions."
+  },
+  {
+    "id": 22,
+    "prompt": "一个 1–256 点波长预算扫描中，MAE 很早就低于 1 °C，但六项联合准则直到更大的 K 才首次通过。请生成正文 Figure 和可编辑 PPT 组件板，并比较正式 10-K 与敏感性 5-K 稳定窗口。",
+    "expected": "Preserves all 256 evaluated values; shows actual mask expansion at multiple K values; uses three solid semantic-colour lines with sparse event markers; clearly separates the 1 °C single-metric threshold from the six-criterion joint pass; shows all six individual pass rates with denominator 256; reports first joint pass and longest consecutive run; keeps the prespecified 10-K rule separate from the 5-K sensitivity analysis; and retains a detailed per-K criterion audit on the component board."
+  },
+  {
+    "id": 23,
+    "prompt": "图里三条密集曲线同时用了颜色、虚实线、每点圆圈、曲线末端名称和完整 legend，字体大小也不统一。请按论文最终尺寸清理，但不要改变任何数据。",
+    "expected": "Applies the plot annotation and typography contract; preserves every value and axis; chooses one primary identity mechanism; removes repeated markers unless they encode samples or declared events; removes duplicated legend/direct labels; uses locked semantic colours and one final-size font hierarchy; records removed redundant encodings; and verifies the full-size, downscaled, and grayscale renders."
+  },
+  {
+    "id": 24,
+    "prompt": "这四个 Matplotlib panel 放进 PPT 后，同级 axis、tick、legend 和 annotation 字号都不一样。统一字体排版，不要靠拉伸或把文字缩得更小。",
+    "expected": "Uses one shared plot-to-PPT layout and visual-grammar contract; regenerates plots for their final slots; locks one font family and equivalent role sizes across peer panels; rejects one-off local font fixes and anisotropic scaling; moves nonessential prose to the caption; and reruns final-size PPT visual QA."
+  },
+  {
+    "id": 25,
+    "prompt": "在可编辑 PPT 中加入所有图的详细图注，逐一解释 (a)–(d) 的坐标轴、颜色、点线、阈值、比较方法和结论，但正文 Figure 页面不要变得拥挤。",
+    "expected": "Keeps the publication artwork clean; creates caption.md and matching speaker notes; adds a separate Caption & Interpretation slide or reserved supporting column with one named native editable section per panel; explains every visible encoding, comparison, scope, and defensible result; records panel mappings in ppt_manifest.json; and verifies no clipping or contradiction."
+  },
+  {
+    "id": 26,
+    "prompt": "所有 panel 的详细解释一页放不下，请仍然放进 PPT，字体不能小到看不清。",
+    "expected": "Splits the native editable explanations across additional caption slides in display order; preserves the declared editing-size minimum and spacing rhythm; keeps each panel mapped exactly once; retains caption.md and notes as portable sources; and verifies slide bounds, clipping, editability, and scientific consistency."
+  },
+  {
+    "id": 27,
+    "prompt": "使用默认模型图模板，把我代码里的双分支网络整理成可编辑 PPT；不要沿用模板中的 InceptionTime、256 点或温度回归内容。",
+    "expected": "Uses the bundled default model-diagram PPTX only because no higher-priority user or project template was supplied; clones and edits inherited native objects; preserves the approved layout, tensor/vector grammar, semantic colours, connector contrast, component board, and final-size gate; replaces every example-specific network label, dimension, branch, operator, caption, and source with code-backed target-project evidence; and runs template, architecture, editability, and rendered QA."
+  }
+]
