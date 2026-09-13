@@ -324,10 +324,11 @@ Obtain external Skills from their own repositories. Their presence in this READM
 
 ## Acknowledgements and influences
 
-We thank the authors and maintainers of the following open-source Skills. The Skill-level influences that can be traced explicitly in this repository are concentrated in `academic-figure-workflow`. The local implementation has been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
+We thank the authors and maintainers of the following open-source Skills. The Skill-level influences that can be traced explicitly in this repository are concentrated in `academic-figure-workflow` and `neat-freak`. The local implementation has been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
 
 - [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), from the `nature-skills` project maintained by Yuan1z0825 (Apache-2.0). This repository draws on its ideas for claim-driven multi-panel information architecture, semantic colour, editable SVG, and pre-submission QA.
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill), maintained by Haojae (MIT). This repository draws on its data-first visualization-advisor approach—understand the data and argument before selecting a chart—and its active interception of common scientific-plotting anti-patterns.
+- [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md), from `khazix-skills` maintained by KKKKhazix (MIT). The local Skill draws on its knowledge-and-governance closeout concept and its approach to reconciling code, runtime state, documentation, Agent rules, authorized memory, and workspace state. This repository extends that foundation with `.agents/memory/`, hash-bound updates, and Codex bootstrap audits.
 
 We also thank the authors of the public figure and accessibility guidance from Nature, PLOS, Springer Nature, Elsevier, IEEE, ACM, SIGACCESS, and JCB. Those sources ground the publication-quality, accessibility, and export checks in this repository. Exact links are recorded in [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md).
 
@@ -355,4 +356,6 @@ python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.p
 4. Review diffs, tests, sensitive information, machine-specific paths, and license compatibility before pushing.
 5. Never publish manuscripts, experimental data, learner profiles, conversation records, or credentials.
 
-Each Skill and external repository retains its own provenance and licensing boundary. This repository does not apply one blanket license to all content until per-Skill compatibility has been confirmed.
+Content originally created by `jiaqi-Sun2020`, or otherwise eligible for relicensing, is released under the permissive [MIT License](LICENSE). Anyone may use, copy, modify, merge, publish, distribute, sublicense, and build on these Skills, provided the copyright and MIT permission notice are retained. If this project helps you, attribution or a Star is appreciated, but it is not an additional restriction beyond MIT.
+
+Third-party and derivative portions remain subject to their original licenses, copyright notices, and notice requirements. This repository's MIT License does not override those obligations. Confirmed Skill-level sources are listed above under “Acknowledgements and influences.”

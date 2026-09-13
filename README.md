@@ -324,10 +324,11 @@ research-workspace-governance
 
 ## 致谢与借鉴
 
-感谢以下开源 Skill 的作者和维护者。本仓库中能够明确追溯的 Skill 级借鉴主要集中在 `academic-figure-workflow`；相关本地实现经过重新组织和扩展，致谢不表示原作者对本项目背书。
+感谢以下开源 Skill 的作者和维护者。本仓库中能够明确追溯的 Skill 级借鉴主要集中在 `academic-figure-workflow` 和 `neat-freak`；相关本地实现经过重新组织和扩展，致谢不表示原作者对本项目背书。
 
 - [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure)，来自 Yuan1z0825 维护的 `nature-skills`（Apache-2.0）。本仓库借鉴了以论文论点组织多面板信息、语义配色、可编辑 SVG 和投稿前 QA 的设计思想。
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill)，由 Haojae 维护（MIT）。本仓库借鉴了“先理解数据和论证目标，再选图”的可视化顾问思路，以及对常见科研作图反模式的主动拦截。
+- [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)，来自 KKKKhazix 维护的 `khazix-skills`（MIT）。本仓库的同名 Skill 借鉴了知识与治理收尾理念，以及让代码、运行态、文档、Agent 规则、获准维护的记忆和工作区状态保持一致的审计思路；本地版本进一步加入了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。
 
 同时感谢 Nature、PLOS、Springer Nature、Elsevier、IEEE、ACM、SIGACCESS 和 JCB 公开的作者与图件规范；这些规范为本仓库的出版质量、可访问性和导出检查提供了标准依据。具体来源链接记录在 [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md)。
 
@@ -355,4 +356,6 @@ python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.p
 4. 推送前检查差异、测试、敏感信息、机器路径和许可证兼容性。
 5. 不公开论文原文、实验数据、学习画像、会话记录或凭据。
 
-每个 Skill 和外部仓库保留自己的来源与许可边界。在逐项确认兼容性前，本仓库暂不应用覆盖全部内容的统一许可证。
+本仓库中由 `jiaqi-Sun2020` 原创或有权再许可的内容采用宽松的 [MIT License](LICENSE)。欢迎任何人使用、复制、修改、合并、发布、分发、再许可和借鉴这些 Skill；依法保留版权声明和 MIT 许可声明即可。如果本项目对你有帮助，也欢迎在派生项目中注明来源或给予 Star，但这不是 MIT 之外的附加限制。
+
+第三方来源或衍生部分继续遵守其原始许可证、版权声明和通知要求；本仓库的 MIT License 不覆盖或取消这些义务。可确认的 Skill 级来源列在上方“致谢与借鉴”中。

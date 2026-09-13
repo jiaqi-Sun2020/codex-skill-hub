@@ -58,7 +58,7 @@
   identifiers, or the retired external path in the Skill package.
 - 2026-09-13: The root becomes the public
   `jiaqi-Sun2020/codex-skill-hub` monorepo on `main`. The previous root-layout
-  rule is superseded: `README.md`, `README.en.md`, and `.gitignore` are the
+  rule is superseded: `README.md`, `README.en.md`, `LICENSE`, and `.gitignore` are the
   maintained repository entry files.
 - 2026-09-13: `50-core-utils/skill-registry` is integrated into the monorepo with
   its history preserved; it is not published as a separate repository.
@@ -68,6 +68,9 @@
 - 2026-09-13: Retire the legacy utility copies under `S_paper_skills/util_skills/`,
   including `project-agent-generator-skill`; preserve their canonical sources in
   this hub.
+- 2026-09-13: Publish original or otherwise relicensable hub content under the
+  permissive MIT License. Preserve all third-party license, copyright, and notice
+  obligations, and record confirmed Skill influences in both root READMEs.
 
 ## Open Questions
 

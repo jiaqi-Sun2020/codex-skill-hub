@@ -12,7 +12,8 @@ skills. It separates project-owned skills, six directly used central core Skills
 versioned shared skills and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document all 25 active skills and their examples.
+The bilingual root READMEs document the eight Skills stored in this repository in
+detail and provide concise navigation for 17 external project-owned Skills.
 
 ## Analysis Coverage
 
@@ -26,6 +27,7 @@ The bilingual root READMEs document all 25 active skills and their examples.
 
 - `README.md`
 - `README.en.md`
+- `LICENSE`
 - `50-core-utils/skill-registry/README.md`
 - `.gitignore`
 - `.agents/memory/MEMORY.md`
@@ -68,9 +70,10 @@ The bilingual root READMEs document all 25 active skills and their examples.
   from that historical release.
 - Top-level category names use a two-digit numeric prefix followed by lowercase
   English words.
-- The seven named `.agents/*.md` files are generated context. The bilingual root READMEs,
-  `.agents/memory/`, and the contents of `50-core-utils/` are maintained project
-  documentation, knowledge, and code.
+- The seven named `.agents/*.md` files are generated context. The bilingual root
+  READMEs, root MIT `LICENSE`, `.agents/memory/`, and the contents of
+  `50-core-utils/` are maintained project documentation, licensing, knowledge,
+  and code.
 - `.codex/` and `.agents/scripts/start-codex.ps1` provide project-scoped explicit
   instruction loading without a root `AGENTS.md` or global configuration.
 - `00-overview/` is intentionally absent because its former inventory and

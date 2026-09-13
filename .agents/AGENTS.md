@@ -53,7 +53,7 @@ codex-skill-hub/
 - Do not recreate `00-overview/` or another document that duplicates the root
   README's overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
-  `.gitignore`, and Git metadata.
+  `LICENSE`, `.gitignore`, and Git metadata.
 - Maintain the six central core Skill sources only under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
 - Treat `50-core-utils/skill-registry/releases/` as immutable published snapshots.
 - Preserve registry history and user changes; inspect the root Git worktree before editing or committing.

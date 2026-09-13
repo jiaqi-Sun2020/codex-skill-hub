@@ -11,6 +11,7 @@
 My_skills/
 |-- README.md
 |-- README.en.md
+|-- LICENSE
 |-- .gitignore
 |-- .agents/
 |   |-- AGENTS.md
@@ -62,6 +63,8 @@ My_skills/
 
 - `README.md`: Chinese overview and usage guide.
 - `README.en.md`: English overview and usage guide.
+- `LICENSE`: MIT terms for original or otherwise relicensable repository content;
+  third-party obligations remain intact.
 - `.gitignore`: publication exclusions for local navigation, staging, backups,
   caches, and credentials.
 
