@@ -15,9 +15,11 @@
 | `python -X utf8 -B ".\tests\test_skill_registry.py"` | `50-core-utils/skill-registry/tests/` | verified |
 | `python -X utf8 -B ".\scripts\generate_project_agents.py" "..\.." --dry-run` | run from `50-core-utils/project-agent-generator-skill`; default includes long-term memory | verified |
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." audit` | run from `50-core-utils/neat-freak` | verified |
-| `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-audit` | run from `50-core-utils/neat-freak` | verified |
-| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `50-core-utils/research-project-pipeline`; 13 tests verified |
+| `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-audit` | run from `50-core-utils/neat-freak`; add `--policy-topology .agents\policy-topology.json` for a reviewed nested-root declaration | verified |
+| `python -X utf8 -B ".\tests\test_manage_project_knowledge.py"` and `python -X utf8 -B ".\tests\test_audit_memory_index.py"` | run from `50-core-utils/neat-freak`; 26 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `50-core-utils/research-project-pipeline`; 25 tests verified |
 | `python -X utf8 -B ".\tests\test_inventory_workspace.py"` | run from `50-core-utils/research-workspace-governance`; 3 tests verified |
+| `python -X utf8 -B ".\tests\test_equivalence_records.py"` | run from `50-core-utils/research-workspace-governance`; 11 tests verified |
 | `powershell -ExecutionPolicy Bypass -File ".\.agents\scripts\start-codex.ps1"` | run from the project root; validates Bootstrap files before launching Codex | verified |
 
 ## Suggested Verification Flow
@@ -25,9 +27,14 @@
 1. Confirm the project Hook loaded `.agents/AGENTS.md`, then read
    `.agents/memory/MEMORY.md` and this runbook.
 2. Fetch and inspect the root Git worktree before editing or committing; the registry is integrated monorepo content.
-3. Run the smallest relevant syntax or unit-test command first.
-4. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
-5. Do not open, print, copy, summarize, upload, or modify suspected credential files.
+3. For nested execution roots, validate a reviewed policy topology with both the
+   pipeline and `neat-freak bootstrap-audit`; retain an owner-approved isolation
+   as conditional rather than treating it as policy reachability.
+4. For equivalence claims, run the governance validator and do not promote metric
+   or observational agreement to a stronger relation.
+5. Run the smallest relevant syntax or unit-test command first.
+6. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
+7. Do not open, print, copy, summarize, upload, or modify suspected credential files.
 
 ## Long-Running Or Risky Commands
 

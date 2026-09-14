@@ -13,6 +13,8 @@
 - `50-core-utils/training-code-architecture-skill/templates/config.json`
 - `50-core-utils/skill-registry/registry.json`
 - `50-core-utils/*/agents/openai.yaml` where present
+- `50-core-utils/research-project-pipeline/references/policy-topology.schema.json`
+- `50-core-utils/research-workspace-governance/references/equivalence-record.schema.json`
 
 ## Environment Files
 
@@ -48,3 +50,9 @@ Only filenames are listed. Do not open, print, copy, summarize, upload, or modif
   not active configuration for `My_skills`.
 - No required environment variables or credential stores are defined by this root.
   Credential-like files remain excluded from inspection and generated documentation.
+- A project may declare mandatory-policy paths, hashes, execution roots, and
+  binding evidence through the policy-topology schema. The declaration is optional
+  unless nested execution roots require a verified reachability claim.
+- Equivalence records declare the scope and strength of a comparison. Their
+  `current_invalidation_keys` make prior verified conclusions effectively stale
+  when a relevant implementation, protocol, data, or environment input changes.

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
+import hashlib
 import io
 import json
 from pathlib import Path
@@ -57,6 +58,93 @@ class ResearchPipelineTests(unittest.TestCase):
         response = json.loads(stdout)
         self.assertEqual(response["status"], "plan_written")
         return json.loads(destination.read_text(encoding="utf-8"))
+
+    def make_policy_topology(
+        self,
+        project: Path,
+        *,
+        include_reference: bool = True,
+        approve_semantics: bool = True,
+    ) -> Path:
+        root_bundle = project / ".agents"
+        root_bundle.mkdir(exist_ok=True)
+        root_agents = root_bundle / "AGENTS.md"
+        if not root_agents.exists():
+            root_agents.write_text("# Root instructions\n", encoding="utf-8")
+        policy = root_bundle / "MANDATORY_POLICY.md"
+        policy.write_text("# Mandatory policy\n\nPreserve evidence.\n", encoding="utf-8")
+        nested_bundle = project / "nested" / ".agents"
+        nested_bundle.mkdir(parents=True)
+        reference = "Load `../.agents/MANDATORY_POLICY.md`.\n" if include_reference else "No parent policy.\n"
+        (nested_bundle / "AGENTS.md").write_text("# Nested\n\n" + reference, encoding="utf-8")
+        binding = {
+            "execution_root_id": "nested",
+            "policy_id": "mandatory",
+            "type": "explicit_reference",
+            "non_weakening": True,
+        }
+        if approve_semantics:
+            binding["semantic_review"] = {
+                "status": "approved",
+                "reviewer": "owner",
+                "reviewed_at": "2026-09-14",
+            }
+        manifest = root_bundle / "policy-topology.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "schema_version": pipeline.POLICY_TOPOLOGY_SCHEMA,
+                    "execution_roots": [
+                        {"id": "root", "path": "."},
+                        {"id": "nested", "path": "nested"},
+                    ],
+                    "policies": [
+                        {
+                            "id": "mandatory",
+                            "path": ".agents/MANDATORY_POLICY.md",
+                            "sha256": hashlib.sha256(policy.read_bytes()).hexdigest(),
+                            "mandatory": True,
+                            "applies_to": ["nested"],
+                        }
+                    ],
+                    "bindings": [binding],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return manifest
+
+    def make_equivalence_records(self, project: Path) -> Path:
+        records = project / "equivalence-records.json"
+        records.write_text(
+            json.dumps(
+                {
+                    "schema_version": pipeline.EQUIVALENCE_SCHEMA,
+                    "records": [
+                        {
+                            "id": "metric-check",
+                            "type": "metric_only",
+                            "scope": {"metric": "score"},
+                            "evidence": [{"external_id": "domain-run-1", "content_sha256": "a" * 64}],
+                            "comparison_method": {"name": "metric-test", "result": "pass"},
+                            "tolerance": 1e-9,
+                            "invalidation_keys": {"implementation": "abc"},
+                            "allowed_use": ["metric_comparison"],
+                            "forbidden_inference": [
+                                "matrix_identity",
+                                "matrix_equivalence_up_to_global_phase",
+                                "observational_interchangeability",
+                                "deduplicate_operator_evidence",
+                                "deduplicate_observation_evidence",
+                            ],
+                            "status": "verified",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return records
 
     def test_plan_is_read_only_and_hash_bound(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
@@ -305,6 +393,211 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertIn(payload["status"], {"pass", "conditional"})
             self.assertEqual(payload["mode"], "read-only-verification")
             self.assertEqual(before, after)
+
+    def test_nested_execution_root_without_manifest_is_conditional(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            (project / "nested" / ".agents").mkdir(parents=True)
+            (project / "nested" / ".agents" / "AGENTS.md").write_text(
+                "# Nested\n", encoding="utf-8"
+            )
+            before = sorted(path.relative_to(project) for path in project.rglob("*"))
+            report = pipeline.analyze_policy_topology(project, None)
+            after = sorted(path.relative_to(project) for path in project.rglob("*"))
+            self.assertEqual(report["status"], "conditional")
+            self.assertEqual(report["summary"]["execution_root_count"], 2)
+            self.assertIn("policy-declaration-missing", {item["code"] for item in report["findings"]})
+            self.assertEqual(before, after)
+
+    def test_explicit_nested_policy_reference_can_be_verified(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            report = pipeline.analyze_policy_topology(
+                project,
+                manifest.relative_to(project).as_posix(),
+            )
+            self.assertEqual(report["status"], "verified", report)
+            self.assertEqual(report["bindings"][0]["status"], "verified")
+
+    def test_missing_nested_policy_reference_is_blocking(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project, include_reference=False)
+            report = pipeline.analyze_policy_topology(
+                project,
+                manifest.relative_to(project).as_posix(),
+            )
+            self.assertEqual(report["status"], "invalid")
+            self.assertIn("mandatory-policy-unreachable", {item["code"] for item in report["findings"]})
+
+    def test_unreviewed_non_weakening_is_conditional(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project, approve_semantics=False)
+            report = pipeline.analyze_policy_topology(
+                project,
+                manifest.relative_to(project).as_posix(),
+            )
+            self.assertEqual(report["status"], "conditional")
+            self.assertIn("semantic-non-weakening-review-required", {item["code"] for item in report["findings"]})
+
+    def test_verified_loader_evidence_is_bound_to_root_and_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            loader = project / ".agents" / "policy-loader.py"
+            evidence = project / ".agents" / "loader-test.json"
+            loader.write_text("# verified loader\n", encoding="utf-8")
+            evidence.write_text('{"result":"pass"}\n', encoding="utf-8")
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["bindings"] = [
+                {
+                    "execution_root_id": "nested",
+                    "policy_id": "mandatory",
+                    "type": "verified_loader",
+                    "loader_path": ".agents/policy-loader.py",
+                    "loader_sha256": hashlib.sha256(loader.read_bytes()).hexdigest(),
+                    "verification_evidence": {
+                        "path": ".agents/loader-test.json",
+                        "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
+                        "result": "pass",
+                        "covers_execution_root_id": "nested",
+                        "covers_policy_id": "mandatory",
+                    },
+                }
+            ]
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            self.assertEqual(report["status"], "verified", report)
+
+            document["bindings"][0]["verification_evidence"]["covers_policy_id"] = "another-policy"
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            self.assertEqual(report["status"], "invalid")
+            self.assertIn("loader-evidence-scope-mismatch", {item["code"] for item in report["findings"]})
+
+    def test_owner_approved_isolation_remains_visible_and_conditional(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["bindings"] = [
+                {
+                    "execution_root_id": "nested",
+                    "policy_id": "mandatory",
+                    "type": "owner_approved_isolation",
+                    "approval": {
+                        "owner": "owner",
+                        "approved_at": "2026-09-14",
+                        "rationale": "This root runs a separately reviewed protocol.",
+                    },
+                }
+            ]
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            self.assertEqual(report["status"], "conditional")
+            self.assertIn("owner-approved-isolation", {item["code"] for item in report["findings"]})
+
+    def test_policy_hash_mismatch_and_drifted_copy_are_blocking(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["policies"][0]["sha256"] = "0" * 64
+            document["policies"][0]["known_copies"] = [
+                "nested/.agents/MANDATORY_POLICY.md"
+            ]
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            (project / "nested" / ".agents" / "MANDATORY_POLICY.md").write_text(
+                "# Drifted\n", encoding="utf-8"
+            )
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            codes = {item["code"] for item in report["findings"]}
+            self.assertIn("policy-hash-mismatch", codes)
+            self.assertIn("duplicated-policy-drift", codes)
+            self.assertEqual(report["summary"]["exit_code"], 2)
+
+    def test_policy_path_outside_project_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["policies"][0]["path"] = "../outside-policy.md"
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            self.assertIn("policy-path-outside-project", {item["code"] for item in report["findings"]})
+            self.assertEqual(report["status"], "invalid")
+
+    def test_topology_cannot_hide_mandatory_semantics_by_omission(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            del document["policies"][0]["mandatory"]
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
+            self.assertEqual(report["status"], "invalid")
+            self.assertIn("invalid-policy-mandatory", {item["code"] for item in report["findings"]})
+
+    def test_verify_preserves_structured_findings_for_invalid_topology(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["policies"] = []
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "verify",
+                str(project),
+                "--policy-topology",
+                manifest.relative_to(project).as_posix(),
+                "--compact",
+            ])
+            self.assertEqual(code, 2, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["status"], "fail")
+            self.assertEqual(payload["policy_topology"]["status"], "invalid")
+            self.assertEqual(
+                payload["knowledge_and_bootstrap"]["policy_topology_audit"],
+                "skipped_invalid_pipeline_topology",
+            )
+
+    def test_plan_includes_verified_policy_and_equivalence_extensions(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            manifest = self.make_policy_topology(project)
+            records = self.make_equivalence_records(project)
+            before = {path.relative_to(project).as_posix(): path.stat().st_mtime_ns for path in project.rglob("*")}
+            code, stdout, stderr = self.run_main([
+                "plan",
+                str(project),
+                "--policy-topology",
+                manifest.relative_to(project).as_posix(),
+                "--equivalence-records",
+                records.relative_to(project).as_posix(),
+                "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["policy_topology"]["status"], "verified")
+            self.assertEqual(payload["equivalence_contracts"]["status"], "verified")
+            self.assertEqual(payload["plan_sha256"], pipeline.canonical_hash(payload))
+            after = {path.relative_to(project).as_posix(): path.stat().st_mtime_ns for path in project.rglob("*")}
+            self.assertEqual(before, after)
+
+    def test_equivalence_records_must_be_project_contained(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root)
+            outside = root / "outside-records.json"
+            outside.write_text(json.dumps({"schema_version": pipeline.EQUIVALENCE_SCHEMA, "records": []}), encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--equivalence-records", str(outside), "--compact"
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("must stay inside", stderr)
 
 
 if __name__ == "__main__":

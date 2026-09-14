@@ -25,14 +25,14 @@ failed_terminal
 
 | Stage | Required input | Machine output | Mutation |
 |---|---|---|---|
-| Discover | Resolved project root | Generator inspection plus governance inventory | None |
+| Discover | Resolved project root | Generator inspection, governance inventory, execution-root inventory, optional policy topology, and optional equivalence validation | None |
 | Architecture design | Complete inventories and research objective | Reviewed architecture/migration plan | None |
 | Approval | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
 | Framework apply | Approved plan | Change manifest, rollback record, validation | Approved paths only |
 | Context plan | Post-change inventory | Generator dry-run write set | None |
 | Context create | Matching plan hash/fingerprint | New `.agents`/`.codex` or explicit preservation of `.agents`/`.agent` | Create-only by pipeline |
-| Audit | Actual context and project | Structured findings and exit status | None |
-| Final verification | Approved plan plus actual state | Acceptance and residual-risk report | None |
+| Audit | Actual context and project | Structured context, policy-reachability, knowledge, bootstrap, and equivalence findings with exit status | None |
+| Final verification | Approved plan plus actual state | Acceptance, typed inference boundary, and residual-risk report | None |
 
 ## Invariants
 
@@ -48,6 +48,20 @@ failed_terminal
 - No stage passes `--force`, applies migration moves, or deletes files.
 - A truncated or materially unreadable inventory blocks apply.
 - Component schema major versions are checked before consumption.
+- Policy-topology and equivalence fields are additive `v1` extensions. Existing
+  `research-project-pipeline/v1` plans without them remain loadable; new plans
+  always emit both fields, using `undeclared` or `not_declared` when no input was
+  supplied.
+- Execution-root discovery lists nested `.agents/AGENTS.md` and legacy
+  `.agent/AGENTS.md` entrypoints without following links or junctions. A
+  mandatory policy is considered reachable only through an explicit canonical
+  reference, immutable verified-loader evidence, or owner-approved isolation.
+- A path/hash check does not prove that natural-language child instructions
+  preserve the strength of a parent policy. Record an approved semantic review
+  or keep the result conditional.
+- Equivalence records distinguish exact matrix, global-phase matrix,
+  observational-protocol, and metric-only relations. Pipeline validation checks
+  contracts and evidence metadata; domain tooling supplies scientific evidence.
 - The inventory fingerprint is metadata-based drift detection, not a hostile
   tamper-proof content signature. Use repository revisions, signed manifests,
   or content hashes when the threat model requires stronger integrity.

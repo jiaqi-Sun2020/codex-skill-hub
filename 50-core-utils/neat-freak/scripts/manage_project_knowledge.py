@@ -40,6 +40,14 @@ SLUG = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?\.md$")
 ALLOWED_TYPES = {"user", "feedback", "project", "reference"}
 BOOTSTRAP_SCHEMA = "project-agent-bootstrap/v1"
 BOOTSTRAP_MAX_INSTRUCTION_BYTES = 12 * 1024
+POLICY_TOPOLOGY_SCHEMA = "research-policy-topology/v1"
+POLICY_BINDING_TYPES = {
+    "explicit_reference",
+    "verified_loader",
+    "owner_approved_isolation",
+}
+POLICY_SCAN_SKIP = {".git", ".hg", ".svn", "__pycache__", "node_modules"}
+MAX_POLICY_SCAN_DIRECTORIES = 50_000
 
 MAINTENANCE_RULES = """# Project knowledge maintenance
 
@@ -72,6 +80,22 @@ def read_utf8_bounded(path: Path) -> str:
 def encode_utf8(text: str, bom: bool = False) -> bytes:
     data = text.encode("utf-8")
     return (b"\xef\xbb\xbf" + data) if bom else data
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def is_sha256(value: object) -> bool:
+    return (
+        isinstance(value, str)
+        and len(value) == 64
+        and all(character in "0123456789abcdefABCDEF" for character in value)
+    )
 
 
 def resolve_project(raw: str) -> Path:
@@ -425,11 +449,305 @@ def show_change_plan(changes: dict[Path, bytes], root: Path) -> dict[str, object
     }
 
 
+def resolve_policy_file(root: Path, raw: object) -> Path:
+    if not isinstance(raw, str) or not raw:
+        raise ValueError("policy path must be a non-empty project-relative path")
+    relative = Path(raw)
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("policy path must stay inside the project")
+    unresolved = (root / relative).absolute()
+    if first_link_component(unresolved) is not None:
+        raise ValueError("policy path must not traverse a link or junction")
+    resolved = unresolved.resolve(strict=True)
+    if not is_relative_to(resolved, root) or not resolved.is_file() or is_link_like(resolved):
+        raise ValueError("policy path must be a regular project-contained file")
+    return resolved
+
+
+def resolve_policy_manifest(root: Path, raw: str) -> Path:
+    candidate = Path(raw).expanduser()
+    if ".." in candidate.parts:
+        raise ValueError("policy topology must not contain parent traversal")
+    unresolved = (candidate if candidate.is_absolute() else root / candidate).absolute()
+    if not is_relative_to(unresolved, root.absolute()):
+        raise ValueError("policy topology must stay inside the project")
+    if first_link_component(unresolved) is not None:
+        raise ValueError("policy topology must not traverse a link or junction")
+    resolved = unresolved.resolve(strict=True)
+    if not is_relative_to(resolved, root) or not resolved.is_file() or is_link_like(resolved):
+        raise ValueError("policy topology must be a regular project-contained file")
+    return resolved
+
+
+def discover_policy_execution_roots(root: Path) -> list[dict[str, object]]:
+    discovered: dict[str, dict[str, object]] = {
+        ".": {"id": "project-root", "path": ".", "context_bundles": []}
+    }
+    visited = 0
+    for current_raw, directory_names, _file_names in os.walk(root, topdown=True, followlinks=False):
+        current = Path(current_raw)
+        visited += 1
+        if visited > MAX_POLICY_SCAN_DIRECTORIES:
+            raise ValueError("execution-root discovery exceeded the safe directory limit")
+        directory_names[:] = [
+            name
+            for name in directory_names
+            if name not in POLICY_SCAN_SKIP
+            and name not in {".agents", ".agent"}
+            and not is_link_like(current / name)
+        ]
+        bundles = [
+            name
+            for name in (".agents", ".agent")
+            if (current / name / "AGENTS.md").is_file()
+            and first_link_component((current / name / "AGENTS.md").absolute()) is None
+        ]
+        if bundles:
+            relative = current.relative_to(root).as_posix() or "."
+            discovered[relative] = {
+                "id": "project-root" if relative == "." else f"execution:{relative}",
+                "path": relative,
+                "context_bundles": bundles,
+            }
+    return sorted(discovered.values(), key=lambda item: str(item["path"]))
+
+
+def nested_bootstrap_is_managed(execution_root: Path) -> bool:
+    config = execution_root / ".codex" / "config.toml"
+    hooks = execution_root / ".codex" / "hooks.json"
+    loader = execution_root / ".codex" / "hooks" / "load_project_agents.py"
+    if not all(path.is_file() and first_link_component(path.absolute()) is None for path in (config, hooks, loader)):
+        return False
+    try:
+        config_text = read_utf8_bounded(config)
+        hooks_data = json.loads(read_utf8_bounded(hooks))
+        loader_text = read_utf8_bounded(loader)
+    except (OSError, UnicodeError, ValueError, json.JSONDecodeError):
+        return False
+    if not re.search(r"(?m)^\s*hooks\s*=\s*true\s*(?:#.*)?$", config_text):
+        return False
+    if BOOTSTRAP_SCHEMA not in loader_text:
+        return False
+    hook_text = json.dumps(hooks_data, ensure_ascii=False)
+    return "SessionStart" in hook_text and "SubagentStart" in hook_text and "load_project_agents.py" in hook_text
+
+
+def audit_mandatory_policy_topology(root: Path, raw_manifest: str) -> dict[str, object]:
+    issues: list[dict[str, str]] = []
+
+    def add(kind: str, path: str, message: str, *, unsafe: bool = False) -> None:
+        issues.append({"kind": kind, "path": path, "message": message, "severity": "unsafe" if unsafe else "finding"})
+
+    manifest = resolve_policy_manifest(root, raw_manifest)
+    if manifest.stat().st_size > MAX_TEXT_BYTES:
+        raise ValueError("policy topology exceeds 5 MiB")
+    document = json.loads(read_utf8_bounded(manifest))
+    if not isinstance(document, dict) or document.get("schema_version") != POLICY_TOPOLOGY_SCHEMA:
+        raise ValueError(f"policy topology schema must be {POLICY_TOPOLOGY_SCHEMA}")
+
+    execution_roots = discover_policy_execution_roots(root)
+    for execution in execution_roots:
+        if len(execution.get("context_bundles", [])) > 1:
+            add("context-ambiguity", str(execution["path"]), "both .agents and .agent contain AGENTS.md")
+    roots_by_path = {str(item["path"]): item for item in execution_roots}
+    root_ids: set[str] = set()
+    declared_paths: set[str] = set()
+    declared_roots = document.get("execution_roots", [])
+    if not isinstance(declared_roots, list):
+        raise ValueError("policy topology execution_roots must be an array")
+    for declaration in declared_roots:
+        if not isinstance(declaration, dict) or not isinstance(declaration.get("id"), str) or not isinstance(declaration.get("path"), str):
+            add("invalid-execution-root", manifest.relative_to(root).as_posix(), "declared execution roots require id and path", unsafe=True)
+            continue
+        relative = Path(declaration["path"])
+        if relative.is_absolute() or ".." in relative.parts:
+            add("execution-root-outside-project", declaration["path"], "execution root must be project-contained", unsafe=True)
+            continue
+        unresolved = (root / relative).absolute()
+        if first_link_component(unresolved) is not None:
+            add("linked-execution-root", declaration["path"], "execution root traverses a link or junction", unsafe=True)
+            continue
+        resolved = unresolved.resolve(strict=False)
+        if not is_relative_to(resolved, root):
+            add("execution-root-outside-project", declaration["path"], "execution root escapes the project", unsafe=True)
+            continue
+        normalized = resolved.relative_to(root).as_posix()
+        normalized = normalized or "."
+        if declaration["id"] in root_ids:
+            add("duplicate-execution-root-id", normalized, f"duplicate execution root id: {declaration['id']}", unsafe=True)
+            continue
+        if normalized in declared_paths:
+            add("duplicate-execution-root-path", normalized, "duplicate execution root path", unsafe=True)
+            continue
+        declared_paths.add(normalized)
+        if not resolved.is_dir():
+            add("missing-execution-root", normalized, "declared execution root does not exist", unsafe=True)
+        entry = roots_by_path.get(normalized)
+        if entry is None:
+            entry = {"id": declaration["id"], "path": normalized, "context_bundles": []}
+            roots_by_path[normalized] = entry
+            add("declared-execution-root-not-detected", normalized, "declared root has no local AGENTS.md")
+        else:
+            entry["id"] = declaration["id"]
+        root_ids.add(declaration["id"])
+    execution_roots = sorted(roots_by_path.values(), key=lambda item: str(item["path"]))
+    for item in execution_roots:
+        root_ids.add(str(item["id"]))
+    output_ids = [str(item["id"]) for item in execution_roots]
+    for duplicate in sorted({item for item in output_ids if output_ids.count(item) > 1}):
+        add("duplicate-execution-root-id", ".", f"duplicate execution root id after discovery merge: {duplicate}", unsafe=True)
+    roots_by_id = {str(item["id"]): item for item in execution_roots}
+
+    policies: dict[str, dict[str, object]] = {}
+    policy_paths: dict[str, Path] = {}
+    raw_policies = document.get("policies", [])
+    if not isinstance(raw_policies, list) or not raw_policies:
+        raise ValueError("policy topology policies must be a non-empty array")
+    for policy in raw_policies:
+        if not isinstance(policy, dict) or not isinstance(policy.get("id"), str):
+            add("invalid-policy", manifest.relative_to(root).as_posix(), "each policy requires an id", unsafe=True)
+            continue
+        policy_id = policy["id"]
+        if policy_id in policies:
+            add("duplicate-policy-id", manifest.relative_to(root).as_posix(), f"duplicate policy id: {policy_id}", unsafe=True)
+            continue
+        if not isinstance(policy.get("mandatory"), bool):
+            add("invalid-policy-mandatory", str(policy.get("path", "")), "mandatory must be an explicit boolean", unsafe=True)
+        applies_to = policy.get("applies_to", ["*"])
+        if not isinstance(applies_to, list) or not applies_to or any(not isinstance(item, str) for item in applies_to):
+            add("invalid-policy-scope", str(policy.get("path", "")), "applies_to must be a non-empty string array", unsafe=True)
+        else:
+            unknown = set(applies_to) - root_ids - {"*"}
+            if unknown:
+                add("unknown-policy-scope-root", str(policy.get("path", "")), "unknown execution roots: " + ", ".join(sorted(unknown)), unsafe=True)
+            if len(applies_to) != len(set(applies_to)):
+                add("duplicate-policy-scope-root", str(policy.get("path", "")), "applies_to contains duplicates", unsafe=True)
+        try:
+            path = resolve_policy_file(root, policy.get("path"))
+            policy_paths[policy_id] = path
+            expected = policy.get("sha256")
+            if not is_sha256(expected) or sha256_file(path).casefold() != str(expected).casefold():
+                add("policy-hash-mismatch", path.relative_to(root).as_posix(), "policy does not match its declared SHA-256", unsafe=True)
+            if policy.get("mandatory") is True and "memory" in {part.casefold() for part in path.relative_to(root).parts}:
+                add("mandatory-policy-in-optional-memory", path.relative_to(root).as_posix(), "mandatory policy is stored only in optional memory", unsafe=True)
+        except (FileNotFoundError, OSError, ValueError) as exc:
+            add("broken-policy-reference", str(policy.get("path", "")), str(exc), unsafe=True)
+        policies[policy_id] = policy
+
+    bindings: dict[tuple[str, str], dict[str, object]] = {}
+    raw_bindings = document.get("bindings")
+    if not isinstance(raw_bindings, list):
+        raise ValueError("policy topology bindings must be an array")
+    for binding in raw_bindings:
+        if not isinstance(binding, dict):
+            add("invalid-policy-binding", manifest.relative_to(root).as_posix(), "binding must be an object", unsafe=True)
+            continue
+        root_id = binding.get("execution_root_id")
+        policy_id = binding.get("policy_id")
+        kind = binding.get("type")
+        if root_id not in roots_by_id or policy_id not in policies or kind not in POLICY_BINDING_TYPES:
+            add("invalid-policy-binding", manifest.relative_to(root).as_posix(), "binding names an unknown root, policy, or type", unsafe=True)
+            continue
+        key = (str(root_id), str(policy_id))
+        if key in bindings:
+            add("duplicate-policy-binding", manifest.relative_to(root).as_posix(), "duplicate root-policy binding", unsafe=True)
+            continue
+        bindings[key] = binding
+        execution = roots_by_id[str(root_id)]
+        execution_path = root / str(execution["path"])
+        policy_path = policy_paths.get(str(policy_id))
+        if kind == "explicit_reference" and policy_path:
+            reference = os.path.relpath(policy_path, execution_path).replace("\\", "/")
+            agent_files = [execution_path / name / "AGENTS.md" for name in execution.get("context_bundles", [])]
+            texts = [read_utf8_bounded(path) for path in agent_files if path.is_file() and path.stat().st_size <= BOOTSTRAP_MAX_INSTRUCTION_BYTES]
+            if not texts or not any(reference in text.replace("\\", "/") for text in texts):
+                add("mandatory-policy-unreachable", str(execution["path"]), f"AGENTS.md does not reference {reference}", unsafe=True)
+            if binding.get("non_weakening") is not True:
+                add("missing-non-weakening-constraint", str(execution["path"]), "explicit binding lacks non_weakening=true", unsafe=True)
+            review = binding.get("semantic_review")
+            if not isinstance(review, dict) or review.get("status") != "approved" or not review.get("reviewer") or not review.get("reviewed_at"):
+                add("semantic-non-weakening-review-required", str(execution["path"]), "natural-language non-weakening requires approved semantic review")
+            if execution["path"] != "." and not nested_bootstrap_is_managed(execution_path):
+                add("execution-root-bootstrap-unverified", str(execution["path"]), "nested explicit reference has no verified local Codex bootstrap", unsafe=True)
+        elif kind == "verified_loader":
+            try:
+                loader = resolve_policy_file(root, binding.get("loader_path"))
+                evidence = binding.get("verification_evidence")
+                if not isinstance(evidence, dict):
+                    raise ValueError("verification_evidence is required")
+                evidence_path = resolve_policy_file(root, evidence.get("path"))
+                if (
+                    not is_sha256(binding.get("loader_sha256"))
+                    or not is_sha256(evidence.get("sha256"))
+                    or sha256_file(loader).casefold() != str(binding.get("loader_sha256", "")).casefold()
+                    or sha256_file(evidence_path).casefold() != str(evidence.get("sha256", "")).casefold()
+                    or evidence.get("result") != "pass"
+                    or evidence.get("covers_execution_root_id") != root_id
+                    or evidence.get("covers_policy_id") != policy_id
+                ):
+                    raise ValueError("loader verification evidence hash, result, root, or policy does not match")
+            except (FileNotFoundError, OSError, ValueError) as exc:
+                add("loader-unverified", str(execution["path"]), str(exc), unsafe=True)
+        elif kind == "owner_approved_isolation":
+            approval = binding.get("approval")
+            if not isinstance(approval, dict) or not all(approval.get(name) for name in ("owner", "approved_at", "rationale")):
+                add("invalid-owner-approved-isolation", str(execution["path"]), "isolation lacks owner, approved_at, or rationale", unsafe=True)
+            else:
+                add("owner-approved-isolation", str(execution["path"]), "policy isolation is owner-approved")
+
+    for policy_id, policy in policies.items():
+        if policy.get("mandatory") is not True:
+            continue
+        applies_to = policy.get("applies_to", ["*"])
+        if not isinstance(applies_to, list) or not applies_to:
+            add("invalid-policy-scope", str(policy.get("path", "")), "mandatory policy has no valid applies_to scope", unsafe=True)
+            continue
+        applicable = execution_roots if "*" in applies_to else [item for item in execution_roots if item["id"] in applies_to]
+        for execution in applicable:
+            if (str(execution["id"]), policy_id) not in bindings:
+                add("mandatory-policy-unreachable", str(execution["path"]), f"no binding reaches mandatory policy {policy_id}", unsafe=True)
+
+    for policy_id, policy_path in policy_paths.items():
+        policy = policies[policy_id]
+        known_copies = policy.get("known_copies", [])
+        if not isinstance(known_copies, list) or any(not isinstance(item, str) or not item for item in known_copies):
+            add("invalid-known-policy-copies", str(policy.get("path", "")), "known_copies must contain project-relative paths", unsafe=True)
+            continue
+        for raw_copy in known_copies:
+            try:
+                copy = resolve_policy_file(root, raw_copy)
+            except (FileNotFoundError, OSError, ValueError) as exc:
+                add("broken-policy-copy", raw_copy, str(exc), unsafe=True)
+                continue
+            if copy == policy_path:
+                continue
+            if sha256_file(copy) == sha256_file(policy_path):
+                add("duplicated-policy-body", copy.relative_to(root).as_posix(), "declared copy duplicates a canonical policy; prefer a short reference")
+            else:
+                add("duplicated-policy-drift", copy.relative_to(root).as_posix(), f"declared copy has drifted from policy {policy_id}", unsafe=True)
+
+    unsafe_count = sum(item["severity"] == "unsafe" for item in issues)
+    exit_code = 2 if unsafe_count else (1 if issues else 0)
+    return {
+        "schema_version": POLICY_TOPOLOGY_SCHEMA,
+        "manifest_path": manifest.relative_to(root).as_posix(),
+        "execution_roots": execution_roots,
+        "issues": issues,
+        "summary": {
+            "status": "unsafe" if unsafe_count else ("findings" if issues else "clean"),
+            "exit_code": exit_code,
+            "issue_count": len(issues),
+            "unsafe_count": unsafe_count,
+        },
+    }
+
+
 def audit_codex_bootstrap(
     root: Path,
     *,
     bundle_dir: str = ".agents",
     strict_root_readme: bool = False,
+    policy_topology: str | None = None,
 ) -> dict[str, object]:
     bundle_candidate = Path(bundle_dir)
     if bundle_candidate.is_absolute() or ".." in bundle_candidate.parts:
@@ -609,6 +927,11 @@ def audit_codex_bootstrap(
                 "the canonical root README replaces 00-overview",
             )
 
+    topology_report: dict[str, object] | None = None
+    if policy_topology:
+        topology_report = audit_mandatory_policy_topology(root, policy_topology)
+        issues.extend(topology_report["issues"])  # type: ignore[arg-type]
+
     unsafe_count = sum(item["severity"] == "unsafe" for item in issues)
     exit_code = 2 if unsafe_count else (1 if issues else 0)
     return {
@@ -619,6 +942,7 @@ def audit_codex_bootstrap(
             for role, path in expected_files.items()
         },
         "issues": issues,
+        "policy_topology": topology_report,
         "summary": {
             "status": "unsafe" if exit_code == 2 else ("findings" if issues else "clean"),
             "exit_code": exit_code,
@@ -818,6 +1142,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     )
     bootstrap_audit.add_argument("--bundle-dir", default=".agents")
     bootstrap_audit.add_argument("--strict-root-readme", action="store_true")
+    bootstrap_audit.add_argument(
+        "--policy-topology",
+        help="Project-contained mandatory-policy topology JSON",
+    )
 
     initialize = commands.add_parser("initialize", help="Initialize missing baseline files")
     initialize.add_argument(
@@ -850,6 +1178,7 @@ def main(argv: list[str]) -> int:
                 root,
                 bundle_dir=args.bundle_dir,
                 strict_root_readme=args.strict_root_readme,
+                policy_topology=args.policy_topology,
             )
             print(
                 json.dumps(

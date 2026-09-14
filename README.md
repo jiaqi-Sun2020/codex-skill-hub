@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 8 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-13，本仓库包含：
+截至 2026-09-14，本仓库包含：
 
 - 8 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
@@ -48,8 +48,8 @@ codex-skill-hub/
 |---|---|
 | 制作论文图、模型架构图、多面板图或可编辑 PPT 图件 | `academic-figure-workflow` |
 | 为项目生成 `.agents/`、长期知识入口和 Codex 启动加载 | `project-agent-generator-skill` |
-| 完整接入或迁移一个新旧研究项目 | `research-project-pipeline` |
-| 设计研究目录、证据生命周期、来源追踪和归档规则 | `research-workspace-governance` |
+| 完整接入或迁移一个新旧研究项目，并核验嵌套 Agent 规则与等价性声明 | `research-project-pipeline` |
+| 设计研究目录、证据生命周期、来源追踪、归档和科学等价性声明规则 | `research-workspace-governance` |
 | 审核、精简、拆分或重构一个已有 Skill | `skill-audit-refactor` |
 | 把机器学习脚本重构为可复用、配置驱动的训练工程 | `training-code-architecture` |
 | 维护 `.agents/memory/` 并审计项目知识和启动加载 | `neat-freak` |
@@ -128,7 +128,9 @@ codex-skill-hub/
 - 调用研究工作区治理规则设计目标结构；
 - 生成可审核、可回滚的迁移方案；
 - 创建或保留项目 Agent 上下文；
-- 执行知识、启动加载和对抗性验收。
+- 执行知识、启动加载和对抗性验收；
+- 发现嵌套执行根，并用项目内的策略拓扑声明核验强制规则是否可达；
+- 调用治理层的类型化等价性记录校验器，保留矩阵、观测协议和指标结论之间的边界。
 
 **与相邻 Skill 的区别**
 
@@ -141,6 +143,8 @@ codex-skill-hub/
 > 把这个遗留研究项目接入统一工作流：先只读盘点，再给出迁移计划，确认后执行。
 
 > 为新课题建立从工作区结构、Agent 上下文到对抗验收的完整流水线。
+
+> 审计嵌套子项目能否加载适用的强制规则，并把“指标相同”和“观测上可互换”分别记录，避免把较弱证据升级为矩阵等价。
 
 源码：[`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
 
@@ -157,16 +161,19 @@ codex-skill-hub/
 - 设计实验隔离、命名、保留、归档和清理规则；
 - 在迁移或清理前保护不可变证据，并提供失败安全策略；
 - 审核项目是否具备复现和交接条件。
+- 为矩阵精确相等、全局相位等价、特定协议下观测等价或单指标一致性建立有范围、有证据、可失效的记录。
 
 **边界**
 
-它负责研究工作区与证据治理，不替代科学方法设计、训练代码架构、Skill 重构或一般桌面文件整理。
+它负责研究工作区与证据治理，不替代科学方法设计、训练代码架构、Skill 重构或一般桌面文件整理。等价性校验器只核查声明、证据元数据、哈希与推断边界；数值比较和科学有效性仍由领域协议负责。
 
 **调用示例**
 
 > 设计一个不会混淆原始数据、处理结果和论文终稿的研究目录，并说明每类文件的生命周期。
 
 > 审计现有实验结果能否追溯到数据、配置、代码版本和运行记录。
+
+> 为两个量子线路的比较建立等价性记录：明确它是全局相位等价、特定观测协议等价，还是仅某个指标一致，并记录何时必须重新验证。
 
 源码：[`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
 
@@ -231,6 +238,7 @@ codex-skill-hub/
 - 初始化缺失的知识基线，但不覆盖已有内容；
 - 通过哈希绑定的 `plan → apply` 流程安全更新长期知识；
 - 审核 `.agents/AGENTS.md` 与项目级 Codex Hook 是否正确加载；
+- 对有嵌套执行根的项目独立核验强制策略的路径、哈希、加载证据、隔离决定和副本漂移；
 - 合并重复知识、修复索引并准备可复用的项目交接信息。
 
 **关键边界**
@@ -242,6 +250,8 @@ codex-skill-hub/
 > 审计 MEMORY 索引、主题文件和项目文档是否冲突，不要修改文件。
 
 > 为这项长期决策生成哈希绑定的更新计划，审核通过后再应用。
+
+> 审计所有嵌套 Agent 根能否到达适用的强制策略；缺少声明或未经审查的自然语言弱化必须报告为风险。
 
 源码：[`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
 
@@ -346,6 +356,10 @@ python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\
 python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
+
+python -X utf8 -B ".\50-core-utils\research-project-pipeline\tests\test_research_pipeline.py"
+
+python -X utf8 -B ".\50-core-utils\research-workspace-governance\tests\test_equivalence_records.py"
 ```
 
 ## 维护与许可

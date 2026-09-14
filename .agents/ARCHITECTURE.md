@@ -92,6 +92,7 @@ My_skills/
 - `50-core-utils/project-agent-generator-skill/tests/test_generate_project_agents.py`
 - `50-core-utils/research-project-pipeline/tests/test_research_pipeline.py`
 - `50-core-utils/research-workspace-governance/tests/test_inventory_workspace.py`
+- `50-core-utils/research-workspace-governance/tests/test_equivalence_records.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_feedback_visible_wiki_pipeline.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_profile_safety.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_visible_wiki.py`
@@ -125,8 +126,12 @@ My_skills/
 - The six direct core Skills are used from the central source and are not vendored
   into projects.
 - `research-workspace-governance` owns research-workspace architecture and
-  artifact-lifecycle policy. `research-project-pipeline` orchestrates that Skill
-  with project-Agent generation, knowledge audit, and adversarial verification.
+  artifact-lifecycle policy, including typed equivalence records and inference
+  boundaries. `research-project-pipeline` orchestrates that Skill with
+  project-Agent generation, knowledge audit, and adversarial verification; it may
+  discover nested execution roots and validate declared policy topology but does
+  not infer mandatory prose or scientific equivalence. `neat-freak` independently
+  audits declared policy reachability during bootstrap verification.
 - `skill-registry/sources/` is editable shared source; `skill-registry/releases/`
   is immutable; project copies are controlled by manifest and lock files.
 - Only the seven named context files under `.agents/` are regenerated through the

@@ -71,6 +71,14 @@
 - 2026-09-13: Publish original or otherwise relicensable hub content under the
   permissive MIT License. Preserve all third-party license, copyright, and notice
   obligations, and record confirmed Skill influences in both root READMEs.
+- 2026-09-14: Mandatory-policy reachability is declared, not inferred. A project
+  topology records canonical policy hashes, applicable execution roots, and either
+  an explicit reference, verified loader evidence, or an owner-approved isolation.
+  `neat-freak` remains the independent bootstrap auditor.
+- 2026-09-14: Research equivalence claims use four distinct relation types:
+  `matrix_exact`, `matrix_global_phase`, `observational_protocol`, and
+  `metric_only`. The governance layer validates records and inference boundaries;
+  domain protocols remain responsible for scientific comparison.
 
 ## Open Questions
 

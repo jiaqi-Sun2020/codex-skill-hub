@@ -54,6 +54,14 @@ detail and provide concise navigation for 17 external project-owned Skills.
 - `research-workspace-governance` defines research-workspace and artifact-lifecycle
   governance; `research-project-pipeline` composes it with project-Agent generation,
   knowledge/bootstrap audit, and adversarial verification.
+- The pipeline discovers nested execution roots and validates a project-contained
+  policy topology only when supplied. It does not guess which text is mandatory;
+  `neat-freak` independently audits declared topology during bootstrap checks.
+- The governance Skill owns typed relation records for `matrix_exact`,
+  `matrix_global_phase`, `observational_protocol`, and `metric_only`. Its validator
+  checks declaration shape, project-contained evidence metadata, hashes,
+  invalidation drift, and inference boundaries; it does not perform a domain
+  comparison or establish scientific validity.
 - `academic-figure-workflow` is stored directly under `10-paper-build/` as a
   paper-building Skill and is separate from the six core Skills.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single

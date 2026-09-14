@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eight active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-13, this repository contains:
+As of 2026-09-14, this repository contains:
 
 - eight directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
@@ -48,8 +48,8 @@ codex-skill-hub/
 |---|---|
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
 | Generate `.agents/`, durable project knowledge, and Codex bootstrap loading | `project-agent-generator-skill` |
-| Onboard or migrate a complete new or legacy research project | `research-project-pipeline` |
-| Design research directories, evidence lifecycles, provenance, and archival rules | `research-workspace-governance` |
+| Onboard or migrate a complete new or legacy research project, including nested Agent rules and equivalence declarations | `research-project-pipeline` |
+| Design research directories, evidence lifecycles, provenance, archival, and scientific-equivalence declaration rules | `research-workspace-governance` |
 | Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
 | Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
 | Maintain `.agents/memory/` and audit project knowledge and bootstrap loading | `neat-freak` |
@@ -129,6 +129,8 @@ Initialize a new research project or integrate a legacy one when the task spans 
 - Produce a reviewable and reversible migration plan.
 - Generate or preserve project Agent context.
 - Run knowledge, bootstrap, and adversarial acceptance checks.
+- Discover nested execution roots and verify that mandatory policies are reachable through a project-contained policy-topology declaration.
+- Invoke the governance layer's typed-equivalence validator while retaining the boundary between matrix, observational-protocol, and metric conclusions.
 
 **Difference from adjacent Skills**
 
@@ -141,6 +143,8 @@ Initialize a new research project or integrate a legacy one when the task spans 
 > Integrate this legacy research project into the standard workflow: inventory it read-only, propose a migration plan, and wait for review before applying it.
 
 > Set up a new research project from workspace structure through Agent context and adversarial acceptance.
+
+> Audit whether nested subprojects can load every applicable mandatory policy, and record “matching metric” separately from “observationally interchangeable” so weaker evidence is never promoted to matrix equivalence.
 
 Source: [`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
 
@@ -157,16 +161,19 @@ Govern the lifecycle of a research workspace, especially when raw evidence, deri
 - Design experiment isolation, naming, retention, archival, and cleanup rules.
 - Protect immutable evidence and provide failure-safe migration and cleanup policies.
 - Audit reproducibility and handoff readiness.
+- Record matrix-exact, global-phase, observational-protocol, or metric-only claims with scope, evidence, invalidation keys, and allowed inference boundaries.
 
 **Boundary**
 
-This Skill owns research-workspace and evidence governance. It does not replace scientific-method design, training-code architecture, Skill refactoring, or ordinary desktop tidying.
+This Skill owns research-workspace and evidence governance. It does not replace scientific-method design, training-code architecture, Skill refactoring, or ordinary desktop tidying. Its equivalence validator checks declarations, evidence metadata, hashes, and inference boundaries; domain protocols remain responsible for numerical comparison and scientific validity.
 
 **Example prompts**
 
 > Design a research directory that cannot confuse raw data, processed results, and manuscript deliverables, and define each artifact lifecycle.
 
 > Audit whether every result can be traced to its data, configuration, code revision, and run record.
+
+> Create an equivalence record for two quantum circuits: state whether the result is global-phase equivalent, equivalent only under one observational protocol, or merely metric agreement, and record what changes require revalidation.
 
 Source: [`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
 
@@ -231,6 +238,7 @@ Maintain repository-local Markdown knowledge and Agent documentation while preve
 - Initialize only missing knowledge baselines.
 - Update durable knowledge through a hash-bound `plan → apply` workflow.
 - Audit `.agents/AGENTS.md` and project-local Codex hooks for correct loading.
+- Independently verify mandatory-policy paths, hashes, loader evidence, isolation decisions, and copy drift across nested execution roots.
 - Reconcile duplicate knowledge, repair indexes, and prepare durable handoff context.
 
 **Critical boundary**
@@ -242,6 +250,8 @@ Requests phrased as “audit,” “check,” or “review” are read-only. Wri
 > Audit the MEMORY index, topic files, and project documentation for conflicts. Do not modify anything.
 
 > Prepare a hash-bound update plan for this durable decision, then apply it only after review.
+
+> Audit whether every nested Agent root can reach its applicable mandatory policy; report missing declarations and unreviewed natural-language weakening as risks.
 
 Source: [`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
 
@@ -346,6 +356,10 @@ python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\
 python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
+
+python -X utf8 -B ".\50-core-utils\research-project-pipeline\tests\test_research_pipeline.py"
+
+python -X utf8 -B ".\50-core-utils\research-workspace-governance\tests\test_equivalence_records.py"
 ```
 
 ## Maintenance and licensing

@@ -34,10 +34,12 @@ knowledge, and Codex bootstrap work.
    backed-up refresh. Treat both names existing together as an ambiguity that
    requires an owner decision.
 7. **Audit context and loading.** Use `neat-freak` when available to audit the
-   memory index and Codex bootstrap. Findings do not authorize repair.
+   memory index, Codex bootstrap, and declared mandatory-policy reachability
+   across nested execution roots. Findings do not authorize repair.
 8. **Adversarial verification and handoff.** Use the governance Skill's distinct
-   scope, traceability, failure/deletion, and usability passes. Compare actual
-   state with the approved plan, then report residual risks and next action.
+   scope, traceability, failure/deletion, usability, policy-reachability, and
+   equivalence/inference passes when applicable. Compare actual state with the
+   approved plan, then report residual risks and next action.
 
 Read [references/stage-contracts.md](references/stage-contracts.md) before an
 apply or resume. Read
@@ -53,6 +55,21 @@ Create a read-only pipeline plan on stdout:
 ```powershell
 python -X utf8 .\scripts\research_pipeline.py plan D:\path\to\project --profile collaborative
 ```
+
+When nested execution roots or scientific-equivalence claims are in scope, pass
+project-contained declarations. Read
+[references/policy-topology.md](references/policy-topology.md) and
+[references/policy-topology.schema.json](references/policy-topology.schema.json)
+and the governance Skill's `references/equivalence-contract.md` before authoring
+them:
+
+```powershell
+python -X utf8 .\scripts\research_pipeline.py plan D:\path\to\project --policy-topology .agents\policy-topology.json --equivalence-records governance\equivalence-records.json
+```
+
+The pipeline discovers execution roots even without a topology declaration. It
+does not guess which prose is mandatory. Nested roots without a declaration are
+conditional, not verified.
 
 Write the plan outside the target project:
 
@@ -83,6 +100,8 @@ The script is support tooling, not an autonomous migration engine. It will not
 invent the research objective, apply a semantic workspace plan, move legacy
 files, delete artifacts, refresh existing `.agents`/`.agent` context, or resolve audit
 findings. Those remain explicit Agent/user decisions under the component Skills.
+It also does not prove scientific equivalence: the governance validator checks
+typed declarations and evidence metadata supplied by domain protocols.
 
 ## Stop conditions
 

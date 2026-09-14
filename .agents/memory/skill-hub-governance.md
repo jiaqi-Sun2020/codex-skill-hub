@@ -18,13 +18,15 @@ type: project
 - Project-owned skills remain in their canonical projects and are linked from the hub; do not copy them into this repository merely for publication.
 - `S_paper_skills/util_skills/project-agent-generator-skill` is retired. The canonical implementation is `50-core-utils/project-agent-generator-skill`.
 - The retired `skill-audit-refactor` and `training-code-architecture-skill` copies under `S_paper_skills/util_skills/` are also removed in favor of their canonical hub sources.
-- `research-workspace-governance` owns research-workspace architecture, evidence traceability, and artifact-lifecycle policy.
-- `research-project-pipeline` orchestrates governance, project-Agent generation, knowledge/bootstrap audit, and adversarial verification without absorbing component ownership.
+- `research-workspace-governance` owns research-workspace architecture, evidence traceability, artifact-lifecycle policy, and typed equivalence declarations. It validates declaration shape, evidence metadata, invalidation drift, and allowed inferences but does not perform scientific comparison.
+- `research-project-pipeline` orchestrates governance, project-Agent generation, knowledge/bootstrap audit, and adversarial verification without absorbing component ownership. It can discover nested execution roots and validate a supplied policy topology but must not infer mandatory prose or scientific equivalence.
+- Mandatory-policy topology binds canonical policy files and SHA-256 hashes to each applicable execution root through an explicit reference, verified loader evidence, or owner-approved isolation. An isolation remains conditional; it is not evidence of policy reachability.
+- Equivalence records distinguish `matrix_exact`, `matrix_global_phase`, `observational_protocol`, and `metric_only`. A weaker relation must never be promoted to a stronger claim without new domain evidence.
 - `academic-figure-workflow` remains a central paper-building skill and does not receive a separate project-level `.agents/` bundle.
 - Personal skill source lives directly under `90-personal/`; `logic-chain-tutor` is maintained there as a single canonical source.
 - `project-agent-generator-skill` initializes or preserves project-local `.agents/memory/` by default; `--without-project-knowledge` is an explicit opt-out.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it on startup, resume, clear, compact, and subagent start.
-- `project-agent-generator-skill` owns bootstrap generation and safe repair; `neat-freak bootstrap-audit` independently verifies the loading contract.
+- `project-agent-generator-skill` owns bootstrap generation and safe repair; `neat-freak bootstrap-audit` independently verifies the loading contract and, when supplied, the reviewed policy topology.
 - `neat-freak` is the canonical audit and reconciliation workflow for project knowledge. Durable topic changes use its hash-bound `plan` / `apply` flow.
 
 ### Publication contract
@@ -44,7 +46,10 @@ type: project
 - `50-core-utils/skill-registry/README.md`
 - `50-core-utils/skill-registry/MIGRATION_AUDIT.md`
 - `50-core-utils/research-workspace-governance/SKILL.md`
+- `50-core-utils/research-workspace-governance/references/equivalence-contract.md`
+- `50-core-utils/research-workspace-governance/scripts/validate_equivalence_records.py`
 - `50-core-utils/research-project-pipeline/SKILL.md`
+- `50-core-utils/research-project-pipeline/references/policy-topology.md`
 - `50-core-utils/project-agent-generator-skill/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
 - `10-paper-build/academic-figure-workflow/SKILL.md`

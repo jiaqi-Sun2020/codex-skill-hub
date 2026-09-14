@@ -30,6 +30,7 @@ Infer the least-mutating mode consistent with the request. Words such as “revi
 5. Cleanup is a classification decision supported by provenance and dependency evidence. Age, size, filename, or apparent duplication alone is insufficient.
 6. Failure must preserve the last known-good evidence. Build beside the destination, validate, then publish atomically when the filesystem permits; never delete the old final artifact before the replacement passes.
 7. The framework must expose uncertainty. Mark inferred roles, unresolved ownership, and missing provenance rather than inventing them.
+8. Equivalence is typed and scoped. Metric agreement does not prove observational agreement, and observational agreement does not prove operator or matrix equivalence.
 
 ## Workflow
 
@@ -80,6 +81,13 @@ Read [references/artifact-lifecycle.md](references/artifact-lifecycle.md) for da
 - Use sibling staging for atomic publication on one filesystem. For long work, retain validated checkpoints and an explicit resume contract.
 - Keep logs and status records when they explain failure or support provenance; do not label them temporary merely because they are machine-generated.
 
+When a workflow compares implementations, operators, observations, or metrics,
+read [references/equivalence-contract.md](references/equivalence-contract.md).
+Require a typed, scoped record with domain-produced evidence, allowed uses,
+forbidden inferences, and invalidation keys. The governance validator may check
+that record and its evidence metadata; it must not substitute for a scientific
+comparison protocol.
+
 ### 6. Change only within authority
 
 - Before migration, produce an exact mapping with collisions, link/reference updates, rollback path, and verification checks.
@@ -92,7 +100,7 @@ Read [references/artifact-lifecycle.md](references/artifact-lifecycle.md) for da
 Read [references/adversarial-audit.md](references/adversarial-audit.md) for structural changes, migrations, cleanup, archival, or when the user asks whether the framework is sufficient.
 
 - Validate observable invariants: required manifests exist, recorded inputs resolve, hashes or signatures match when used, final outputs are complete, staging is distinguishable, and no protected source was modified.
-- Conduct separate adversarial passes for scope/domain fit, traceability/reproduction, failure/deletion safety, and operational usability. A repeated reread is not a distinct audit.
+- Conduct separate adversarial passes for scope/domain fit, traceability/reproduction, failure/deletion safety, operational usability, policy reachability, and equivalence/inference safety when those concerns apply. A repeated reread is not a distinct audit.
 - Repair supported defects and rerun the affected pass. Report residual risks and owner decisions that remain.
 
 ## Deliverables

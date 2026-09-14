@@ -59,6 +59,42 @@ Assume a new collaborator, a second study, a new storage backend, and a future c
 
 Simplify ceremony that does not protect evidence or reduce coordination cost. Add structure only where ambiguity, risk, scale, or collaboration justifies it.
 
+## Pass 5: Mandatory-policy reachability
+
+Use this pass when one project contains nested roots from which an Agent or
+command can be started independently.
+
+- Are all execution roots inventoried rather than only the selected working directory?
+- Can every managed execution root reach every applicable mandatory policy?
+- Is the binding an explicit canonical reference, a verified loader, or an owner-approved isolation decision?
+- Do references exist, remain inside the approved project, avoid links, and match their recorded hashes?
+- Has copied policy prose drifted from its canonical source?
+- Is a mandatory rule incorrectly stored only in optional memory?
+- Does a child instruction set claim to replace, weaken, or silently omit a parent rule?
+
+Machine checks can prove paths, hashes, and known loader behavior. They cannot in
+general prove that arbitrary natural-language instructions do not weaken a parent
+policy. Preserve that uncertainty as an explicit semantic-review finding.
+
+## Pass 6: Equivalence and inference safety
+
+Use this pass whenever results are described as equal, equivalent,
+interchangeable, matching, or duplicates.
+
+- Is the relation explicitly one of `matrix_exact`, `matrix_global_phase`,
+  `observational_protocol`, or `metric_only`?
+- Is the claim bounded by scope, protocol, observables, parameters, and tolerance?
+- Does the evidence come from a domain comparator rather than from workspace naming or orchestration logic?
+- Are allowed uses no stronger than the recorded relation?
+- Are forbidden inferences explicit enough to stop downstream promotion?
+- For global-phase equivalence, is physical irrelevance explicitly justified in scope?
+- Do current invalidation keys still match the verified record?
+- Can a stale, rejected, failed, or unknown comparison be misreported as verified?
+
+Fail the pass if metric agreement is promoted to observational agreement, if
+observational agreement is promoted to operator/matrix equivalence, or if stale
+evidence remains marked verified.
+
 ## Acceptance record
 
 Use this record for each pass:
@@ -84,5 +120,7 @@ The framework is sufficient only when:
 - a new collaborator can follow the workflow without relying on unstated conventions;
 - loss or corruption of the working copy has a tested recovery path proportional to the evidence value;
 - domain-specific scientific quality controls are delegated to the relevant protocol rather than falsely supplied by workspace organization.
+- every applicable mandatory policy is reachable from each managed execution root, or its isolation is explicitly owner-approved;
+- every material equivalence claim has a typed, scoped record whose allowed uses do not exceed its evidence.
 
 State “conditionally sufficient” when unresolved owner choices, regulatory requirements, storage constraints, or missing provenance prevent an unconditional conclusion.

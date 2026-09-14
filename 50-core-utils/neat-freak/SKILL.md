@@ -18,7 +18,7 @@ settings.
 | Plan | Produce a hash-bound topic update plan without changing knowledge |
 | Apply | Apply an explicitly reviewed plan |
 | Project sync | Update only the requested project docs/rules/knowledge |
-| Bootstrap audit | Verify `.codex` startup loading without writing |
+| Bootstrap audit | Verify `.codex` startup loading and declared mandatory-policy reachability without writing |
 | Migration/global configuration | Out of scope unless separately requested and approved |
 
 Do not interpret “audit”, “check”, “review”, or “体检” as permission to edit.
@@ -45,7 +45,9 @@ Do not interpret “audit”, “check”, “review”, or “体检” as perm
 3. Read existing `MEMORY.md` and directly relevant topics before proposing a write.
    Inventory other Markdown topic names without following paths outside the store.
 4. Run the deterministic audit before and after authorized changes. When
-   automatic instruction loading is in scope, also run `bootstrap-audit`.
+   automatic instruction loading is in scope, also run `bootstrap-audit`. For a
+   nested project, supply its reviewed policy-topology declaration so every
+   execution root is independently checked.
 5. Reconcile against current evidence:
    - update an existing canonical topic instead of duplicating it;
    - replace disproven conclusions in place;
@@ -78,6 +80,17 @@ Audit explicit Codex loading:
 ```powershell
 python -X utf8 .\scripts\manage_project_knowledge.py D:\path\to\project bootstrap-audit --strict-root-readme
 ```
+
+Audit nested execution roots against a project-contained topology declaration:
+
+```powershell
+python -X utf8 .\scripts\manage_project_knowledge.py D:\path\to\project bootstrap-audit --policy-topology .agents\policy-topology.json
+```
+
+This independently verifies policy paths and hashes, explicit references,
+verified-loader evidence, owner-approved isolation, nested-root bootstrap,
+duplicate policy drift, and mandatory rules misplaced in optional memory. It
+does not assess scientific equivalence.
 
 For an authorized repair, use the project-agent generator's default Bootstrap
 installation, then rerun this audit.
@@ -142,6 +155,6 @@ overview directories unless the owner explicitly changes the architecture.
 - [references/agent-paths.md](references/agent-paths.md): project-local discovery
   and platform coexistence.
 - [references/codex-bootstrap-contract.md](references/codex-bootstrap-contract.md):
-  startup loading audit and repair ownership.
+  startup loading, mandatory-policy topology audit, and repair ownership.
 - [references/governance.md](references/governance.md): authorization and trust.
 - [references/sync-matrix.md](references/sync-matrix.md): evidence routing.

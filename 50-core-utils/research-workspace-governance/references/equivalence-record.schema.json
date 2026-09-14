@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-equivalence-record-v1",
+  "title": "Research Equivalence Record Collection",
+  "type": "object",
+  "required": ["schema_version", "records"],
+  "properties": {
+    "schema_version": {"const": "research-equivalence-record/v1"},
+    "records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "type",
+          "scope",
+          "evidence",
+          "comparison_method",
+          "tolerance",
+          "invalidation_keys",
+          "allowed_use",
+          "forbidden_inference",
+          "status"
+        ],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "type": {
+            "enum": [
+              "matrix_exact",
+              "matrix_global_phase",
+              "observational_protocol",
+              "metric_only"
+            ]
+          },
+          "scope": {"type": "object", "minProperties": 1},
+          "evidence": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "oneOf": [
+                {"required": ["path", "sha256"]},
+                {"required": ["external_id", "content_sha256"]}
+              ],
+              "properties": {
+                "path": {"type": "string", "minLength": 1},
+                "sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+                "external_id": {"type": "string", "minLength": 1},
+                "content_sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"}
+              },
+              "additionalProperties": true
+            }
+          },
+          "comparison_method": {
+            "type": "object",
+            "required": ["name", "result"],
+            "properties": {
+              "name": {"type": "string", "minLength": 1},
+              "result": {"enum": ["pass", "fail", "unknown"]}
+            },
+            "additionalProperties": true
+          },
+          "tolerance": {
+            "oneOf": [
+              {"type": "null"},
+              {"type": "number", "minimum": 0},
+              {"type": "object", "minProperties": 1}
+            ]
+          },
+          "invalidation_keys": {"type": "object", "minProperties": 1},
+          "allowed_use": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "forbidden_inference": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {"type": "string", "minLength": 1}
+          },
+          "status": {"enum": ["verified", "unverified", "stale", "rejected"]},
+          "semantics": {
+            "type": "object",
+            "properties": {
+              "global_phase_physically_irrelevant": {"type": "boolean"}
+            },
+            "additionalProperties": true
+          },
+          "protocol": {
+            "type": "object",
+            "properties": {"id": {"type": "string", "minLength": 1}},
+            "additionalProperties": true
+          }
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"type": {"const": "matrix_global_phase"}}},
+            "then": {
+              "required": ["semantics"],
+              "properties": {
+                "semantics": {
+                  "required": ["global_phase_physically_irrelevant"],
+                  "properties": {"global_phase_physically_irrelevant": {"const": true}}
+                }
+              }
+            }
+          },
+          {
+            "if": {"properties": {"type": {"const": "observational_protocol"}}},
+            "then": {
+              "required": ["protocol"],
+              "properties": {"protocol": {"required": ["id"]}}
+            }
+          }
+        ],
+        "additionalProperties": true
+      }
+    },
+    "current_invalidation_keys": {
+      "type": "object",
+      "additionalProperties": {"type": "object"}
+    }
+  },
+  "additionalProperties": true
+}

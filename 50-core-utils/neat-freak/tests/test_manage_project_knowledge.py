@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import json
 import sys
 import tempfile
@@ -303,6 +304,117 @@ class ProjectKnowledgeManagerTests(unittest.TestCase):
             kinds = {item["kind"] for item in report["issues"]}
             self.assertIn("root-file-contract", kinds)
             self.assertIn("duplicate-root-agents", kinds)
+
+    def make_policy_topology(self, project: Path, *, install_nested_bootstrap: bool = True) -> Path:
+        policy = project / ".agents" / "MANDATORY_POLICY.md"
+        policy.parent.mkdir(parents=True, exist_ok=True)
+        policy.write_text("# Mandatory policy\n\nPreserve evidence.\n", encoding="utf-8")
+        nested = project / "nested"
+        (nested / ".agents").mkdir(parents=True)
+        (nested / ".agents" / "AGENTS.md").write_text(
+            "# Nested instructions\n\nLoad `../.agents/MANDATORY_POLICY.md`; this must not weaken it.\n",
+            encoding="utf-8",
+        )
+        if install_nested_bootstrap:
+            self.install_bootstrap_fixture(nested)
+            (nested / ".agents" / "AGENTS.md").write_text(
+                "# Nested instructions\n\nLoad `../.agents/MANDATORY_POLICY.md`; this must not weaken it.\n",
+                encoding="utf-8",
+            )
+        manifest = project / ".agents" / "policy-topology.json"
+        manifest.write_text(
+            json.dumps(
+                {
+                    "schema_version": manager.POLICY_TOPOLOGY_SCHEMA,
+                    "execution_roots": [
+                        {"id": "root", "path": "."},
+                        {"id": "nested", "path": "nested"},
+                    ],
+                    "policies": [
+                        {
+                            "id": "mandatory",
+                            "path": ".agents/MANDATORY_POLICY.md",
+                            "sha256": hashlib.sha256(policy.read_bytes()).hexdigest(),
+                            "mandatory": True,
+                            "applies_to": ["nested"],
+                        }
+                    ],
+                    "bindings": [
+                        {
+                            "execution_root_id": "nested",
+                            "policy_id": "mandatory",
+                            "type": "explicit_reference",
+                            "non_weakening": True,
+                            "semantic_review": {
+                                "status": "approved",
+                                "reviewer": "owner",
+                                "reviewed_at": "2026-09-14",
+                            },
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+        return manifest
+
+    def test_policy_topology_accepts_reachable_nested_policy(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            manifest = self.make_policy_topology(project)
+            report = manager.audit_codex_bootstrap(
+                project,
+                policy_topology=manifest.relative_to(project).as_posix(),
+            )
+            self.assertEqual(report["summary"]["status"], "clean", report)
+            self.assertEqual(report["policy_topology"]["summary"]["status"], "clean")
+            self.assertEqual(
+                manager.main(
+                    [
+                        str(project),
+                        "--compact",
+                        "bootstrap-audit",
+                        "--policy-topology",
+                        str(manifest),
+                    ]
+                ),
+                0,
+            )
+
+    def test_policy_topology_rejects_unbootstrapped_nested_reference(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            manifest = self.make_policy_topology(project, install_nested_bootstrap=False)
+            report = manager.audit_codex_bootstrap(
+                project,
+                policy_topology=manifest.relative_to(project).as_posix(),
+            )
+            kinds = {item["kind"] for item in report["issues"]}
+            self.assertIn("execution-root-bootstrap-unverified", kinds)
+            self.assertEqual(report["summary"]["exit_code"], 2)
+
+    def test_policy_topology_rejects_drifted_policy_copy(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            manifest = self.make_policy_topology(project)
+            (project / "nested" / ".agents" / "MANDATORY_POLICY.md").write_text(
+                "# Drifted policy\n",
+                encoding="utf-8",
+            )
+            document = json.loads(manifest.read_text(encoding="utf-8"))
+            document["policies"][0]["known_copies"] = [
+                "nested/.agents/MANDATORY_POLICY.md"
+            ]
+            manifest.write_text(json.dumps(document), encoding="utf-8")
+            report = manager.audit_codex_bootstrap(
+                project,
+                policy_topology=manifest.relative_to(project).as_posix(),
+            )
+            self.assertIn("duplicated-policy-drift", {item["kind"] for item in report["issues"]})
+            self.assertEqual(report["summary"]["exit_code"], 2)
 
 
 if __name__ == "__main__":
