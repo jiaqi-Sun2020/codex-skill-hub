@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Safely initialize, plan, apply, and audit a project-local Markdown knowledge base."""
+"""Safely audit and maintain project knowledge and existing managed Hook wiring."""
 
 from __future__ import annotations
 
@@ -853,7 +853,34 @@ def audit_codex_bootstrap(
                         ".codex/hooks.json",
                         f"{event} does not invoke load_project_agents.py",
                     )
-                elif event == "SessionStart":
+                else:
+                    managed_handlers = [
+                        handler
+                        for group in managed_groups
+                        for handler in group.get("hooks", [])
+                        if isinstance(handler, dict)
+                        and "load_project_agents.py"
+                        in str(
+                            handler.get(
+                                "commandWindows",
+                                handler.get("command", ""),
+                            )
+                        )
+                    ]
+                    expected_handler = managed_hook_group(event)["hooks"][0]  # type: ignore[index]
+                    if len(managed_handlers) != 1:
+                        finding(
+                            "duplicate-bootstrap-hook",
+                            ".codex/hooks.json",
+                            f"{event} must contain exactly one managed loader handler",
+                        )
+                    if not any(handler == expected_handler for handler in managed_handlers):
+                        finding(
+                            "drifted-bootstrap-hook",
+                            ".codex/hooks.json",
+                            f"{event} managed loader handler differs from the reviewed contract",
+                        )
+                if managed_groups and event == "SessionStart":
                     sources: set[str] = set()
                     for group in managed_groups:
                         sources.update(
@@ -950,6 +977,175 @@ def audit_codex_bootstrap(
             "unsafe_count": unsafe_count,
         },
     }
+
+
+REPAIRABLE_BOOTSTRAP_FINDINGS = {
+    "drifted-bootstrap-hook",
+    "duplicate-bootstrap-hook",
+    "hooks-not-enabled",
+    "missing-bootstrap-hook",
+    "incomplete-session-start-matcher",
+}
+
+
+def enable_managed_hooks(existing: str) -> str:
+    """Enable project hooks without replacing unrelated Codex settings."""
+    newline = "\r\n" if "\r\n" in existing else "\n"
+    section = re.search(r"(?m)^\s*\[features\]\s*(?:#.*)?$", existing)
+    if section:
+        next_section = re.search(
+            r"(?m)^\s*\[[^\]]+\]\s*(?:#.*)?$", existing[section.end():]
+        )
+        end = section.end() + (
+            next_section.start() if next_section else len(existing[section.end():])
+        )
+        body = existing[section.end():end]
+        setting = re.search(
+            r"(?m)^\s*hooks\s*=\s*(true|false)\s*(?:#.*)?$", body
+        )
+        if setting:
+            if setting.group(1) == "false":
+                raise ValueError(
+                    "project .codex/config.toml explicitly disables hooks; "
+                    "owner review is required before repair"
+                )
+            return existing
+        return existing[:section.end()] + newline + "hooks = true" + existing[section.end():]
+    base = existing.rstrip("\r\n")
+    prefix = f"{base}{newline}{newline}" if base else ""
+    return (
+        f"{prefix}#:schema https://developers.openai.com/codex/config-schema.json"
+        f"{newline}{newline}[features]{newline}hooks = true{newline}"
+    )
+
+
+def managed_hook_group(event: str) -> dict[str, object]:
+    handler = {
+        "type": "command",
+        "command": 'python3 -X utf8 -B ".codex/hooks/load_project_agents.py"',
+        "commandWindows": 'python -X utf8 -B ".codex\\hooks\\load_project_agents.py"',
+        "timeout": 10,
+        "statusMessage": "Loading bundle-local AGENTS.md",
+    }
+    group: dict[str, object] = {"hooks": [handler]}
+    if event == "SessionStart":
+        group["matcher"] = "startup|resume|clear|compact"
+    return group
+
+
+def merge_managed_hooks(existing: str) -> str:
+    data = json.loads(existing)
+    if not isinstance(data, dict):
+        raise ValueError(".codex/hooks.json must contain a JSON object")
+    hooks = data.setdefault("hooks", {})
+    if not isinstance(hooks, dict):
+        raise ValueError(".codex/hooks.json has a non-object hooks field")
+    for event in ("SessionStart", "SubagentStart"):
+        groups = hooks.setdefault(event, [])
+        if not isinstance(groups, list):
+            raise ValueError(f".codex/hooks.json has a non-list {event} field")
+        desired = managed_hook_group(event)
+        desired_handler = desired["hooks"][0]  # type: ignore[index]
+        repaired_groups: list[object] = []
+        installed = False
+        for group in groups:
+            if not isinstance(group, dict):
+                repaired_groups.append(group)
+                continue
+            handlers = group.get("hooks")
+            if not isinstance(handlers, list):
+                repaired_groups.append(group)
+                continue
+            managed = [
+                handler
+                for handler in handlers
+                if isinstance(handler, dict)
+                and "load_project_agents.py"
+                in str(handler.get("commandWindows", handler.get("command", "")))
+            ]
+            if not managed:
+                repaired_groups.append(group)
+                continue
+            retained = [handler for handler in handlers if handler not in managed]
+            repaired = dict(group)
+            if not installed:
+                repaired["hooks"] = retained + [desired_handler]
+                if event == "SessionStart":
+                    required = ["startup", "resume", "clear", "compact"]
+                    existing_sources = [
+                        part
+                        for part in str(group.get("matcher", "")).split("|")
+                        if part and part not in required
+                    ]
+                    repaired["matcher"] = "|".join(required + existing_sources)
+                repaired_groups.append(repaired)
+                installed = True
+            elif retained:
+                repaired["hooks"] = retained
+                repaired_groups.append(repaired)
+        if not installed:
+            repaired_groups.append(desired)
+        hooks[event] = repaired_groups
+    return json.dumps(data, ensure_ascii=False, indent=2) + "\n"
+
+
+def bootstrap_repair_plan(
+    root: Path,
+    *,
+    bundle_dir: str = ".agents",
+) -> tuple[dict[Path, bytes], dict[Path, str | None], dict[str, object]]:
+    """Plan a narrow repair of an existing, demonstrably managed bootstrap."""
+    before = audit_codex_bootstrap(root, bundle_dir=bundle_dir)
+    issue_kinds = {str(item.get("kind")) for item in before["issues"]}  # type: ignore[index]
+    unrepairable = sorted(issue_kinds - REPAIRABLE_BOOTSTRAP_FINDINGS)
+    if unrepairable:
+        raise ValueError(
+            "bootstrap repair requires a complete managed baseline; unresolved findings: "
+            + ", ".join(unrepairable)
+        )
+
+    bundle_relative = Path(bundle_dir)
+    if bundle_relative.is_absolute() or ".." in bundle_relative.parts:
+        raise ValueError("bundle directory must be project-contained and relative")
+    bundle = (root / bundle_relative).resolve(strict=False)
+    config = root / ".codex" / "config.toml"
+    hooks_file = root / ".codex" / "hooks.json"
+    loader = root / ".codex" / "hooks" / "load_project_agents.py"
+    agents = bundle / "AGENTS.md"
+    launcher = bundle / "scripts" / "start-codex.ps1"
+    for path in (config, hooks_file, loader, agents, launcher):
+        safe_target(path, root)
+        if not path.is_file():
+            raise ValueError(
+                "bootstrap repair does not create missing framework files: "
+                + path.relative_to(root).as_posix()
+            )
+    if BOOTSTRAP_SCHEMA not in read_utf8_bounded(loader):
+        raise ValueError("bootstrap loader is not managed by project-agent-bootstrap/v1")
+
+    current_config = read_utf8_bounded(config)
+    current_hooks = read_utf8_bounded(hooks_file)
+    desired: dict[Path, bytes] = {}
+    if "hooks-not-enabled" in issue_kinds:
+        desired[config] = encode_utf8(
+            enable_managed_hooks(current_config),
+            bom=read_bounded(config).startswith(b"\xef\xbb\xbf"),
+        )
+    if issue_kinds & {
+        "drifted-bootstrap-hook",
+        "duplicate-bootstrap-hook",
+        "missing-bootstrap-hook",
+        "incomplete-session-start-matcher",
+    }:
+        desired[hooks_file] = encode_utf8(
+            merge_managed_hooks(current_hooks),
+            bom=read_bounded(hooks_file).startswith(b"\xef\xbb\xbf"),
+        )
+    changes = {
+        path: data for path, data in desired.items() if read_bounded(path) != data
+    }
+    expected = {path: sha256_bytes(read_bounded(path)) for path in changes}
+    return changes, expected, before
 
 
 def build_topic(title: str, body: str, memory_type: str | None) -> str:
@@ -1147,6 +1343,13 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Project-contained mandatory-policy topology JSON",
     )
 
+    bootstrap_repair = commands.add_parser(
+        "bootstrap-repair",
+        help="Repair existing managed Codex hook wiring without regenerating the framework",
+    )
+    bootstrap_repair.add_argument("--bundle-dir", default=".agents")
+    bootstrap_repair.add_argument("--dry-run", action="store_true")
+
     initialize = commands.add_parser("initialize", help="Initialize missing baseline files")
     initialize.add_argument(
         "--install-entrypoint",
@@ -1189,6 +1392,29 @@ def main(argv: list[str]) -> int:
                 )
             )
             return int(report["summary"]["exit_code"])
+        if args.command == "bootstrap-repair":
+            changes, expected, before = bootstrap_repair_plan(
+                root,
+                bundle_dir=args.bundle_dir,
+            )
+            result = show_change_plan(changes, root)
+            result["before_audit"] = before["summary"]
+            if not args.dry_run and changes:
+                with ProjectLock(root):
+                    atomic_batch(root, changes, expected)
+                result["status"] = "applied"
+            if not args.dry_run:
+                after = audit_codex_bootstrap(root, bundle_dir=args.bundle_dir)
+                result["after_audit"] = after["summary"]
+            print(
+                json.dumps(
+                    result,
+                    ensure_ascii=False,
+                    indent=None if args.compact else 2,
+                    sort_keys=True,
+                )
+            )
+            return 0
         memory = select_memory(root, args.memory_dir)
         if args.command == "audit":
             report = audit_memory(memory)

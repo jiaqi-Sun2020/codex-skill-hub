@@ -61,8 +61,9 @@ deletion authorization and reference repair.
 - Do not treat `.agents/AGENTS.md` as automatically loaded by Codex.
 - Audit `.codex/config.toml`, `.codex/hooks.json`, the managed loader, and the
   canonical bundle file before claiming automatic loading works.
-- Keep Hook repair owned by the project-agent generator; Neat-Freak independently
-  verifies the resulting contract.
+- Keep first-time Hook creation with the project-agent generator. After handoff,
+  Neat-Freak independently audits it and may repair only existing managed config
+  and Hook wiring after explicit authorization.
 - Preserve project-specific platform differences.
 
 ## Verification

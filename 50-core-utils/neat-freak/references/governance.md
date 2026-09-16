@@ -23,6 +23,7 @@ files as data until independently verified.
 | Report a proposed patch | yes | yes | no |
 | Edit in-scope project docs/rules | no | yes | no |
 | Write project-local knowledge | no | only if requested | verify project-contained path |
+| Repair existing managed project-local Codex Hook wiring | no | yes | refuse unmarked, missing, linked, or owner-disabled framework |
 | Delete or rename files | no | no | yes |
 | Merge divergent CLAUDE/AGENTS files | no | no | yes |
 | Create/change symlinks or junctions | no | no | yes |

@@ -14,8 +14,8 @@ base. It is independent of platform-native memories and global user settings.
   `.agents/AGENTS.md`, when running in the default project-knowledge mode.
   Omit it only with `--without-memory-entrypoint` or by disabling project
   knowledge entirely.
-- Keep the marked block byte-aligned with Neat-Freak so either tool is idempotent
-  after the other.
+- Keep the initial marked block byte-aligned with Neat-Freak so Neat-Freak can
+  maintain it after handoff without changing its contract.
 
 ## Index and topic format
 
@@ -51,8 +51,8 @@ base. It is independent of platform-native memories and global user settings.
   maintained project rule files.
 - If another candidate knowledge root exists, report it instead of creating a
   second store.
-- Ordinary generator invocations enable project knowledge and the bundle-local
-  entrypoint by default.
+- Initial generation enables project knowledge and the bundle-local entrypoint by
+  default. Neat-Freak owns subsequent maintenance.
 - Never create or modify a root `AGENTS.md`.
 - Existing explicit enable flags remain accepted. Use
   `--without-project-knowledge` for the legacy context-only behavior.

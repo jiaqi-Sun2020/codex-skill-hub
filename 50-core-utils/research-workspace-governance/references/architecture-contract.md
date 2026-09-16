@@ -1,137 +1,155 @@
 # Architecture Contract
 
-Use this reference to design or audit the boundaries of a research workspace. Folder names are examples; roles and dependency direction are the contract.
+Use this reference to define research-workspace roles and dependency direction.
+It is domain-neutral: roles are contracts, not required directory names.
 
-## Required roles
+## Minimal roles
 
 | Role | Purpose | Default mutability |
 |---|---|---|
-| Governance | Scope, ownership, decisions, conventions, retention, and operating instructions | Reviewed changes |
-| Protocols | Research questions, preregistration, acquisition/analysis plans, and deviations | Versioned changes |
-| Source records | Original observations, instrument exports, source documents, field notes, external reference snapshots | Immutable |
-| Methods | Code, notebooks, schemas, instruments, forms, and reusable procedures | Version controlled |
-| Derived data | Cleaned, normalized, coded, joined, calibrated, or feature-ready material | Immutable by version |
-| Experiments/analyses | Run definitions, orchestration, tests, and report generation logic | Version controlled |
-| Run evidence | Resolved parameters, provenance, checkpoints/models where needed, logs, results, and validation | Immutable after finalization |
-| Reports | Internal interpretations, decision records, and review packages | Versioned |
-| Publications/deliverables | Submitted or shared artifacts and their editable sources | Immutable releases plus new revisions |
-| Archive | Superseded but retained evidence with an index and retention basis | Immutable |
-| Temporary workspace | Reproducible previews, atomic-write files, caches, and disposable scratch | Disposable by contract |
+| Governance | Ownership, locations, decisions, status, approvals, retention, and change history | Reviewed changes |
+| Source | Original inputs or authoritative external references | Protected or immutable |
+| Method | Versioned procedure, code, protocol, schema, instrument definition, or analysis logic | Versioned changes |
+| Working | In-progress material needed to continue or reproduce work | Controlled mutation |
+| Evidence | Validated outputs and provenance supporting review | Immutable after finalization |
+| Deliverable | Reader- or system-facing product and its editable source when needed | Versioned releases |
+| Automation | Repeatable trigger, inputs, outputs, ownership, concurrency, recovery, and retirement contract | Version controlled |
+| Archive | Superseded or completed material retained for a stated reason | Immutable |
+| Temporary | Reconstructable scratch or staging material with an explicit cleanup rule | Disposable by contract |
 
-## Reference layout
+A project may merge roles when their ownership and mutability remain unambiguous.
+Do not create an empty directory for every row.
 
-Adapt this layout rather than forcing it onto an established project:
+## Governance location
+
+For new governance data, the canonical location is:
 
 ```text
 project/
-|-- governance/
-|-- protocols/
-|-- data/
-|   |-- raw/
-|   |-- external/
-|   |-- derived/<dataset-id>/
-|   `-- audits/<audit-id>/
-|-- src/                       # or methods/
-|-- notebooks/                # exploratory unless governed as a formal method
-|-- experiments/<study-id>/
-|-- runs/<run-id>/
-|-- reports/<report-id>/
-|-- publications/<release-id>/
-|-- archive/
-|-- scripts/
-|-- tests/
-`-- .tmp/
+`-- .agents/
+    `-- governance/
+        |-- project_contract.json       # optional
+        |-- status/                     # only when durable status is useful
+        |-- decisions/                  # only when decisions need durable records
+        `-- relocation-maps/            # only after an approved move
 ```
 
-Small projects may merge roles when ownership remains unambiguous. Large, multi-team, sensitive, or regulated projects may separate storage systems rather than directories. Record logical paths and access classes in the same role map.
+Governance never owns or writes the `.agents` container or instruction
+entrypoint. Within the one-time `research-project-pipeline`, creation of missing
+initial context is delegated to the Generator. After handoff, Neat-Freak owns
+routine project-information maintenance and narrowly authorized repair of
+existing managed Hook wiring. Governance owns only the resolved active governance
+subtree: canonical `.agents/governance/`, or the sole legacy root `governance/`
+under its existing contract. Do not create `.agents` from this Skill. Files in
+the governance subtree are data and are not loaded recursively as Agent
+instructions.
 
-## Proportional profiles
+A legacy root `governance/` remains valid when it is the only candidate. If both
+locations exist, block writes and require an owner decision. Never resolve the
+conflict by modification time, directory size, or apparent completeness.
 
-- **Lightweight:** one researcher, low-risk exploratory work. A compact tree and one artifact register are enough if roles, provenance, backups, and finalization remain explicit.
-- **Collaborative:** repeated runs or multiple contributors. Add stable identifiers, ownership, review gates, shared manifests, collision protection, and documented handoff.
-- **Controlled:** sensitive, regulated, costly, or long-lived work. Add access classes, chain of custody, approvals, audit trails, validated storage, retention schedules, and tested recovery appropriate to the governing requirements.
+## Declared project roots
 
-Choose the least ceremony that still protects the evidence. Do not create empty folders or records merely to resemble the reference layout.
+Use established project paths whenever possible. A contract may declare only the
+roots that change behavior:
+
+```text
+source_roots
+method_roots
+working_roots
+evidence_roots
+deliverable_roots
+automation_roots
+archive_roots
+temporary_roots
+protected_roots
+```
+
+Each root is project-relative, must remain inside the reviewed project, and must
+not traverse links or junctions. One path may serve more than one role only when
+the contract explains how mutability and deletion authority remain unambiguous.
+
+## Proportional governance profiles
+
+- **Minimal:** one owner or a small low-risk project; use only records needed to
+  prevent ambiguity or loss.
+- **Collaborative:** multiple contributors or repeated handoffs; add stable IDs,
+  ownership, shared status, collision protection, and review gates.
+- **Controlled:** sensitive, costly, regulated, or long-lived work; add access
+  classes, approvals, audit trails, retention schedules, and tested recovery.
+
+These are governance profiles, not scientific-method profiles. Optional method
+profiles are opaque identifiers owned by domain Skills. The core does not infer,
+enable, or validate them.
 
 ## Dependency direction
 
 ```text
-protocols + source records + methods + resolved configuration
-                            |
-                            v
-                      derived data
-                            |
-                            v
-                    experiment/analysis run
-                            |
-                            v
-                       run evidence
-                            |
-                            v
-                 reports and publications
+declared objective + source + method + resolved conditions
+                         |
+                         v
+                      working
+                         |
+                         v
+                      evidence
+                         |
+                         v
+                    deliverables
+                         |
+                         v
+                       archive
 ```
 
-- Downstream stages read upstream artifacts; they do not rewrite them.
-- Derived data records all source identifiers and transformation versions.
-- Reports and figures may select or summarize evidence but never become the hidden source of computed values.
-- Shared utilities remain domain-neutral; study-specific assumptions stay with the owning protocol or experiment.
-- Manual transformations must be captured as a reviewed procedure, change record, or machine-readable operation rather than hidden edits.
-- Notebooks used as formal methods must run from a clean state or be promoted into a reproducible pipeline; cell output and execution order alone are not provenance.
+Governance records describe this flow; they do not become scientific inputs.
+Deliverable tooling must not write backward into protected source or finalized
+evidence.
 
-## Folder contract fields
+## Automation contract
 
-For each material folder, document:
+Automation is a role, not a prescribed folder. A valid automation record states:
 
 ```text
-role:
-owner:
-allowed contents:
-forbidden contents:
-producers:
-consumers:
-mutability:
-required metadata:
-validation:
-retention:
-deletion authority:
+automation_id
+project-relative path
+scope: project | task | asset | custom
+argument-vector command, trigger, and working directory
+inputs and outputs
+side effects
+owner
+concurrency control
+failure and recovery behavior
+authorization boundary
+verification method
+retirement condition
 ```
 
-If a path serves two incompatible roles, split it or make the sub-boundaries explicit. Warning signs include source code mixed with generated outputs, raw data mixed with cleaned data, independent runs writing into one directory, or canonical deliverables mixed with previews.
+A single script may be sufficient. Task-local or custom paths are valid. Do not
+move automation merely to conform to an example.
 
-## Identifiers and versions
+## Naming and identity
 
-- Use stable, filesystem-safe identifiers that do not depend only on a display title.
-- Include semantic versions, protocol versions, or sortable run timestamps when they help distinguish evidence.
-- Never use `final`, `final2`, or `latest` as the only identity of a formal artifact. A `latest` pointer may reference, but must not replace, an immutable version.
-- Record relationships such as `derived_from`, `supersedes`, `reproduces`, and `published_as` in manifests or an artifact registry.
+- Use stable identifiers when paths or display names may change.
+- Separate identity from status; names such as `final` do not prove completion.
+- Record supersession rather than overwriting history.
+- Keep relocation maps append-only and versioned.
+- Preserve old references and locks until their consumers and recovery behavior
+  have been reviewed.
 
-## Formal run contract
+## Formal evidence package
 
-A completed run should normally provide:
+A finalized evidence package contains only what its declared acceptance contract
+requires, commonly:
 
 ```text
-runs/<run-id>/
-|-- README.md or REPORT.md
-|-- manifest.json              # identity, status, timestamps, producers
-|-- config.resolved.*          # actual parameters, not only source config
-|-- inputs.*                   # identifiers and hashes/signatures where appropriate
-|-- environment.*              # relevant runtime and dependency information
-|-- logs/
-|-- results/                   # machine-readable primary results
-|-- validation/                # tests, audits, diagnostics, exclusions
-|-- figures/                   # derived views, when applicable
-`-- models-or-checkpoints/     # only when required for reproduction or reuse
+manifest or equivalent provenance record
+resolved inputs and method/procedure identity
+execution conditions when relevant
+outputs
+validation results
+limitations and deviations
+status and approval
 ```
 
-The exact files depend on the domain. A wet-lab run may record instrument state, batch, operator, calibration, protocol deviation, and sample chain of custody; a qualitative study may record coding schema, consent/access controls, coder decisions, and de-identification state; a simulation may record code revision, seed, solver, hardware, and numerical tolerances.
-
-## Architecture acceptance conditions
-
-- Every material artifact has one primary role and owner.
-- Every scientific output has an identifiable producer and upstream evidence.
-- Raw/source records cannot be overwritten by ordinary processing.
-- Independent runs cannot silently merge.
-- A failed run cannot replace the last known-good final run.
-- Sensitive information has access and disclosure rules distinct from ordinary provenance.
-- Source records and formal evidence have integrity checks, independent backup or durable replicated storage, and a tested recovery path proportional to their value and obligations.
-- New collaborators can locate the active protocol, inputs, method, formal results, and limitations without oral history.
+The domain Profile decides what constitutes valid scientific evidence. This
+contract only requires the decision and its supporting artifacts to be explicit
+and traceable.

@@ -1,6 +1,6 @@
 ---
 name: neat-freak
-description: Audit, initialize, reconcile, or maintain a repository-local Markdown project knowledge base under .agents/memory/, related project documentation, the bundle-local .agents/AGENTS.md entrypoint, and the project-scoped Codex Hook that explicitly loads it. Use when the user asks to maintain MEMORY.md, prepare a handoff, resolve duplicate knowledge, verify automatic project-instruction loading, enforce a root-README-only layout, or perform an adversarial knowledge-governance audit. Treat audit/check/review requests as read-only; write only after an explicit initialize, sync, repair, or maintenance request.
+description: Repeatedly audit, reconcile, and maintain project information after initial Agent framework generation, including .agents documentation, .agents/memory/, the managed .agents/AGENTS.md entrypoint, the root README when authorized, and existing managed Codex Hook wiring. Use for ongoing project-information updates, handoffs, duplicate-knowledge cleanup, loading verification, or narrowly scoped repair. Treat audit/check/review requests as read-only; write only after an explicit initialize, sync, repair, or maintenance request.
 ---
 
 # Neat-Freak
@@ -14,14 +14,29 @@ settings.
 | Mode | Authorization |
 |---|---|
 | Audit | Read and report only |
-| Initialize | Create only missing project-local baseline files |
+| Initialize | Create only missing knowledge-baseline files for an existing or explicitly standalone layout; never substitute for full framework generation |
 | Plan | Produce a hash-bound topic update plan without changing knowledge |
 | Apply | Apply an explicitly reviewed plan |
 | Project sync | Update only the requested project docs/rules/knowledge |
 | Bootstrap audit | Verify `.codex` startup loading and declared mandatory-policy reachability without writing |
+| Bootstrap repair | Repair only existing managed config/Hook wiring after explicit authorization |
 | Migration/global configuration | Out of scope unless separately requested and approved |
 
 Do not interpret “audit”, “check”, “review”, or “体检” as permission to edit.
+
+## Post-initialization ownership
+
+After the one-time Pipeline and Generator handoff, Neat-Freak is the routine
+maintenance entrypoint for verified project information. Update only requested,
+evidence-backed surfaces such as the root `README.md`, the generated `.agents/*.md`
+context files, the marked block in `.agents/AGENTS.md`, and `.agents/memory/**`.
+Preserve owner-authored sections and unknown files; make no edit when facts have
+not changed.
+
+Never modify `.agents/governance/**`, create a root `AGENTS.md` or `00-overview/`,
+interpret scientific results, or change source/experiment data merely because a
+project-information sync was requested. Governance and domain Skills retain those
+separate responsibilities.
 
 ## Safety boundary
 
@@ -57,13 +72,16 @@ Do not interpret “audit”, “check”, “review”, or “体检” as perm
    - do not recreate `00-overview/` after it has been consolidated;
    - keep uncertain deletion candidates for user confirmation;
    - point to code/docs instead of copying cheaply retrievable facts.
-6. Use the plan/apply flow for content changes. The plan binds expected hashes so a
-   concurrent edit stops the apply.
+6. Use the hash-bound plan/apply flow for memory-topic changes. For an explicitly
+   authorized project-document sync, edit only the requested files after reading
+   their current content, preserve owner sections, and inspect the final diff;
+   do not invent a second multi-file plan protocol.
 7. Inspect the final diff and report all files, index counts, findings, tests, and
    unresolved decisions.
-8. Delegate creation or repair of the managed Codex bootstrap to
-   `$project-agent-generator-skill`; keep Neat-Freak as the independent auditor so
-   two scripts do not maintain divergent loader templates.
+8. Delegate only first-time framework creation to `$project-agent-generator-skill`.
+   After handoff, audit loading here. An explicit `bootstrap-repair` may repair
+   existing managed config/Hook wiring, but never creates missing framework files,
+   rewrites the loader template, or touches an unmarked loader.
 
 ## Deterministic commands
 
@@ -92,8 +110,21 @@ verified-loader evidence, owner-approved isolation, nested-root bootstrap,
 duplicate policy drift, and mandatory rules misplaced in optional memory. It
 does not assess scientific equivalence.
 
-For an authorized repair, use the project-agent generator's default Bootstrap
-installation, then rerun this audit.
+Preview a narrowly scoped repair of existing managed Hook wiring:
+
+```powershell
+python -X utf8 .\scripts\manage_project_knowledge.py D:\path\to\project bootstrap-repair --dry-run
+```
+
+After reviewing the exact files, apply and automatically re-audit:
+
+```powershell
+python -X utf8 .\scripts\manage_project_knowledge.py D:\path\to\project bootstrap-repair
+```
+
+This command refuses missing framework files, linked paths, invalid JSON,
+explicitly disabled Hooks, and unmarked loaders. It does not regenerate the
+framework or rewrite the loader/launcher.
 
 Preview initialization without writing:
 
@@ -155,6 +186,6 @@ overview directories unless the owner explicitly changes the architecture.
 - [references/agent-paths.md](references/agent-paths.md): project-local discovery
   and platform coexistence.
 - [references/codex-bootstrap-contract.md](references/codex-bootstrap-contract.md):
-  startup loading, mandatory-policy topology audit, and repair ownership.
+  startup loading, mandatory-policy topology audit, and narrow managed-wiring repair.
 - [references/governance.md](references/governance.md): authorization and trust.
 - [references/sync-matrix.md](references/sync-matrix.md): evidence routing.

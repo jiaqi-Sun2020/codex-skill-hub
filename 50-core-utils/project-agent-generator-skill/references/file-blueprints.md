@@ -114,17 +114,19 @@ All generated agent files must preserve this rule:
 - Record at most the filename/path and state that contents were not inspected.
 - Never add secret values to `.agents`, generated reports, README files, logs, or final responses.
 
-## Legacy Refresh
+## Post-generation ownership and legacy recovery
 
-- Read every existing generated file before replacing the bundle.
-- Use scoped manual edits when possible.
-- When whole-bundle regeneration is intended, require the generator's timestamped
-  backup and compare the new files with that backup. Keep backup contents covered by
-  the generated nested `.gitignore`.
+- Route ordinary updates to Neat-Freak, which reads current evidence and changes
+  only the authorized project-information surfaces.
+- Do not rerun the Generator to synchronize documentation, memory, or entrypoint
+  content.
+- Retain whole-bundle regeneration only as explicitly authorized legacy recovery.
+  Require the Generator's timestamped backup and compare the new files with that
+  backup. Keep backup contents covered by the generated nested `.gitignore`.
 - Refuse regeneration when an existing output contains a high-confidence secret
   pattern; remove the secret before making another copy.
-- Preserve unknown extra files in `.agents/`; the generator owns only its seven
-  named outputs.
+- Preserve unknown extra files in `.agents/`; recovery may replace only the
+  Generator's seven named outputs.
 - Do not force a CLAUDE/AGENTS symlink policy onto an existing project.
 
 ## Project Knowledge Baseline

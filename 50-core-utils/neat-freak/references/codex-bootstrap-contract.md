@@ -1,7 +1,8 @@
-# Codex bootstrap audit contract
+# Codex bootstrap audit and repair contract
 
 Audit the project-local mechanism that explicitly loads the canonical bundle
-instructions. Do not maintain a second loader template here.
+instructions. Do not maintain a second loader template here. Repair is limited
+to existing managed config and Hook wiring.
 
 ## Expected surfaces
 
@@ -47,6 +48,18 @@ Do not delete any conflict during an audit.
 
 ## Repair ownership
 
-Use `project-agent-generator-skill` for an explicitly authorized repair. It owns
-the Hook, loader, launcher, and safe config merge. Rerun `bootstrap-audit` after
-repair. Never edit user-level Codex configuration or another project.
+`project-agent-generator-skill` creates the initial Bootstrap once. After that
+handoff, an explicit Neat-Freak `bootstrap-repair` may enable Hooks and restore
+the managed `SessionStart`/`SubagentStart` groups only when the complete local
+framework exists and the loader carries `project-agent-bootstrap/v1`.
+
+The repair replaces only managed loader handlers, removes duplicate managed
+handlers, preserves unrelated handlers and Hook events, and rejects command
+drift instead of accepting any command that merely mentions the loader filename.
+
+Refuse repair when a required framework file is missing, a path is linked, Hook
+JSON is invalid, `features.hooks = false` records an owner conflict, or the loader
+is unmarked. Do not rewrite the loader or launcher, create a new framework, touch
+user-level Codex configuration, or write another project. Preview with
+`--dry-run`, bind replacement to the current hashes, write atomically, and rerun
+`bootstrap-audit` after apply.

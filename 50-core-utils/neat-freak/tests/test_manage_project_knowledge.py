@@ -46,8 +46,10 @@ class ProjectKnowledgeManagerTests(unittest.TestCase):
         )
         handler = {
             "type": "command",
-            "command": 'python3 ".codex/hooks/load_project_agents.py"',
-            "commandWindows": 'python ".codex\\hooks\\load_project_agents.py"',
+            "command": 'python3 -X utf8 -B ".codex/hooks/load_project_agents.py"',
+            "commandWindows": 'python -X utf8 -B ".codex\\hooks\\load_project_agents.py"',
+            "timeout": 10,
+            "statusMessage": "Loading bundle-local AGENTS.md",
         }
         (project / ".codex" / "hooks.json").write_text(
             json.dumps(
@@ -286,10 +288,82 @@ class ProjectKnowledgeManagerTests(unittest.TestCase):
             hooks_path = project / ".codex" / "hooks.json"
             hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
             hooks["hooks"]["SessionStart"][0]["matcher"] = "startup|resume"
+            hooks["hooks"]["SessionStart"][0]["hooks"][0][
+                "commandWindows"
+            ] += " --unexpected"
             hooks_path.write_text(json.dumps(hooks), encoding="utf-8")
             report = manager.audit_codex_bootstrap(project)
             kinds = {item["kind"] for item in report["issues"]}
             self.assertIn("incomplete-session-start-matcher", kinds)
+            self.assertIn("drifted-bootstrap-hook", kinds)
+
+    def test_bootstrap_repair_is_previewable_scoped_and_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            config_path = project / ".codex" / "config.toml"
+            hooks_path = project / ".codex" / "hooks.json"
+            governance = project / ".agents" / "governance" / "status.json"
+            governance.parent.mkdir()
+            governance.write_text('{"status":"owner-data"}\n', encoding="utf-8")
+            governance_before = governance.read_bytes()
+            config_path.write_text("[features]\n", encoding="utf-8")
+            hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
+            unrelated = {"type": "command", "command": "python keep_me.py"}
+            hooks["hooks"]["SessionStart"][0]["hooks"].append(unrelated)
+            hooks["hooks"]["SessionStart"][0]["hooks"][0][
+                "commandWindows"
+            ] += " --unexpected"
+            hooks["hooks"].pop("SubagentStart")
+            hooks["hooks"]["SessionStart"][0]["matcher"] = "startup|resume"
+            hooks_path.write_text(json.dumps(hooks), encoding="utf-8")
+            before = {config_path: config_path.read_bytes(), hooks_path: hooks_path.read_bytes()}
+
+            self.assertEqual(
+                manager.main([str(project), "bootstrap-repair", "--dry-run"]),
+                0,
+            )
+            self.assertEqual(before[config_path], config_path.read_bytes())
+            self.assertEqual(before[hooks_path], hooks_path.read_bytes())
+
+            self.assertEqual(manager.main([str(project), "bootstrap-repair"]), 0)
+            self.assertEqual(
+                manager.audit_codex_bootstrap(project)["summary"]["status"],
+                "clean",
+            )
+            repaired_hooks = json.loads(hooks_path.read_text(encoding="utf-8"))
+            self.assertIn(
+                unrelated,
+                repaired_hooks["hooks"]["SessionStart"][0]["hooks"],
+            )
+            self.assertEqual(governance.read_bytes(), governance_before)
+            changes, _expected, _before = manager.bootstrap_repair_plan(project)
+            self.assertEqual(changes, {})
+
+    def test_bootstrap_repair_refuses_unmanaged_or_missing_framework(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            loader = project / ".codex" / "hooks" / "load_project_agents.py"
+            loader.write_text("print('owner managed')\n", encoding="utf-8")
+            self.assertEqual(manager.main([str(project), "bootstrap-repair"]), 2)
+
+            loader.write_text(
+                'MANAGED_MARKER = "project-agent-bootstrap/v1"\n',
+                encoding="utf-8",
+            )
+            (project / ".agents" / "scripts" / "start-codex.ps1").unlink()
+            self.assertEqual(manager.main([str(project), "bootstrap-repair"]), 2)
+
+    def test_bootstrap_repair_respects_explicit_owner_disable(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            config = project / ".codex" / "config.toml"
+            config.write_text("[features]\nhooks = false\n", encoding="utf-8")
+            before = config.read_bytes()
+            self.assertEqual(manager.main([str(project), "bootstrap-repair"]), 2)
+            self.assertEqual(config.read_bytes(), before)
 
     def test_strict_bootstrap_audit_flags_duplicate_root_agents(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

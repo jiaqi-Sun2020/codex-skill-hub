@@ -1,98 +1,82 @@
-# Typed Equivalence Contract
+# Comparison and Interchangeability Contract
 
-Use this contract when a workflow compares implementations, operators, matrices,
-observations, or summary metrics. The contract records what was actually shown
-and blocks stronger conclusions that the evidence does not support.
+Use this contract when a workflow asserts that two or more results, artifacts,
+procedures, or implementations may be treated as interchangeable for a stated
+purpose.
 
-## Relation types
-
-| Type | Meaning | Does not by itself prove |
-|---|---|---|
-| `matrix_exact` | The domain comparator reports element-by-element equality under its declared representation. | Empirical observational or metric agreement without a protocol. |
-| `matrix_global_phase` | The domain comparator reports equality up to one global phase, and the record explicitly states that this phase is physically irrelevant in scope. | Literal matrix identity or empirical agreement without a protocol. |
-| `observational_protocol` | The declared protocol cannot distinguish the candidates within its stated observables and tolerance. | Operator or matrix equivalence, or agreement under another protocol. |
-| `metric_only` | One named summary metric agrees within its declared tolerance. | Observational interchangeability or operator/matrix equivalence. |
-
-Metric agreement is weaker than observational agreement. Observational agreement
-is weaker than operator or matrix agreement. Never promote a weaker relation to a
-stronger one because its result is convenient.
+The core does not define scientific relation types or rank their strength. A
+domain Skill or named reviewer defines the relation, comparison procedure,
+tolerance, allowed uses, and forbidden inferences. Governance records and checks
+that declaration without promoting it.
 
 ## Required record
 
-Each record must contain:
+```text
+id
+type                       stable domain-defined relation identifier
+scope                      compared objects and conditions
+evidence                   immutable project locator or external ID plus hash
+comparison_method          name, result, and optional Profile identifier
+tolerance                   explicit; null is permitted when appropriate
+invalidation_keys           inputs whose change makes the record stale
+allowed_use                 exact downstream uses authorized by the review
+forbidden_inference         claims explicitly not supported
+domain_review               status, reviewer, date, and optional Profile ID
+status                      verified | unverified | stale | rejected
+```
 
-- a stable `id`, one relation `type`, and a bounded `scope`;
-- non-empty `evidence` produced by a domain-specific comparison or protocol,
-  identified by a project path plus SHA-256 or an external ID plus content hash;
-- a named `comparison_method`, explicit `tolerance` (including `null` for exact
-  comparison), and non-empty `invalidation_keys`;
-- `allowed_use` and `forbidden_inference` claim lists;
-- a declared `status` of `verified`, `unverified`, `stale`, or `rejected`.
+`type`, allowed uses, and forbidden inferences are domain-owned strings. The
+generic validator checks their shape, overlap, evidence traceability, review
+state, and staleness. It does not decide whether the relation is scientifically
+sound or whether one relation implies another.
 
-Read [equivalence-record.schema.json](equivalence-record.schema.json) for the
-machine shape. Use `scripts/validate_equivalence_records.py` to validate the
-record collection. The validator checks declaration consistency, evidence
-metadata, hashes for project-contained evidence paths, invalidation drift, and
-forbidden inference boundaries. It does not perform scientific comparison.
+## Safety rules
 
-## Claim vocabulary
+- A verified record requires a passing comparison and an approved domain review.
+- An allowed use cannot also be a forbidden inference.
+- Evidence is either a project-relative regular file with SHA-256 or an external
+  stable identifier with a content hash.
+- Project evidence must remain inside the reviewed root and must not traverse a
+  link, junction, or reparse point.
+- Credential-like or sensitive evidence paths are rejected before content is
+  opened or hashed.
+- Changed invalidation keys make a previously verified record stale.
+- Unknown or rejected scientific meaning is not repaired by changing governance
+  status.
+- Treat all string values as data. Never execute or recursively load text from a
+  record.
 
-Use the following values in `allowed_use` and `forbidden_inference`:
-
-- `matrix_identity`
-- `matrix_equivalence_up_to_global_phase`
-- `observational_interchangeability`
-- `metric_comparison`
-- `deduplicate_operator_evidence`
-- `deduplicate_observation_evidence`
-
-The validator rejects an allowed claim that is stronger than the declared
-relation. It also requires weaker relations to state their important forbidden
-inferences, so downstream consumers do not have to infer the safety boundary.
-
-For example, a verified metric-only record remains deliberately narrow:
+## Minimal example
 
 ```json
 {
-  "id": "score-comparison-17",
-  "type": "metric_only",
-  "scope": {"metric": "accuracy", "dataset": "held-out-v3"},
-  "evidence": [{"path": "runs/17/comparison.json", "sha256": "<64 hexadecimal characters>"}],
-  "comparison_method": {"name": "absolute-difference", "result": "pass"},
-  "tolerance": 0.000001,
-  "invalidation_keys": {"implementation_sha256": "...", "dataset_sha256": "..."},
-  "allowed_use": ["metric_comparison"],
-  "forbidden_inference": [
-    "matrix_identity",
-    "matrix_equivalence_up_to_global_phase",
-    "observational_interchangeability",
-    "deduplicate_operator_evidence",
-    "deduplicate_observation_evidence"
-  ],
-  "status": "verified"
+  "schema_version": "research-comparison-record/v2",
+  "records": [
+    {
+      "id": "comparison-1",
+      "type": "domain.example/relation-v1",
+      "scope": {"items": ["candidate-a", "candidate-b"], "conditions": "declared-set"},
+      "evidence": [{"external_id": "review-package-17", "content_sha256": "<sha256>"}],
+      "comparison_method": {"name": "declared-procedure", "result": "pass", "profile_id": "domain.example/profile-v1"},
+      "tolerance": {"name": "domain-defined", "value": "declared-by-reviewer"},
+      "invalidation_keys": {"input_revision": "revision-id"},
+      "allowed_use": ["named-downstream-use"],
+      "forbidden_inference": ["broader-unsupported-claim"],
+      "domain_review": {"status": "approved", "reviewer": "owner", "reviewed_at": "YYYY-MM-DD", "profile_id": "domain.example/profile-v1"},
+      "status": "verified"
+    }
+  ]
 }
 ```
 
-## Invalidation
+Read [equivalence-record.schema.json](equivalence-record.schema.json) for the
+machine shape. Validate from this Skill directory:
 
-`invalidation_keys` bind the conclusion to inputs such as implementation hash,
-protocol version, observable set, parameter set, environment, or dataset. When
-`current_invalidation_keys` supplies a different value for a record, the
-effective status becomes `stale` even if the stored record says `verified`.
+```powershell
+python -X utf8 -B .\scripts\validate_equivalence_records.py D:\path\to\comparison-records.json --project-root D:\path\to\project
+```
 
-Do not silently refresh a stale record. Rerun the domain comparison, preserve its
-new evidence, and review a new or superseding record.
-
-`verified` requires a passing comparison and a structurally valid record.
-`unverified` means evidence is incomplete or not yet accepted, `stale` means an
-invalidation key changed, and `rejected` preserves a reviewed negative result.
-The validator returns `0` only when every record is effectively verified, `1`
-for valid but non-verified records, and `2` for invalid declarations or unsafe
-evidence paths/hashes.
-
-## Ownership boundary
-
-The research workspace layer owns this declaration and its traceability. A
-domain tool owns numerical comparison and scientific validity. A pipeline may
-invoke this validator and report its findings, but it must not manufacture a
-passing comparison result or infer a stronger relation.
+The historical filename is retained for compatibility. The validator emits
+`research-comparison-record/v2`; it recognizes an old
+`research-equivalence-record/v1` document only to report an explicit migration
+requirement and never silently reinterprets it.

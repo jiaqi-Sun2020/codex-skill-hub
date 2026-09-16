@@ -79,6 +79,15 @@
   `matrix_exact`, `matrix_global_phase`, `observational_protocol`, and
   `metric_only`. The governance layer validates records and inference boundaries;
   domain protocols remain responsible for scientific comparison.
+- 2026-09-16: The Generator and Pipeline are initial-onboarding components. After
+  handoff, Neat-Freak owns routine verified project-information maintenance;
+  Generator force-refresh remains legacy recovery only. Neat-Freak may repair
+  existing marked Bootstrap wiring only with explicit authorization.
+- 2026-09-16: Research Workspace Governance becomes domain-neutral: optional
+  project contracts declare governance paths and automation metadata; relocation
+  maps preserve historical paths; comparison records retain evidence, review,
+  invalidation, and inference boundaries. The fixed relation-type decision from
+  2026-09-14 is superseded by domain-Profile or reviewer-owned semantics.
 
 ## Open Questions
 

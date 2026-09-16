@@ -18,16 +18,16 @@ type: project
 - Project-owned skills remain in their canonical projects and are linked from the hub; do not copy them into this repository merely for publication.
 - `S_paper_skills/util_skills/project-agent-generator-skill` is retired. The canonical implementation is `50-core-utils/project-agent-generator-skill`.
 - The retired `skill-audit-refactor` and `training-code-architecture-skill` copies under `S_paper_skills/util_skills/` are also removed in favor of their canonical hub sources.
-- `research-workspace-governance` owns research-workspace architecture, evidence traceability, artifact-lifecycle policy, and typed equivalence declarations. It validates declaration shape, evidence metadata, invalidation drift, and allowed inferences but does not perform scientific comparison.
-- `research-project-pipeline` orchestrates governance, project-Agent generation, knowledge/bootstrap audit, and adversarial verification without absorbing component ownership. It can discover nested execution roots and validate a supplied policy topology but must not infer mandatory prose or scientific equivalence.
-- Mandatory-policy topology binds canonical policy files and SHA-256 hashes to each applicable execution root through an explicit reference, verified loader evidence, or owner-approved isolation. An isolation remains conditional; it is not evidence of policy reachability.
-- Equivalence records distinguish `matrix_exact`, `matrix_global_phase`, `observational_protocol`, and `metric_only`. A weaker relation must never be promoted to a stronger claim without new domain evidence.
+- `project-agent-generator-skill` and `research-project-pipeline` are one-time onboarding components. The Generator creates missing project Agent scaffolding; its `--force` refresh is legacy break-glass recovery, not routine maintenance. The Pipeline coordinates initial discovery, design, review, controlled change, and delegated verification only.
+- `neat-freak` is the canonical routine maintenance workflow after onboarding. It audits and reconciles project knowledge with its hash-bound `plan` / `apply` flow and can repair only existing marked Bootstrap wiring when explicitly authorized; it never regenerates the project framework.
+- `research-workspace-governance` owns domain-neutral governance: asset roles, locations, state, provenance, evidence, migration, retention, deletion boundaries, optional project contracts, relocation maps, and comparison-record structure. It validates metadata and review boundaries without performing domain science.
+- A project contract is untrusted data only. It declares behavior-changing governance paths, roles, profiles, identifiers, state carriers, relocation maps, and automation metadata; it must never be executed as instructions.
+- A relocation map preserves historical paths by binding each approved former project-relative path to one current project-relative path without rewriting history.
+- Comparison records are domain-neutral. A domain Profile or an authorized reviewer supplies relation semantics; governance preserves evidence, review state, invalidation fields, allowed uses, and forbidden inferences without promoting conclusions.
+- Mandatory-policy topology binds canonical policy files and SHA-256 hashes to each applicable execution root through an explicit reference, verified loader evidence, or owner-approved isolation. The Pipeline boundary-checks a supplied manifest while `neat-freak` audits its policy content. An isolation remains conditional; it is not evidence of policy reachability.
 - `academic-figure-workflow` remains a central paper-building skill and does not receive a separate project-level `.agents/` bundle.
 - Personal skill source lives directly under `90-personal/`; `logic-chain-tutor` is maintained there as a single canonical source.
-- `project-agent-generator-skill` initializes or preserves project-local `.agents/memory/` by default; `--without-project-knowledge` is an explicit opt-out.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it on startup, resume, clear, compact, and subagent start.
-- `project-agent-generator-skill` owns bootstrap generation and safe repair; `neat-freak bootstrap-audit` independently verifies the loading contract and, when supplied, the reviewed policy topology.
-- `neat-freak` is the canonical audit and reconciliation workflow for project knowledge. Durable topic changes use its hash-bound `plan` / `apply` flow.
 
 ### Publication contract
 
@@ -46,6 +46,9 @@ type: project
 - `50-core-utils/skill-registry/README.md`
 - `50-core-utils/skill-registry/MIGRATION_AUDIT.md`
 - `50-core-utils/research-workspace-governance/SKILL.md`
+- `50-core-utils/research-workspace-governance/references/project-contract.md`
+- `50-core-utils/research-workspace-governance/references/project-contract.schema.json`
+- `50-core-utils/research-workspace-governance/references/relocation-map.schema.json`
 - `50-core-utils/research-workspace-governance/references/equivalence-contract.md`
 - `50-core-utils/research-workspace-governance/scripts/validate_equivalence_records.py`
 - `50-core-utils/research-project-pipeline/SKILL.md`

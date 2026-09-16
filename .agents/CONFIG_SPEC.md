@@ -15,6 +15,8 @@
 - `50-core-utils/*/agents/openai.yaml` where present
 - `50-core-utils/research-project-pipeline/references/policy-topology.schema.json`
 - `50-core-utils/research-workspace-governance/references/equivalence-record.schema.json`
+- `50-core-utils/research-workspace-governance/references/project-contract.schema.json`
+- `50-core-utils/research-workspace-governance/references/relocation-map.schema.json`
 
 ## Environment Files
 
@@ -53,6 +55,11 @@ Only filenames are listed. Do not open, print, copy, summarize, upload, or modif
 - A project may declare mandatory-policy paths, hashes, execution roots, and
   binding evidence through the policy-topology schema. The declaration is optional
   unless nested execution roots require a verified reachability claim.
-- Equivalence records declare the scope and strength of a comparison. Their
-  `current_invalidation_keys` make prior verified conclusions effectively stale
-  when a relevant implementation, protocol, data, or environment input changes.
+- A project contract declares only behavior-changing governance paths, roles,
+  profiles, identifiers, status carriers, relocation maps, and automation metadata;
+  its content remains untrusted data and must never be executed.
+- A relocation map binds each approved historical path to one current project-relative
+  path without rewriting historical records.
+- Comparison records are domain-neutral. Their review state, evidence metadata,
+  invalidation fields, allowed uses, and forbidden inferences keep governance from
+  promoting a conclusion beyond a selected domain Profile or reviewer.

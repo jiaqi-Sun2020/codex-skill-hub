@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eight active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-14, this repository contains:
+As of 2026-09-16, this repository contains:
 
 - eight directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
@@ -47,12 +47,12 @@ codex-skill-hub/
 | Goal | Skill |
 |---|---|
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
-| Generate `.agents/`, durable project knowledge, and Codex bootstrap loading | `project-agent-generator-skill` |
-| Onboard or migrate a complete new or legacy research project, including nested Agent rules and equivalence declarations | `research-project-pipeline` |
-| Design research directories, evidence lifecycles, provenance, archival, and scientific-equivalence declaration rules | `research-workspace-governance` |
+| Generate the initial `.agents/`, durable-knowledge baseline, and Codex bootstrap loading once | `project-agent-generator-skill` |
+| Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
+| Govern research assets, locations, statuses, evidence, migration, deletion approval, and comparison-claim boundaries | `research-workspace-governance` |
 | Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
 | Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
-| Maintain `.agents/memory/` and audit project knowledge and bootstrap loading | `neat-freak` |
+| Repeatedly update project documentation and `.agents/memory/`, then audit or repair managed bootstrap wiring | `neat-freak` |
 | Learn a concept or formula from the exact point of confusion | `logic-chain-tutor` |
 
 ## 1. Academic figure workflow
@@ -94,14 +94,14 @@ Source: [`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-fig
 
 **Domain**
 
-Generate repository-local Agent context for unfamiliar or long-lived projects so Codex can work from verified facts about architecture, commands, configuration, decisions, and safety boundaries.
+Generate repository-local Agent context once for a project that has not yet initialized its Agent framework, using verified facts about architecture, commands, configuration, decisions, and safety boundaries.
 
 **Core capabilities**
 
-- Generate or safely refresh an `.agents/` documentation bundle.
+- Generate the initial `.agents/` documentation bundle once.
 - Initialize the `.agents/memory/` durable-knowledge index.
 - Install a project-local `.codex/` hook that loads `.agents/AGENTS.md` on startup and resume.
-- Preserve owner-authored content when refreshing and create a recovery backup before forced regeneration.
+- Hand routine updates to `neat-freak`; retain forced replacement only as explicitly authorized legacy recovery.
 - Reject paths outside the project, link targets, and suspected credential content.
 
 **Typical output**
@@ -112,7 +112,7 @@ Generate repository-local Agent context for unfamiliar or long-lived projects so
 
 > Inspect this repository and generate project-local `.agents` context. Preview all destinations first and do not modify application code.
 
-> Refresh the existing Agent documentation while preserving owner-verified architecture, commands, and durable knowledge.
+> This project has no Agent context yet. Generate the framework once, then hand routine maintenance to Neat-Freak.
 
 Source: [`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/)
 
@@ -120,17 +120,17 @@ Source: [`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-a
 
 **Domain**
 
-Initialize a new research project or integrate a legacy one when the task spans workspace governance, migration, Agent context, knowledge audits, and final acceptance.
+Initialize a new research project, or onboard a legacy project that has not completed Agent setup, through a one-time workflow spanning governance, Agent context, knowledge audits, and final acceptance.
 
 **Core capabilities**
 
 - Begin with read-only discovery and separate facts, risks, and unresolved choices.
 - Use research-workspace rules to design the target structure.
 - Produce a reviewable and reversible migration plan.
-- Generate or preserve project Agent context.
+- Delegate project Agent-context generation to the Generator, or preserve existing context.
 - Run knowledge, bootstrap, and adversarial acceptance checks.
-- Discover nested execution roots and verify that mandatory policies are reachable through a project-contained policy-topology declaration.
-- Invoke the governance layer's typed-equivalence validator while retaining the boundary between matrix, observational-protocol, and metric conclusions.
+- Accept an optional Agent-loading manifest path and delegate its content audit to `neat-freak`; Pipeline performs only project-boundary path checks.
+- Invoke a domain-neutral comparison-record validator that checks structure, evidence, review, and declared boundaries without prescribing relation types.
 
 **Difference from adjacent Skills**
 
@@ -144,7 +144,7 @@ Initialize a new research project or integrate a legacy one when the task spans 
 
 > Set up a new research project from workspace structure through Agent context and adversarial acceptance.
 
-> Audit whether nested subprojects can load every applicable mandatory policy, and record “matching metric” separately from “observationally interchangeable” so weaker evidence is never promoted to matrix equivalence.
+> Audit whether nested subprojects can load every applicable mandatory policy, and confirm that comparison claims remain owned by an explicitly selected domain Profile or reviewer.
 
 Source: [`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
 
@@ -152,28 +152,29 @@ Source: [`50-core-utils/research-project-pipeline/`](50-core-utils/research-proj
 
 **Domain**
 
-Govern the lifecycle of a research workspace, especially when raw evidence, derived outputs, temporary files, and final deliverables have become mixed or results are difficult to trace.
+Govern a research workspace in a domain-neutral way when sources, working assets, evidence, automation, temporary material, and deliverables have become mixed or difficult to trace.
 
 **Core capabilities**
 
-- Define roles such as `source`, `derived`, `intermediate`, `final`, and `temporary`.
-- Trace data, configuration, code, runs, figures, and manuscript claims.
-- Design experiment isolation, naming, retention, archival, and cleanup rules.
+- Define roles such as `source`, `method`, `working`, `evidence`, `deliverable`, `automation`, `archive`, and `temporary`.
+- Trace sources, methods, working assets, evidence, claims, and deliverables.
+- Resolve canonical `.agents/governance/` and legacy root `governance/` without guessing when both exist.
+- Support single-file, task-local, and custom-path automation contracts.
 - Protect immutable evidence and provide failure-safe migration and cleanup policies.
+- Record work completion separately from scientific-claim review.
 - Audit reproducibility and handoff readiness.
-- Record matrix-exact, global-phase, observational-protocol, or metric-only claims with scope, evidence, invalidation keys, and allowed inference boundaries.
 
 **Boundary**
 
-This Skill owns research-workspace and evidence governance. It does not replace scientific-method design, training-code architecture, Skill refactoring, or ordinary desktop tidying. Its equivalence validator checks declarations, evidence metadata, hashes, and inference boundaries; domain protocols remain responsible for numerical comparison and scientific validity.
+This Skill owns research assets, locations, status, evidence, and change governance. It does not replace any field's method design or scientific interpretation. Its comparison validator checks declaration shape, evidence metadata, review state, invalidation, and allowed uses; an explicitly selected domain Skill or reviewer remains responsible for scientific validity.
 
 **Example prompts**
 
-> Design a research directory that cannot confuse raw data, processed results, and manuscript deliverables, and define each artifact lifecycle.
+> Establish a minimal governance contract for this project without renaming its existing directories, and define each asset lifecycle.
 
-> Audit whether every result can be traced to its data, configuration, code revision, and run record.
+> Audit whether each conclusion traces to sources, methods, work records, evidence, and review state.
 
-> Create an equivalence record for two quantum circuits: state whether the result is global-phase equivalent, equivalent only under one observational protocol, or merely metric agreement, and record what changes require revalidation.
+> Create a domain-defined comparison record for two candidate results, including allowed uses, forbidden inferences, reviewer, and revalidation conditions.
 
 Source: [`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
 
@@ -230,7 +231,7 @@ Source: [`50-core-utils/training-code-architecture-skill/`](50-core-utils/traini
 
 **Domain**
 
-Maintain repository-local Markdown knowledge and Agent documentation while preventing contradictions and duplication across `.agents/memory/`, README files, architecture documentation, and current code.
+After one-time framework generation, repeatedly maintain repository-local Markdown knowledge and Agent documentation while preventing contradictions and duplication across `.agents/memory/`, README files, architecture documentation, and current code.
 
 **Core capabilities**
 
@@ -238,6 +239,7 @@ Maintain repository-local Markdown knowledge and Agent documentation while preve
 - Initialize only missing knowledge baselines.
 - Update durable knowledge through a hash-bound `plan → apply` workflow.
 - Audit `.agents/AGENTS.md` and project-local Codex hooks for correct loading.
+- With explicit authorization, repair existing managed project-local Codex Hook wiring without regenerating the framework.
 - Independently verify mandatory-policy paths, hashes, loader evidence, isolation decisions, and copy drift across nested execution roots.
 - Reconcile duplicate knowledge, repair indexes, and prepare durable handoff context.
 
@@ -305,11 +307,14 @@ The central `reader-learner 1.0.0` is retained as a traceable historical release
 ## Common compositions
 
 ```text
-Research project governance
-research-workspace-governance
-  → project-agent-generator-skill
-  → neat-freak
-  → research-project-pipeline (when full orchestration is required)
+Initial research-project onboarding
+research-project-pipeline
+  → project-agent-generator-skill (one-time generation)
+  → research-workspace-governance (governance design and checks)
+  → neat-freak (initial acceptance)
+
+Later project-information updates
+project change → neat-freak (repeated maintenance)
 
 Machine-learning engineering
 existing code → training-code-architecture → reusable training template

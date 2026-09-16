@@ -1,12 +1,14 @@
-# Mandatory-Policy Topology
+# Mandatory-Policy Topology Compatibility Reference
 
 Use this declaration when a project has nested directories from which an Agent
 or command can be started independently, or when a mandatory rule is not local
 to every execution root.
 
-The pipeline can discover `.agents/AGENTS.md` and legacy `.agent/AGENTS.md`
-entrypoints, but it cannot infer from filenames which prose is mandatory. The
-declaration supplies that missing authority without copying the policy body.
+This file documents the existing `research-policy-topology/v1` exchange format
+so Pipeline can pass it to Neat-Freak without breaking callers. Neat-Freak is the
+sole owner of execution-root discovery, entrypoint reachability, loader evidence,
+and duplicate-policy auditing. Pipeline checks only that the supplied manifest
+path is a regular project-contained file; it does not parse or judge its content.
 
 ## Minimal explicit-reference example
 
@@ -19,8 +21,8 @@ declaration supplies that missing authority without copying the policy body.
   ],
   "policies": [
     {
-      "id": "experiment-audit",
-      "path": ".agents/EXPERIMENT_AUDIT_PROTOCOL.md",
+      "id": "project-policy",
+      "path": ".agents/PROJECT_POLICY.md",
       "sha256": "<64 hexadecimal characters>",
       "mandatory": true,
       "applies_to": ["analysis"]
@@ -29,7 +31,7 @@ declaration supplies that missing authority without copying the policy body.
   "bindings": [
     {
       "execution_root_id": "analysis",
-      "policy_id": "experiment-audit",
+      "policy_id": "project-policy",
       "type": "explicit_reference",
       "non_weakening": true,
       "semantic_review": {
@@ -69,6 +71,6 @@ path in that policy's optional `known_copies`. Auditors compare only declared
 copies: a matching filename alone is not enough evidence that two files share
 policy identity.
 
-Read [policy-topology.schema.json](policy-topology.schema.json) for the complete
-machine shape. The pipeline and Neat-Freak evaluate the declaration separately;
-agreement between them is stronger evidence than either report alone.
+Read [policy-topology.schema.json](policy-topology.schema.json) for the retained
+v1 compatibility shape. Submit the declaration through Pipeline only for
+delegation to Neat-Freak; there is no second Pipeline interpretation.

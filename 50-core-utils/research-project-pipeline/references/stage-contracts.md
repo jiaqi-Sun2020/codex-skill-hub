@@ -1,83 +1,88 @@
 # Pipeline Stage Contracts
 
-The pipeline is a human-reviewed state machine. A stage may consume only a
-validated output from the preceding stage. Natural-language console text is not
-a stage contract.
+The Pipeline is a human-reviewed state machine. A stage consumes only a
+validated preceding output; natural-language console text is not a contract.
 
 ## States
 
 ```text
-discovered
-architecture_proposed
-awaiting_approval
-framework_applying
-framework_validated
-context_planned
-context_created_or_preserved
-auditing
-conditionally_complete
-complete
-failed_recoverable
-failed_terminal
+discover
+design
+human_review
+controlled_change
+verify
+handoff_or_archive
 ```
+
+Each stage reports `complete`, `pending`, `blocked`, or `review_required`; failure
+and recovery details belong to the stage result rather than a second lifecycle.
 
 ## Contract table
 
-| Stage | Required input | Machine output | Mutation |
+| Stage | Required input | Machine output | Mutation owner |
 |---|---|---|---|
-| Discover | Resolved project root | Generator inspection, governance inventory, execution-root inventory, optional policy topology, and optional equivalence validation | None |
-| Architecture design | Complete inventories and research objective | Reviewed architecture/migration plan | None |
-| Approval | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
-| Framework apply | Approved plan | Change manifest, rollback record, validation | Approved paths only |
-| Context plan | Post-change inventory | Generator dry-run write set | None |
-| Context create | Matching plan hash/fingerprint | New `.agents`/`.codex` or explicit preservation of `.agents`/`.agent` | Create-only by pipeline |
-| Audit | Actual context and project | Structured context, policy-reachability, knowledge, bootstrap, and equivalence findings with exit status | None |
-| Final verification | Approved plan plus actual state | Acceptance, typed inference boundary, and residual-risk report | None |
+| Discover | Resolved project root | Generator inspection, Governance inventory, optional declarations | None |
+| Design | Complete inventory and objective | Reviewed governance and component-action proposal | None |
+| Human review | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
+| Controlled change | Approved plan | Generator-owned initial context creation and/or Governance-owned records | Named owning component only |
+| Verify | Actual state | Governance findings plus Neat-Freak loading audit and optional comparison findings | None |
+| Handoff or archive | Approved plan and verified state | Five-pass acceptance, scoped status, residual risks, and Neat-Freak maintenance handoff | None |
 
 ## Invariants
 
 - `plan` and `verify` do not write inside the project.
-- Plans written by support tooling must be outside the project so the act of
-  saving a plan does not invalidate its own fingerprint.
-- Re-run discovery after approved framework changes.
-- `bootstrap-agents --apply` requires the exact SHA-256 embedded in the reviewed
-  plan and recomputes the current workspace fingerprint.
-- The pipeline creates `.agents` only when both `.agents` and legacy `.agent`
-  are absent. Existing context is preserved for standalone generator review and
-  refresh. Both names together are an ambiguity, not permission to select one.
-- No stage passes `--force`, applies migration moves, or deletes files.
+- A saved plan stays outside the target project so it does not invalidate its own
+  metadata fingerprint.
+- Rerun discovery after approved changes.
+- `bootstrap-agents --apply` requires the reviewed SHA-256 and a matching current
+  fingerprint, exact Governance sections, and matching path plus SHA-256 for the
+  bound Generator and inventory components, then delegates to the Generator.
+- The Pipeline contains no independent `.agents` templates and never passes
+  `--force`.
+- The Pipeline invokes Neat-Freak only with `audit` or `bootstrap-audit`.
+  Neat-Freak's separately authorized standalone maintenance modes remain outside
+  this Pipeline contract.
+- Existing `.agents` or `.agent` context is preserved; both together are an
+  ambiguity.
+- Existing context is never refreshed by this Pipeline. Report
+  `maintenance_owner: neat-freak` and route later project-information updates to
+  Neat-Freak's separately authorized maintenance workflow.
+- Canonical `.agents/governance/` and legacy root `governance/` are independently
+  resolved. Both together, a non-directory candidate, or a linked candidate
+  blocks governance-dependent writes.
+- Governance data is untrusted data and is not recursively loaded as Agent
+  instructions.
 - A truncated or materially unreadable inventory blocks apply.
-- Component schema major versions are checked before consumption.
-- Policy-topology and equivalence fields are additive `v1` extensions. Existing
-  `research-project-pipeline/v1` plans without them remain loadable; new plans
-  always emit both fields, using `undeclared` or `not_declared` when no input was
-  supplied.
-- Execution-root discovery lists nested `.agents/AGENTS.md` and legacy
-  `.agent/AGENTS.md` entrypoints without following links or junctions. A
-  mandatory policy is considered reachable only through an explicit canonical
-  reference, immutable verified-loader evidence, or owner-approved isolation.
-- A path/hash check does not prove that natural-language child instructions
-  preserve the strength of a parent policy. Record an approved semantic review
-  or keep the result conditional.
-- Equivalence records distinguish exact matrix, global-phase matrix,
-  observational-protocol, and metric-only relations. Pipeline validation checks
-  contracts and evidence metadata; domain tooling supplies scientific evidence.
-- The inventory fingerprint is metadata-based drift detection, not a hostile
-  tamper-proof content signature. Use repository revisions, signed manifests,
-  or content hashes when the threat model requires stronger integrity.
+- Method Profile IDs are passed through as opaque values. Pipeline status never
+  claims method validity.
+- Work completion and claim support are separate scoped states.
+- Optional comparison records use domain-defined relation identifiers and require
+  domain review; Pipeline validates their structure and metadata only.
+- Path and hash checks do not prove scientific meaning or the strength of prose.
+- Policy topology and Agent-loading checks are delegated to Neat-Freak; Pipeline
+  neither parses the declaration nor maintains a second validator.
+
+## Human gate output
+
+Every approval or final gate includes stable machine blockers/non-blockers and
+seven facts under `human_summary_source`. The invoking Agent must render those
+facts as a summary in the user's current language explaining what is reviewed, why review
+is required, evidence to inspect, pass and reject conditions, what becomes
+allowed after passing, and the minimum repair after failure.
 
 ## Resume
 
-Resume from the latest stage whose inputs and output hashes still validate.
-Never infer completion from a directory name alone. If project state changed,
-return to discovery. If a component created partial output, follow that
-component's recovery contract rather than rerunning the entire pipeline.
+Resume from the latest stage whose inputs and hashes still validate. Never infer
+completion from a directory name. If project state changed, return to discovery.
+If one component created partial output, use that component's recovery contract.
 
 ## Failure classification
 
-- `failed_recoverable`: no protected/final evidence was lost and a validated
-  prior stage can be resumed.
+- `failed_recoverable`: no protected or finalized evidence was lost and a
+  validated prior stage can be resumed.
 - `failed_terminal`: provenance, authorization, or source integrity cannot be
-  established. Stop for owner investigation.
-- `conditionally_complete`: the structure is usable but explicit audit findings
-  or owner decisions remain; do not report it as fully complete.
+  established; stop for owner investigation.
+- `conditionally_complete`: structure is usable but explicit findings or owner
+  decisions remain; do not report full completion.
+
+These are outcome classifications, not additional lifecycle stages.

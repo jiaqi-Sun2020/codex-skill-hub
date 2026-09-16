@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-path-relocation-map-v1",
+  "title": "Research Path Relocation Map",
+  "type": "object",
+  "required": ["schema_version", "map_id", "mappings"],
+  "properties": {
+    "schema_version": {"const": "research-path-relocation-map/v1"},
+    "map_id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$"
+    },
+    "mappings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["mapping_id", "historical_path", "current_path", "approval_ref"],
+        "properties": {
+          "mapping_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$"},
+          "historical_path": {"type": "string", "minLength": 1},
+          "current_path": {"type": "string", "minLength": 1},
+          "approval_ref": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$"}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -29,7 +29,8 @@ root, normally at `.agents/AGENTS.md`.
 - Require a trusted project for project-local config and hooks.
 - Preserve existing TOML keys and unrelated JSON Hook events.
 - Refuse an explicit `features.hooks = false`.
-- Refuse to replace an unmarked loader or launcher without `--force`.
+- Refuse to replace an unmarked loader or launcher. The retained `--force`
+  behavior is break-glass legacy recovery, not routine maintenance.
 - Back up changed existing project config under the generator backup directory.
 - Do not modify user-level Codex config, Git hooks, or other projects.
 
@@ -38,5 +39,6 @@ root, normally at `.agents/AGENTS.md`.
 1. Validate TOML and JSON syntax.
 2. Invoke the loader with synthetic `SessionStart` and `SubagentStart` JSON.
 3. Confirm the output names the correct event and contains the bundle heading.
-4. Re-run generation and confirm no changes.
+4. Confirm a second ordinary generation refuses replacement without changing
+   files and directs routine maintenance to Neat-Freak.
 5. Confirm no root `AGENTS.md` or `00-overview/` was created.

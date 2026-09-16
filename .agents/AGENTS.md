@@ -59,10 +59,11 @@ codex-skill-hub/
 - Preserve registry history and user changes; inspect the root Git worktree before editing or committing.
 - Shortcut targets are external projects or collections. Do not modify those targets merely because their `.lnk` files are present here.
 - Keep durable project decisions in `.agents/memory/`; keep `.agents/memory/MEMORY.md` as a compact pointer index.
-- `research-project-pipeline` may audit project-contained mandatory-policy topology but does not infer which prose is mandatory.
-- `research-workspace-governance` owns typed equivalence declarations and their inference boundaries; its validator does not perform domain science.
-- `neat-freak` independently audits policy reachability during bootstrap checks when a reviewed topology declaration is supplied.
-- Preserve the distinction between a verified result and a conditional owner decision, especially for policy isolation or stale equivalence evidence.
+- `project-agent-generator-skill` creates a missing Agent framework once; routine context maintenance belongs to `neat-freak`, while `--force` is legacy recovery only.
+- `research-project-pipeline` coordinates one-time onboarding and may boundary-check a project-contained loading manifest, but only `neat-freak` audits its policy content.
+- `research-workspace-governance` owns domain-neutral assets, locations, statuses, evidence, migration, deletion boundaries, and comparison-record structure; it does not perform domain science.
+- `neat-freak` owns routine project-information maintenance, independently audits declared policy reachability, and may repair only existing marked Bootstrap wiring with explicit authorization.
+- Preserve the distinction between work completion, claim review, verified results, and conditional owner decisions.
 
 ## Generated Or Special Directories
 

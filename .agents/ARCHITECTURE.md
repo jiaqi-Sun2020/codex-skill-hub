@@ -125,19 +125,19 @@ My_skills/
   Skill; its former external source and personal shortcut are retired.
 - The six direct core Skills are used from the central source and are not vendored
   into projects.
-- `research-workspace-governance` owns research-workspace architecture and
-  artifact-lifecycle policy, including typed equivalence records and inference
-  boundaries. `research-project-pipeline` orchestrates that Skill with
-  project-Agent generation, knowledge audit, and adversarial verification; it may
-  discover nested execution roots and validate declared policy topology but does
-  not infer mandatory prose or scientific equivalence. `neat-freak` independently
-  audits declared policy reachability during bootstrap verification.
+- `research-workspace-governance` owns domain-neutral asset roles, governance
+  locations, status, provenance, migration, retention, deletion, and comparison
+  record boundaries. `research-project-pipeline` coordinates those components only
+  during one-time onboarding; it delegates missing Agent-framework generation to
+  the Generator and content-level loading audits to Neat-Freak. It boundary-checks
+  a supplied loading manifest but does not infer policy content or scientific claims.
+- `neat-freak` owns later project-information maintenance and may repair only
+  existing marked Bootstrap wiring with explicit authorization.
 - `skill-registry/sources/` is editable shared source; `skill-registry/releases/`
   is immutable; project copies are controlled by manifest and lock files.
-- Only the seven named context files under `.agents/` are regenerated through the
-  generator's guarded refresh flow. The generator preserves `.agents/memory/` and
-  refreshes only the marked entrypoint in `.agents/AGENTS.md` and the maintenance
-  baseline. Do not regenerate the root `README.md` or `50-core-utils/`.
+- The Generator creates a missing context bundle once. Its retained forced-refresh
+  path is explicitly authorized legacy recovery; ordinary updates belong to
+  Neat-Freak. Do not regenerate the root `README.md` or `50-core-utils/`.
 - Keep the root limited to repository entry files; place maintained skill and
   operational artifacts in their designated subdirectories.
 - Keep `.agents/AGENTS.md` as the canonical Agent entrypoint and load it through

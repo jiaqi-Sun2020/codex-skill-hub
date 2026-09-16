@@ -24,8 +24,9 @@ does not create or modify a root `AGENTS.md`.
 
 The preferred Codex workflow is a trusted project-local `.codex/` layer with a
 `SessionStart` and `SubagentStart` Hook. The Hook injects `.agents/AGENTS.md` as
-developer context. Audit it with `bootstrap-audit`; repair it through the
-project-agent generator so Neat-Freak does not carry a divergent loader template.
+developer context. Audit it with `bootstrap-audit`. After the Generator's
+one-time creation, Neat-Freak may repair only existing managed config and Hook
+wiring; it does not regenerate or carry a second loader template.
 
 When project knowledge is enabled (the project-agent generator enables it by
 default):

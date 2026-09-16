@@ -11,8 +11,8 @@ base. It is independent of platform-native memories and global user settings.
 - Keep `MEMORY.md` as the pointer index.
 - Put a short marked pointer in `.agents/AGENTS.md` when project knowledge mode
   is enabled. The project-agent generator enables this mode by default.
-- Keep the marked block byte-aligned with the project-agent generator so either
-  tool is idempotent after the other.
+- Keep the marked block byte-aligned with the initial Generator output so
+  Neat-Freak can maintain it idempotently after handoff.
 
 ## Index and topic format
 
@@ -48,8 +48,9 @@ base. It is independent of platform-native memories and global user settings.
   maintained project rule files.
 - If another candidate knowledge root exists, report it instead of creating a
   second store.
-- The project-agent generator initializes or preserves project knowledge by
-  default; `--without-project-knowledge` is the explicit legacy-behavior opt-out.
+- The project-agent generator initializes project knowledge once by default;
+  Neat-Freak owns later maintenance. `--without-project-knowledge` is the
+  explicit legacy-behavior opt-out during initial generation.
 - Never create or modify a root `AGENTS.md`.
 - Continue using one detected legacy `<project-root>/memory/` store, but never
   relocate it or create a second store automatically.

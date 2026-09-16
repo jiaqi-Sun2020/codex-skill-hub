@@ -1,6 +1,6 @@
 # Artifact Lifecycle and Cleanup
 
-Use this reference whenever the task involves source files, derived data, checkpoints, outputs, staging, retention, archival, or deletion.
+Use this reference whenever the task involves source material, derived assets, resumable state, outputs, staging, retention, archival, or deletion.
 
 ## Classification
 
@@ -9,8 +9,8 @@ Use this reference whenever the task involves source files, derived data, checkp
 | Source record | Instrument export, original survey response, interview recording, source document snapshot, raw observation | Preserve; never clean automatically |
 | External reference | Vendor calibration, public dataset snapshot, ontology, benchmark input | Preserve the exact used version and license/source metadata |
 | Durable derived artifact | Cleaned table, coded corpus, calibrated signal, registered image, reusable feature set | Preserve by version while referenced or required to reproduce results |
-| Working intermediate | Chunk, partial transform, resumable checkpoint, compilation object with nontrivial cost | Retain until downstream verification and retention decision |
-| Run evidence | Resolved config, input signatures, logs, model state, results, diagnostics, exclusions | Immutable after finalization |
+| Working intermediate | Partial work, resumable state, or costly intermediate | Retain until downstream verification and retention decision |
+| Evidence package | Resolved conditions, input identities, activity record, results, validation, and exclusions | Immutable after finalization |
 | Deliverable | Report, paper source, submission, presentation, release export | Preserve released versions and provenance |
 | Ephemeral | Cache, preview render, atomic-write temporary, disposable scratch | Delete when no live process or recovery need remains |
 | Unknown | Unowned or unexplained file | Protect and investigate |
@@ -44,7 +44,7 @@ Correct a source record or finalized artifact through an append-only correction,
 2. Refuse an existing final destination by default.
 3. Create a uniquely identified sibling staging directory on the same filesystem.
 4. Write resolved configuration and input signatures before expensive work.
-5. For long work, write atomic checkpoints and a progress record. A resume verifies input, config, method/code, and work-unit identity.
+5. For long work, write atomic recovery points and a progress record. A resume verifies inputs, conditions, method/procedure, and work-unit identity.
 6. Validate completeness, scientific invariants, machine-readable outputs, and required documentation.
 7. Close file handles and flush logs.
 8. Rename or replace staging into the final destination atomically when supported.
@@ -87,7 +87,7 @@ If any answer is unknown, retain or quarantine the artifact. Do not infer dispos
 
 ### Conditional
 
-- resumable checkpoints;
+- resumable recovery state;
 - failed-run staging and diagnostic logs;
 - local copies of verified remote artifacts;
 - superseded derived datasets;

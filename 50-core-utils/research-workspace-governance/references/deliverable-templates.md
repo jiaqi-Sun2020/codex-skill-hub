@@ -1,36 +1,36 @@
 # Deliverable Templates
 
-Use only the sections needed for the task. Empty templates are not deliverables.
+Use only sections needed for the task. Empty templates are not deliverables.
 
-## Research charter
+## Project charter
 
 ```text
 objective and decision context
-questions/hypotheses
+questions or hypotheses when applicable
 scope and exclusions
-evidence/acceptance standard
-exploratory, confirmatory, or operational status
-owners and stakeholders
+evidence and acceptance standard
+owners and authority
 constraints and obligations
 stopping conditions
 deliverables
 ```
 
-## Work, decision, and risk records
+## Work, status, decision, and risk records
 
 ```text
-work: work_id | objective | owner | dependencies | expected evidence | validation | status | next decision
+work: work_id | scope | objective | owner | dependencies | expected evidence | validation | work_state | next decision
+status: status_id | scope_type | scope_id | work_state | claim_state | evidence | supersedes | recorded_at | owner
 decision: decision_id | context | alternatives | evidence | rationale | owner | date | consequences
 risk: risk_id | condition | impact | likelihood/uncertainty | mitigation | owner | status
-deviation: deviation_id | protocol/version | change | reason | affected evidence/claims | approval | date
+deviation: deviation_id | method/version | change | reason | affected evidence/claims | approval | date
 ```
 
 ## Claim-evidence record
 
 ```text
-claim_id | claim and scope | evidence artifact/version | method/protocol
-domain of validity | uncertainty/limitations | contradictory evidence
-review status | deliverables using the claim
+claim_id | claim and scope | supporting and contradictory evidence
+method/procedure and Profile identifiers | conditions | limitations
+review status | reviewer | deliverables using the claim
 ```
 
 ## Architecture brief
@@ -39,25 +39,25 @@ review status | deliverables using the claim
 # Research Workspace Architecture
 
 ## Objective and evidence standard
-## Scope, assumptions, and constraints
+## Scope, assumptions, and authority
 ## Current failure point
-## Current-state map
-## Target-state map
+## Governance-location resolution
+## Current and target role maps
 ## Dependency and evidence flow
-## Folder contracts
-## Naming and versioning
+## Automation contracts
+## Naming, identity, and status
 ## Access and sensitive-data boundaries
-## Run/finalization contract
+## Finalization contract
 ## Retention, archive, and cleanup policy
-## Migration or initialization steps
+## Migration or initialization preview
 ## Verification and acceptance
 ## Residual risks and owner decisions
 ```
 
-## Artifact lifecycle register
+## Asset lifecycle record
 
 ```text
-artifact_id
+asset_id
 logical_path
 role
 owner
@@ -74,18 +74,17 @@ status
 notes
 ```
 
-## Run manifest
+## Evidence-package manifest
 
 ```json
 {
-  "run_id": "stable-unique-id",
-  "status": "staging|failed|validated|finalized|archived",
-  "objective": "research question or registered analysis",
-  "protocol_id": "protocol/version",
-  "input_artifacts": [],
-  "method_revision": "version or revision identifier",
-  "resolved_parameters": {},
-  "environment": {},
+  "package_id": "stable-unique-id",
+  "status": "working|failed|validated|finalized|archived",
+  "objective": "declared objective",
+  "method_ref": "method or procedure identifier",
+  "profile_ids": [],
+  "input_assets": [],
+  "resolved_conditions": {},
   "started_at": "timestamp",
   "completed_at": null,
   "producer": "person, system, or workflow",
@@ -95,21 +94,52 @@ notes
 }
 ```
 
-Use hashes where they provide meaningful integrity or identity. Do not place secrets, participant identifiers, credentials, or unnecessary machine-local paths in a shareable manifest.
+Use hashes where they provide meaningful integrity. Do not place secrets,
+restricted identifiers, credentials, or unnecessary machine-local paths in a
+shareable manifest.
 
-## Migration plan
+## Migration preview
 
-| Source | Classified role | Destination | Operation | Collision check | Reference updates | Verification | Rollback |
-|---|---|---|---|---|---|---|---|
+| Absolute source | Classified role | Absolute destination | Files/bytes | Hash | Dependents | Active locks | Collision | Reference updates | Verification | Rollback |
+|---|---|---|---:|---|---|---|---|---|---|---|
 
-Precede the table with the approved root and authority. Follow it with unchanged protected paths and unresolved items. Moves that change scientific identifiers, checksums, access controls, or external links require explicit review.
+Follow the table with protected unchanged paths, unresolved items, authority,
+and a versioned append-only relocation-map destination. No preview authorizes a
+move by itself.
 
 ## Cleanup manifest
 
-| Exact path | Class | Files/bytes | Producer | Consumers checked | Recovery need | Authority | Decision |
-|---|---|---:|---|---|---|---|---|
+| Exact path | Class | Files/bytes | Producer | Consumers checked | Concurrency checked | Recovery | Authority | Decision |
+|---|---|---:|---|---|---|---|---|---|
 
-Allowed decisions are `safe-to-delete`, `conditional`, `retain`, and `unknown`. Only the first class is eligible for an approved automated cleanup. Conditional items need item-specific resolution.
+Decisions are `safe-to-delete`, `conditional`, `retain`, or `unknown`. Only an
+exact, separately approved `safe-to-delete` target is eligible for deletion.
+
+## Gate summary
+
+```text
+result: pass | conditional | fail
+scope:
+blockers:
+non_blockers:
+evidence:
+suggested_actions:
+allowed_actions:
+forbidden_actions:
+
+human_summary_language:
+what_is_reviewed:
+why_review_is_required:
+evidence_to_review:
+pass_conditions:
+reject_conditions:
+after_pass:
+minimum_repair:
+```
+
+The keys remain stable for machines; the summary values use the user's current
+language. One carrier may contain multiple explicitly scoped gate results. Do
+not create a separate file for every gate.
 
 ## Adversarial acceptance summary
 
@@ -117,14 +147,18 @@ Allowed decisions are `safe-to-delete`, `conditional`, `retain`, and `unknown`. 
 ## Conclusion
 Pass | conditional | fail, with the reason.
 
-## Audit passes
-1. Scope/domain independence — result and evidence
-2. Traceability/reproduction — result and evidence
-3. Failure/deletion safety — result and evidence
-4. Operational usability/evolution — result and evidence
+## Passes
+1. Objective and ownership
+2. Safety and loading
+3. Compatibility and migration
+4. Human understandability
+5. Tests and counterexamples
 
+## Blockers and non-blockers
+## Evidence
 ## Repairs made
 ## Verification rerun
 ## Residual risks
 ## Owner decisions required
+## Conflicts between passes requiring adjudication
 ```

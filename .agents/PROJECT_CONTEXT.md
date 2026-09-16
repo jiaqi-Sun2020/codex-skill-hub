@@ -51,17 +51,17 @@ detail and provide concise navigation for 17 external project-owned Skills.
 - The six direct central core Skills are `project-agent-generator-skill`,
   `research-project-pipeline`, `research-workspace-governance`,
   `skill-audit-refactor`, `training-code-architecture-skill`, and `neat-freak`.
-- `research-workspace-governance` defines research-workspace and artifact-lifecycle
-  governance; `research-project-pipeline` composes it with project-Agent generation,
-  knowledge/bootstrap audit, and adversarial verification.
-- The pipeline discovers nested execution roots and validates a project-contained
-  policy topology only when supplied. It does not guess which text is mandatory;
-  `neat-freak` independently audits declared topology during bootstrap checks.
-- The governance Skill owns typed relation records for `matrix_exact`,
-  `matrix_global_phase`, `observational_protocol`, and `metric_only`. Its validator
-  checks declaration shape, project-contained evidence metadata, hashes,
-  invalidation drift, and inference boundaries; it does not perform a domain
-  comparison or establish scientific validity.
+- `research-workspace-governance` owns domain-neutral governance of asset roles,
+  locations, status, evidence, migration, retention, deletion approval, and
+  comparison-record structure. Its validator checks record shape, evidence metadata,
+  review state, invalidation, and allowed uses without establishing scientific validity.
+- `research-project-pipeline` coordinates one-time onboarding only. It delegates
+  missing Agent-framework generation to the Generator, loading audits to Neat-Freak,
+  and governance records to the Governance Skill; routine project-information
+  maintenance is outside the Pipeline.
+- Optional policy-topology declarations are boundary-checked by the Pipeline and
+  audited for content only by `neat-freak`, which also owns narrowly scoped repair
+  of existing marked Bootstrap wiring after explicit authorization.
 - `academic-figure-workflow` is stored directly under `10-paper-build/` as a
   paper-building Skill and is separate from the six core Skills.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single

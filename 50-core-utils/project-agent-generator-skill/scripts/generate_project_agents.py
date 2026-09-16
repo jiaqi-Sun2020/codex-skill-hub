@@ -1587,7 +1587,8 @@ def codex_bootstrap_changes(
             if current != desired[path] and BOOTSTRAP_SCHEMA not in current and not force:
                 raise FileExistsError(
                     f"unmanaged bootstrap file already exists: {path}; "
-                    "review it and pass --force only when replacement is intended"
+                    "use Neat-Freak for routine maintenance; --force is reserved "
+                    "for explicitly authorized legacy recovery"
                 )
     return desired
 
@@ -1650,7 +1651,8 @@ def write_outputs(
     if existing and not force:
         joined = ", ".join(str(path) for path in existing)
         raise FileExistsError(
-            f"outputs already exist: {joined}; pass --force to overwrite"
+            f"outputs already exist: {joined}; use Neat-Freak for routine "
+            "maintenance. --force is reserved for explicitly authorized legacy recovery"
         )
 
     for path, content in extra_changes.items():
@@ -1778,7 +1780,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument(
         "--force",
         action="store_true",
-        help="Overwrite existing outputs after creating a timestamped backup",
+        help="Legacy recovery only: replace existing outputs after a timestamped backup",
     )
     parser.add_argument("--dry-run", action="store_true", help="Show target files without writing")
     parser.add_argument(

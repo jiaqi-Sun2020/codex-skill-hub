@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 8 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-14，本仓库包含：
+截至 2026-09-16，本仓库包含：
 
 - 8 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
@@ -47,12 +47,12 @@ codex-skill-hub/
 | 你的目标 | 使用的 Skill |
 |---|---|
 | 制作论文图、模型架构图、多面板图或可编辑 PPT 图件 | `academic-figure-workflow` |
-| 为项目生成 `.agents/`、长期知识入口和 Codex 启动加载 | `project-agent-generator-skill` |
-| 完整接入或迁移一个新旧研究项目，并核验嵌套 Agent 规则与等价性声明 | `research-project-pipeline` |
-| 设计研究目录、证据生命周期、来源追踪、归档和科学等价性声明规则 | `research-workspace-governance` |
+| 一次性生成项目 `.agents/`、长期知识基线和 Codex 启动加载 | `project-agent-generator-skill` |
+| 一次性编排研究项目发现、接入、治理检查、Agent 框架和验收 | `research-project-pipeline` |
+| 治理研究资产、位置、状态、证据、迁移、删除审批和比较声明边界 | `research-workspace-governance` |
 | 审核、精简、拆分或重构一个已有 Skill | `skill-audit-refactor` |
 | 把机器学习脚本重构为可复用、配置驱动的训练工程 | `training-code-architecture` |
-| 维护 `.agents/memory/` 并审计项目知识和启动加载 | `neat-freak` |
+| 持续更新项目文档、`.agents/memory/` 并审计或修复受管启动接线 | `neat-freak` |
 | 从当前知识卡点开始逐步学习概念或公式 | `logic-chain-tutor` |
 
 ## 1. 学术图工作流
@@ -94,14 +94,14 @@ codex-skill-hub/
 
 **适用领域**
 
-为陌生或长期维护的代码仓库生成项目级 Agent 上下文，使 Codex 能从经过验证的仓库事实中了解项目结构、命令、配置、决策和安全边界。
+为尚未初始化 Agent 框架的代码仓库一次性生成项目级上下文，使 Codex 能从经过验证的仓库事实中了解项目结构、命令、配置、决策和安全边界。
 
 **主要能力**
 
-- 生成或安全刷新 `.agents/` 文档包；
+- 一次性生成 `.agents/` 文档包；
 - 初始化 `.agents/memory/` 长期知识索引；
 - 安装项目级 `.codex/` Hook，让 `.agents/AGENTS.md` 在启动和恢复时被加载；
-- 刷新旧文档时保留人工内容，并在强制刷新前创建恢复备份；
+- 已初始化项目的日常信息更新交给 `neat-freak`；保留的强制替换能力仅用于明确授权的遗留恢复；
 - 拒绝项目外路径、链接目标和疑似凭据内容。
 
 **典型输出**
@@ -112,7 +112,7 @@ codex-skill-hub/
 
 > 扫描这个仓库并生成项目级 `.agents` 上下文；先预览写入位置，不修改业务代码。
 
-> 刷新已有 Agent 文档，保留人工确认的架构、命令和长期知识。
+> 这个项目尚未建立 Agent 上下文；请一次性生成框架，完成后把日常维护交给 Neat-Freak。
 
 源码：[`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/)
 
@@ -120,17 +120,17 @@ codex-skill-hub/
 
 **适用领域**
 
-用于新研究项目初始化或遗留研究项目接入。当任务同时涉及目录治理、迁移、Agent 上下文、知识审计和最终验收时，由它编排完整流水线。
+用于新研究项目或尚未完成 Agent 接入的遗留项目的一次性初始化。当任务同时涉及目录治理、Agent 上下文、知识审计和最终验收时，由它编排首次接入并交接给 Neat-Freak。
 
 **主要能力**
 
 - 先做只读发现，区分事实、风险和待确认事项；
 - 调用研究工作区治理规则设计目标结构；
 - 生成可审核、可回滚的迁移方案；
-- 创建或保留项目 Agent 上下文；
+- 委托 Generator 创建项目 Agent 上下文，或保留现有上下文；
 - 执行知识、启动加载和对抗性验收；
-- 发现嵌套执行根，并用项目内的策略拓扑声明核验强制规则是否可达；
-- 调用治理层的类型化等价性记录校验器，保留矩阵、观测协议和指标结论之间的边界。
+- 接收可选的 Agent 加载清单路径，并把内容审核明确委托给 `neat-freak`；Pipeline 只做项目内路径安全检查；
+- 调用领域中立的比较记录校验器，只核查结构、证据、评审与声明边界，不预设任何学科关系类型。
 
 **与相邻 Skill 的区别**
 
@@ -144,7 +144,7 @@ codex-skill-hub/
 
 > 为新课题建立从工作区结构、Agent 上下文到对抗验收的完整流水线。
 
-> 审计嵌套子项目能否加载适用的强制规则，并把“指标相同”和“观测上可互换”分别记录，避免把较弱证据升级为矩阵等价。
+> 审计嵌套子项目能否加载适用的强制规则，并确认所有比较结论都由明确选择的领域 Profile 或人工评审负责。
 
 源码：[`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
 
@@ -152,28 +152,29 @@ codex-skill-hub/
 
 **适用领域**
 
-治理研究工作区的生命周期，重点解决原始证据、派生产物、临时文件、最终交付物混杂，以及实验结果无法追溯的问题。
+以领域中立方式治理研究工作区，重点解决来源、工作产物、证据、自动化、临时文件和最终交付物混杂，以及结果无法追溯的问题。
 
 **主要能力**
 
-- 定义 `source / derived / intermediate / final / temporary` 等产物角色；
-- 建立数据、配置、代码、运行记录、图表和论文 claim 之间的追踪链；
-- 设计实验隔离、命名、保留、归档和清理规则；
+- 定义 `source / method / working / evidence / deliverable / automation / archive / temporary` 等角色；
+- 建立输入、方法、工作产物、证据、结论与交付物之间的追踪链；
+- 解析 `.agents/governance/` 与旧根级 `governance/`，双位置时阻止写入而不猜测；
+- 支持单文件、任务局部和自定义路径的自动化契约；
 - 在迁移或清理前保护不可变证据，并提供失败安全策略；
+- 把工作完成状态与科学结论评审状态分开记录；
 - 审核项目是否具备复现和交接条件。
-- 为矩阵精确相等、全局相位等价、特定协议下观测等价或单指标一致性建立有范围、有证据、可失效的记录。
 
 **边界**
 
-它负责研究工作区与证据治理，不替代科学方法设计、训练代码架构、Skill 重构或一般桌面文件整理。等价性校验器只核查声明、证据元数据、哈希与推断边界；数值比较和科学有效性仍由领域协议负责。
+它只负责研究资产、位置、状态、证据和变更治理，不替代任何学科的方法设计或科学解释。比较校验器只核查声明结构、证据元数据、评审状态、失效条件与允许用途；科学有效性始终由显式选择的领域 Skill 或人工评审负责。
 
 **调用示例**
 
-> 设计一个不会混淆原始数据、处理结果和论文终稿的研究目录，并说明每类文件的生命周期。
+> 为这个研究项目建立最小治理契约，不改变现有目录名，并说明每类资产的生命周期。
 
-> 审计现有实验结果能否追溯到数据、配置、代码版本和运行记录。
+> 审计现有结论能否追溯到来源、方法、工作记录、证据和评审状态。
 
-> 为两个量子线路的比较建立等价性记录：明确它是全局相位等价、特定观测协议等价，还是仅某个指标一致，并记录何时必须重新验证。
+> 为两个候选结果建立领域定义的比较记录，明确允许用途、禁止推断、评审人和需要重新验证的条件。
 
 源码：[`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
 
@@ -230,7 +231,7 @@ codex-skill-hub/
 
 **适用领域**
 
-维护项目本地的 Markdown 长期知识与 Agent 文档，避免 `.agents/memory/`、README、架构说明和实际代码之间出现重复、冲突或过时内容。
+在一次性框架生成后，重复维护项目本地的 Markdown 长期知识与 Agent 文档，避免 `.agents/memory/`、README、架构说明和实际代码之间出现重复、冲突或过时内容。
 
 **主要能力**
 
@@ -238,6 +239,7 @@ codex-skill-hub/
 - 初始化缺失的知识基线，但不覆盖已有内容；
 - 通过哈希绑定的 `plan → apply` 流程安全更新长期知识；
 - 审核 `.agents/AGENTS.md` 与项目级 Codex Hook 是否正确加载；
+- 在明确授权下修复已有且带管理标记的项目级 Codex Hook 接线，不重新生成框架；
 - 对有嵌套执行根的项目独立核验强制策略的路径、哈希、加载证据、隔离决定和副本漂移；
 - 合并重复知识、修复索引并准备可复用的项目交接信息。
 
@@ -305,11 +307,14 @@ Registry 支持两种项目关系：
 ## 常见组合流程
 
 ```text
-科研项目治理
-research-workspace-governance
-  → project-agent-generator-skill
-  → neat-freak
-  → research-project-pipeline（需要完整编排时）
+科研项目首次接入
+research-project-pipeline
+  → project-agent-generator-skill（一次性生成）
+  → research-workspace-governance（治理设计与检查）
+  → neat-freak（初次验收）
+
+后续项目信息更新
+项目变化 → neat-freak（重复维护）
 
 机器学习工程
 现有代码 → training-code-architecture → 可复用训练模板

@@ -24,11 +24,12 @@ The generator uses conservative heuristics. Extend them only when a new marker i
   dynamic values and omit instruction-like README titles.
 - Treat commands from package/build files as facts; treat commands inferred from filenames as inferences.
 - If a command may train models, migrate data, deploy, delete, or overwrite results, put it behind an approval note in `RUNBOOK.md`.
-- Exclude the selected output directory from detection so refreshes do not learn from
-  their own prior generated content or backups.
+- Exclude the selected output directory from initial detection so generated
+  context or recovery backups cannot be mistaken for repository facts.
 - In project-knowledge mode, also exclude the selected knowledge directory and the
-  generator-managed root pointer/ignore surfaces so repeated runs stay stable.
+  generator-managed root pointer/ignore surfaces so inspection and initial
+  generation use only project evidence.
 - When the Codex bootstrap is enabled, exclude `.codex/` from project fact
-  detection so the generated Hook cannot make repeated generation drift.
+  detection so the generated Hook cannot contaminate project-fact detection.
 - If bounded enumeration reaches 5,000 files, label the analysis incomplete rather
   than silently treating the sample as exhaustive.

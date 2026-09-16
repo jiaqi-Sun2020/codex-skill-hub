@@ -9,6 +9,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "research_pipeline.py"
@@ -57,6 +58,8 @@ class ResearchPipelineTests(unittest.TestCase):
         self.assertEqual(code, 0, stderr)
         response = json.loads(stdout)
         self.assertEqual(response["status"], "plan_written")
+        self.assertEqual(response["schema_version"], pipeline.PIPELINE_RESULT_SCHEMA)
+        self.assertEqual(response["document_type"], "pipeline-command-result")
         return json.loads(destination.read_text(encoding="utf-8"))
 
     def make_policy_topology(
@@ -93,7 +96,7 @@ class ResearchPipelineTests(unittest.TestCase):
         manifest.write_text(
             json.dumps(
                 {
-                    "schema_version": pipeline.POLICY_TOPOLOGY_SCHEMA,
+                    "schema_version": "research-policy-topology/v1",
                     "execution_roots": [
                         {"id": "root", "path": "."},
                         {"id": "nested", "path": "nested"},
@@ -114,29 +117,28 @@ class ResearchPipelineTests(unittest.TestCase):
         )
         return manifest
 
-    def make_equivalence_records(self, project: Path) -> Path:
-        records = project / "equivalence-records.json"
+    def make_comparison_records(self, project: Path) -> Path:
+        records = project / "comparison-records.json"
         records.write_text(
             json.dumps(
                 {
-                    "schema_version": pipeline.EQUIVALENCE_SCHEMA,
+                    "schema_version": pipeline.COMPARISON_SCHEMA,
                     "records": [
                         {
-                            "id": "metric-check",
-                            "type": "metric_only",
-                            "scope": {"metric": "score"},
-                            "evidence": [{"external_id": "domain-run-1", "content_sha256": "a" * 64}],
-                            "comparison_method": {"name": "metric-test", "result": "pass"},
-                            "tolerance": 1e-9,
-                            "invalidation_keys": {"implementation": "abc"},
-                            "allowed_use": ["metric_comparison"],
-                            "forbidden_inference": [
-                                "matrix_identity",
-                                "matrix_equivalence_up_to_global_phase",
-                                "observational_interchangeability",
-                                "deduplicate_operator_evidence",
-                                "deduplicate_observation_evidence",
-                            ],
+                            "id": "comparison-check",
+                            "type": "domain.example/relation-v1",
+                            "scope": {"items": ["a", "b"]},
+                            "evidence": [{"external_id": "review-package-1", "content_sha256": "a" * 64}],
+                            "comparison_method": {"name": "domain-procedure", "result": "pass"},
+                            "tolerance": {"name": "domain-defined", "value": "accepted"},
+                            "invalidation_keys": {"input_revision": "abc"},
+                            "allowed_use": ["named-downstream-use"],
+                            "forbidden_inference": ["broader-unsupported-claim"],
+                            "domain_review": {
+                                "status": "approved",
+                                "reviewer": "owner",
+                                "reviewed_at": "2026-09-15",
+                            },
                             "status": "verified",
                         }
                     ],
@@ -151,15 +153,163 @@ class ResearchPipelineTests(unittest.TestCase):
             project = self.make_project(Path(raw))
             before = sorted(path.relative_to(project) for path in project.rglob("*"))
             code, stdout, stderr = self.run_main([
-                "plan", str(project), "--profile", "lightweight", "--compact"
+                "plan", str(project), "--profile", "minimal", "--compact"
             ])
             payload = json.loads(stdout)
             after = sorted(path.relative_to(project) for path in project.rglob("*"))
             self.assertEqual(code, 0, stderr)
-            self.assertEqual(payload["schema_version"], pipeline.PIPELINE_SCHEMA)
+            self.assertEqual(payload["schema_version"], pipeline.PIPELINE_PLAN_SCHEMA)
+            self.assertEqual(payload["document_type"], "pipeline-plan")
             self.assertEqual(payload["plan_sha256"], pipeline.canonical_hash(payload))
             self.assertEqual(payload["context_action"], "create_after_framework")
             self.assertEqual(before, after)
+            self.assertFalse((project / ".agents").exists())
+            self.assertEqual(payload["governance_layout"]["status"], "absent")
+            schema = json.loads(
+                (SCRIPT.parents[1] / "references" / "pipeline-plan.schema.json").read_text(
+                    encoding="utf-8"
+                )
+            )
+            self.assertEqual(
+                schema["properties"]["schema_version"]["const"],
+                pipeline.PIPELINE_PLAN_SCHEMA,
+            )
+            self.assertTrue(set(schema["required"]).issubset(payload))
+            self.assertEqual(payload["review_gate_inputs"]["result"], "conditional")
+            self.assertEqual(
+                payload["review_gate_inputs"]["human_summary_language"],
+                "current-user-language",
+            )
+            source = payload["review_gate_inputs"]["human_summary_source"]
+            self.assertTrue(set(pipeline.HUMAN_SUMMARY_FIELDS).issubset(source))
+            for field in pipeline.HUMAN_SUMMARY_FIELDS:
+                self.assertTrue(source[field])
+            self.assertIn("generator", payload["component_bindings"])
+            self.assertEqual(payload["relocation_maps"]["status"], "not_checked")
+
+    def test_legacy_lightweight_profile_normalizes_to_minimal(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--profile", "lightweight", "--compact"
+            ])
+            self.assertEqual(code, 0, stderr)
+            self.assertEqual(json.loads(stdout)["profile"], "minimal")
+
+    def test_legacy_inventory_is_readable_but_cannot_authorize_mutation(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw)).resolve()
+            legacy_payload = {
+                "schema_version": pipeline.LEGACY_INVENTORY_SCHEMA,
+                "status": "inspected",
+                "project_root": str(project),
+                "workspace_fingerprint_sha256": "a" * 64,
+                "role_candidates": {"experiments_analyses": ["work/"]},
+                "scan": {"scan_truncated": False, "unreadable_count": 0},
+            }
+            completed = pipeline.subprocess.CompletedProcess(
+                args=[], returncode=0, stdout=json.dumps(legacy_payload), stderr=""
+            )
+            with mock.patch.object(pipeline, "run_process", return_value=completed):
+                inspected = pipeline.inspect_workspace(project, Path("inventory-v1.py"))
+            self.assertEqual(inspected["source_schema_version"], pipeline.LEGACY_INVENTORY_SCHEMA)
+            self.assertEqual(inspected["governance_layout"]["status"], "unsafe")
+            self.assertFalse(inspected["governance_layout"]["write_allowed"])
+            self.assertEqual(inspected["role_candidates"]["work_units"], ["work/"])
+
+    def test_legacy_v1_and_v2_plans_cannot_be_applied(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root).resolve()
+            for index, schema in enumerate(sorted(pipeline.LEGACY_PIPELINE_SCHEMAS)):
+                plan_path = root / f"legacy-plan-{index}.json"
+                plan_path.write_text(
+                    json.dumps({"schema_version": schema}),
+                    encoding="utf-8",
+                )
+                with self.assertRaisesRegex(ValueError, "cannot authorize mutation"):
+                    pipeline.load_and_validate_plan(plan_path, project, "0" * 64)
+
+    def test_hash_valid_but_structurally_incomplete_plan_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root).resolve()
+            plan_path = root / "reviewed-plan.json"
+            plan = self.write_plan(project, plan_path)
+            plan.pop("component_actions")
+            plan["plan_sha256"] = pipeline.canonical_hash(plan)
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "missing required fields"):
+                pipeline.load_and_validate_plan(
+                    plan_path, project, plan["plan_sha256"]
+                )
+
+    def test_hash_valid_plan_cannot_hide_component_blockers(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root).resolve()
+            (project / ".agents" / "governance").mkdir(parents=True)
+            (project / "governance").mkdir()
+            plan_path = root / "reviewed-plan.json"
+            plan = self.write_plan(project, plan_path)
+            self.assertTrue(plan["review_gate_inputs"]["blockers"])
+            plan["review_gate_inputs"]["blockers"] = []
+            plan["review_gate_inputs"]["result"] = "conditional"
+            plan["plan_sha256"] = pipeline.canonical_hash(plan)
+            plan_path.write_text(json.dumps(plan), encoding="utf-8")
+            with self.assertRaisesRegex(ValueError, "blockers do not match"):
+                pipeline.load_and_validate_plan(
+                    plan_path, project, plan["plan_sha256"]
+                )
+
+    def test_project_root_link_or_junction_is_rejected_before_resolution(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            with mock.patch.object(
+                pipeline, "first_link_component", return_value=project
+            ):
+                with self.assertRaisesRegex(ValueError, "link or junction"):
+                    pipeline.resolve_project_root(str(project))
+
+    def test_plan_propagates_governance_ambiguity_without_guessing(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            (project / ".agents" / "governance").mkdir(parents=True)
+            (project / "governance").mkdir()
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--profile", "minimal", "--compact"
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["governance_layout"]["status"], "ambiguous")
+            design = next(stage for stage in payload["stages"] if stage["name"] == "design")
+            self.assertEqual(design["status"], "blocked")
+            self.assertEqual(payload["review_gate_inputs"]["result"], "fail")
+            self.assertIn(
+                "multiple-governance-locations",
+                {item["code"] for item in payload["review_gate_inputs"]["blockers"]},
+            )
+
+    def test_bootstrap_refuses_plan_with_unsafe_governance_location(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root)
+            (project / "governance").write_text("not a directory\n", encoding="utf-8")
+            plan_path = root / "reviewed-plan.json"
+            plan = self.write_plan(project, plan_path)
+            code, stdout, stderr = self.run_main([
+                "bootstrap-agents",
+                str(project),
+                "--apply",
+                "--plan",
+                str(plan_path),
+                "--confirm-plan-sha256",
+                plan["plan_sha256"],
+                "--compact",
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("blocking governance-location", stderr)
             self.assertFalse((project / ".agents").exists())
 
     def test_confirmed_current_plan_can_create_missing_context(self) -> None:
@@ -179,10 +329,38 @@ class ResearchPipelineTests(unittest.TestCase):
                 "--compact",
             ])
             self.assertEqual(code, 0, stderr)
-            self.assertEqual(json.loads(stdout)["status"], "context_created")
+            payload = json.loads(stdout)
+            self.assertEqual(payload["status"], "context_created")
+            self.assertEqual(payload["initialization_status"], "complete")
+            self.assertEqual(payload["maintenance_owner"], "neat-freak")
             self.assertTrue((project / ".agents" / "AGENTS.md").is_file())
             self.assertTrue((project / ".agents" / "memory" / "MEMORY.md").is_file())
             self.assertTrue((project / ".codex" / "hooks.json").is_file())
+
+    def test_component_swap_is_rejected_before_write(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root)
+            plan_path = root / "reviewed-plan.json"
+            plan = self.write_plan(project, plan_path)
+            fake_generator = root / "fake-generator.py"
+            fake_generator.write_text("raise SystemExit('must not execute')\n", encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "--generator-script",
+                str(fake_generator),
+                "bootstrap-agents",
+                str(project),
+                "--apply",
+                "--plan",
+                str(plan_path),
+                "--confirm-plan-sha256",
+                plan["plan_sha256"],
+                "--compact",
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("differs from the reviewed plan", stderr)
+            self.assertFalse((project / ".agents").exists())
 
     def test_preview_is_read_only(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
@@ -235,7 +413,10 @@ class ResearchPipelineTests(unittest.TestCase):
                 "bootstrap-agents", str(project), "--apply", "--compact"
             ])
             self.assertEqual(code, 1, stderr)
-            self.assertEqual(json.loads(stdout)["status"], "existing_context_preserved")
+            payload = json.loads(stdout)
+            self.assertEqual(payload["status"], "existing_context_preserved")
+            self.assertEqual(payload["maintenance_owner"], "neat-freak")
+            self.assertIn("Neat-Freak", payload["message"])
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "preserve\n")
 
     def test_legacy_singular_context_is_preserved_even_with_apply(self) -> None:
@@ -250,6 +431,7 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(code, 1, stderr)
             payload = json.loads(stdout)
             self.assertEqual(payload["status"], "existing_context_preserved")
+            self.assertEqual(payload["maintenance_owner"], "neat-freak")
             self.assertEqual(payload["context_locations"], [".agent"])
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "legacy-preserve\n")
             self.assertFalse((project / ".agents").exists())
@@ -394,206 +576,129 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(payload["mode"], "read-only-verification")
             self.assertEqual(before, after)
 
-    def test_nested_execution_root_without_manifest_is_conditional(self) -> None:
+    def test_pipeline_invokes_neat_freak_only_in_audit_modes(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
-            (project / "nested" / ".agents").mkdir(parents=True)
-            (project / "nested" / ".agents" / "AGENTS.md").write_text(
-                "# Nested\n", encoding="utf-8"
-            )
-            before = sorted(path.relative_to(project) for path in project.rglob("*"))
-            report = pipeline.analyze_policy_topology(project, None)
-            after = sorted(path.relative_to(project) for path in project.rglob("*"))
-            self.assertEqual(report["status"], "conditional")
-            self.assertEqual(report["summary"]["execution_root_count"], 2)
-            self.assertIn("policy-declaration-missing", {item["code"] for item in report["findings"]})
-            self.assertEqual(before, after)
+            self.make_context_bundle(project, ".agents")
+            audit_result = {
+                "exit_code": 0,
+                "result": {"summary": {"exit_code": 0, "status": "clean"}},
+            }
+            with mock.patch.object(
+                pipeline, "run_knowledge_audit", return_value=audit_result
+            ) as delegated:
+                code, _stdout, stderr = self.run_main([
+                    "verify", str(project), "--compact"
+                ])
+            self.assertIn(code, {0, 1}, stderr)
+            modes = {call.args[2] for call in delegated.call_args_list}
+            self.assertEqual(modes, {"audit", "bootstrap-audit"})
 
-    def test_explicit_nested_policy_reference_can_be_verified(self) -> None:
+    def test_pipeline_does_not_parse_agent_loading_manifest(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            report = pipeline.analyze_policy_topology(
-                project,
-                manifest.relative_to(project).as_posix(),
-            )
-            self.assertEqual(report["status"], "verified", report)
-            self.assertEqual(report["bindings"][0]["status"], "verified")
-
-    def test_missing_nested_policy_reference_is_blocking(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project, include_reference=False)
-            report = pipeline.analyze_policy_topology(
-                project,
-                manifest.relative_to(project).as_posix(),
-            )
-            self.assertEqual(report["status"], "invalid")
-            self.assertIn("mandatory-policy-unreachable", {item["code"] for item in report["findings"]})
-
-    def test_unreviewed_non_weakening_is_conditional(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project, approve_semantics=False)
-            report = pipeline.analyze_policy_topology(
-                project,
-                manifest.relative_to(project).as_posix(),
-            )
-            self.assertEqual(report["status"], "conditional")
-            self.assertIn("semantic-non-weakening-review-required", {item["code"] for item in report["findings"]})
-
-    def test_verified_loader_evidence_is_bound_to_root_and_policy(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            loader = project / ".agents" / "policy-loader.py"
-            evidence = project / ".agents" / "loader-test.json"
-            loader.write_text("# verified loader\n", encoding="utf-8")
-            evidence.write_text('{"result":"pass"}\n', encoding="utf-8")
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            document["bindings"] = [
-                {
-                    "execution_root_id": "nested",
-                    "policy_id": "mandatory",
-                    "type": "verified_loader",
-                    "loader_path": ".agents/policy-loader.py",
-                    "loader_sha256": hashlib.sha256(loader.read_bytes()).hexdigest(),
-                    "verification_evidence": {
-                        "path": ".agents/loader-test.json",
-                        "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest(),
-                        "result": "pass",
-                        "covers_execution_root_id": "nested",
-                        "covers_policy_id": "mandatory",
-                    },
-                }
-            ]
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            self.assertEqual(report["status"], "verified", report)
-
-            document["bindings"][0]["verification_evidence"]["covers_policy_id"] = "another-policy"
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            self.assertEqual(report["status"], "invalid")
-            self.assertIn("loader-evidence-scope-mismatch", {item["code"] for item in report["findings"]})
-
-    def test_owner_approved_isolation_remains_visible_and_conditional(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            document["bindings"] = [
-                {
-                    "execution_root_id": "nested",
-                    "policy_id": "mandatory",
-                    "type": "owner_approved_isolation",
-                    "approval": {
-                        "owner": "owner",
-                        "approved_at": "2026-09-14",
-                        "rationale": "This root runs a separately reviewed protocol.",
-                    },
-                }
-            ]
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            self.assertEqual(report["status"], "conditional")
-            self.assertIn("owner-approved-isolation", {item["code"] for item in report["findings"]})
-
-    def test_policy_hash_mismatch_and_drifted_copy_are_blocking(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            document["policies"][0]["sha256"] = "0" * 64
-            document["policies"][0]["known_copies"] = [
-                "nested/.agents/MANDATORY_POLICY.md"
-            ]
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            (project / "nested" / ".agents" / "MANDATORY_POLICY.md").write_text(
-                "# Drifted\n", encoding="utf-8"
-            )
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            codes = {item["code"] for item in report["findings"]}
-            self.assertIn("policy-hash-mismatch", codes)
-            self.assertIn("duplicated-policy-drift", codes)
-            self.assertEqual(report["summary"]["exit_code"], 2)
-
-    def test_policy_path_outside_project_is_rejected(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            document["policies"][0]["path"] = "../outside-policy.md"
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            self.assertIn("policy-path-outside-project", {item["code"] for item in report["findings"]})
-            self.assertEqual(report["status"], "invalid")
-
-    def test_topology_cannot_hide_mandatory_semantics_by_omission(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            del document["policies"][0]["mandatory"]
-            manifest.write_text(json.dumps(document), encoding="utf-8")
-            report = pipeline.analyze_policy_topology(project, manifest.relative_to(project).as_posix())
-            self.assertEqual(report["status"], "invalid")
-            self.assertIn("invalid-policy-mandatory", {item["code"] for item in report["findings"]})
-
-    def test_verify_preserves_structured_findings_for_invalid_topology(self) -> None:
-        with tempfile.TemporaryDirectory() as raw:
-            project = self.make_project(Path(raw))
-            manifest = self.make_policy_topology(project)
-            document = json.loads(manifest.read_text(encoding="utf-8"))
-            document["policies"] = []
-            manifest.write_text(json.dumps(document), encoding="utf-8")
+            manifest = project / "agent-loading-manifest.json"
+            manifest.write_text("this is intentionally not JSON\n", encoding="utf-8")
             code, stdout, stderr = self.run_main([
-                "verify",
+                "plan",
                 str(project),
                 "--policy-topology",
                 manifest.relative_to(project).as_posix(),
                 "--compact",
             ])
-            self.assertEqual(code, 2, stderr)
+            self.assertEqual(code, 0, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "fail")
-            self.assertEqual(payload["policy_topology"]["status"], "invalid")
+            handoff = payload["agent_loading_audit_handoff"]
+            self.assertEqual(handoff["owner"], "neat-freak")
+            self.assertEqual(handoff["status"], "pending_neat_freak_audit")
+            self.assertNotIn("policy_topology", payload)
+
+    def test_verify_delegates_loading_manifest_to_neat_freak(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.make_context_bundle(project, ".agents")
+            manifest = project / ".agents" / "policy-topology.json"
+            manifest.write_text("content owned by neat-freak\n", encoding="utf-8")
+            calls: list[tuple[str, str | None]] = []
+
+            def fake_audit(
+                project_arg: Path,
+                script: Path,
+                mode: str,
+                memory_directory: str,
+                policy_topology: str | None = None,
+            ) -> dict:
+                self.assertEqual(project_arg, project.resolve())
+                calls.append((mode, policy_topology))
+                return {"exit_code": 0, "result": {"status": "pass"}}
+
+            with mock.patch.object(pipeline, "run_knowledge_audit", side_effect=fake_audit):
+                code, stdout, stderr = self.run_main([
+                    "verify",
+                    str(project),
+                    "--policy-topology",
+                    manifest.relative_to(project).as_posix(),
+                    "--compact",
+                ])
+            self.assertIn(code, {0, 1}, stderr)
+            payload = json.loads(stdout)
+            self.assertIn(
+                ("bootstrap-audit", manifest.relative_to(project).as_posix()),
+                calls,
+            )
             self.assertEqual(
                 payload["knowledge_and_bootstrap"]["policy_topology_audit"],
-                "skipped_invalid_pipeline_topology",
+                "executed",
             )
 
-    def test_plan_includes_verified_policy_and_equivalence_extensions(self) -> None:
+    def test_agent_loading_manifest_must_be_project_contained(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root)
+            outside = root / "outside-agent-loading.json"
+            outside.write_text("{}\n", encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--policy-topology", str(outside), "--compact"
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("must stay inside", stderr)
+
+    def test_plan_includes_loading_handoff_and_verified_comparison(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
             manifest = self.make_policy_topology(project)
-            records = self.make_equivalence_records(project)
+            records = self.make_comparison_records(project)
             before = {path.relative_to(project).as_posix(): path.stat().st_mtime_ns for path in project.rglob("*")}
             code, stdout, stderr = self.run_main([
                 "plan",
                 str(project),
                 "--policy-topology",
                 manifest.relative_to(project).as_posix(),
-                "--equivalence-records",
+                "--comparison-records",
                 records.relative_to(project).as_posix(),
                 "--compact",
             ])
             self.assertEqual(code, 0, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["policy_topology"]["status"], "verified")
-            self.assertEqual(payload["equivalence_contracts"]["status"], "verified")
+            self.assertEqual(
+                payload["agent_loading_audit_handoff"]["status"],
+                "pending_neat_freak_audit",
+            )
+            self.assertEqual(payload["agent_loading_audit_handoff"]["owner"], "neat-freak")
+            self.assertEqual(payload["comparison_contracts"]["status"], "verified")
             self.assertEqual(payload["plan_sha256"], pipeline.canonical_hash(payload))
             after = {path.relative_to(project).as_posix(): path.stat().st_mtime_ns for path in project.rglob("*")}
             self.assertEqual(before, after)
 
-    def test_equivalence_records_must_be_project_contained(self) -> None:
+    def test_comparison_records_must_be_project_contained(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
             project = self.make_project(root)
             outside = root / "outside-records.json"
-            outside.write_text(json.dumps({"schema_version": pipeline.EQUIVALENCE_SCHEMA, "records": []}), encoding="utf-8")
+            outside.write_text(json.dumps({"schema_version": pipeline.COMPARISON_SCHEMA, "records": []}), encoding="utf-8")
             code, stdout, stderr = self.run_main([
-                "plan", str(project), "--equivalence-records", str(outside), "--compact"
+                "plan", str(project), "--comparison-records", str(outside), "--compact"
             ])
             self.assertEqual(code, 2)
             self.assertEqual(stdout, "")

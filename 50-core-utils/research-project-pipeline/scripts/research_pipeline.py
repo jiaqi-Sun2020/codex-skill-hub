@@ -9,25 +9,35 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import sys
 from typing import Any
 
 
-PIPELINE_SCHEMA = "research-project-pipeline/v1"
-GENERATOR_SCHEMA = "project-agent-generator/v1"
-INVENTORY_SCHEMA = "research-workspace-inventory/v1"
-POLICY_TOPOLOGY_SCHEMA = "research-policy-topology/v1"
-EQUIVALENCE_SCHEMA = "research-equivalence-record/v1"
-AGENT_BUNDLE_NAMES = (".agents", ".agent")
-POLICY_BINDING_TYPES = {
-    "explicit_reference",
-    "verified_loader",
-    "owner_approved_isolation",
+PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v3"
+PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v1"
+LEGACY_PIPELINE_SCHEMAS = {
+    "research-project-pipeline/v1",
+    "research-project-pipeline/v2",
 }
-POLICY_SCAN_SKIP = {".git", ".hg", ".svn", "__pycache__", "node_modules"}
-MAX_POLICY_SCAN_DIRECTORIES = 50_000
-MAX_POLICY_TEXT_BYTES = 1024 * 1024
+GENERATOR_SCHEMA = "project-agent-generator/v1"
+INVENTORY_SCHEMA = "research-workspace-inventory/v2"
+LEGACY_INVENTORY_SCHEMA = "research-workspace-inventory/v1"
+COMPARISON_SCHEMA = "research-comparison-record/v2"
+MAX_PLAN_BYTES = 5 * 1024 * 1024
+SHA256_PATTERN = re.compile(r"^[A-Fa-f0-9]{64}$")
+STABLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$")
+HUMAN_SUMMARY_FIELDS = (
+    "what_is_reviewed",
+    "why_review_is_required",
+    "evidence_to_review",
+    "pass_conditions",
+    "reject_conditions",
+    "after_pass",
+    "minimum_repair",
+)
+AGENT_BUNDLE_NAMES = (".agents", ".agent")
 REQUIRED_AGENT_FILES = (
     "AGENTS.md",
     "PROJECT_CONTEXT.md",
@@ -38,19 +48,6 @@ REQUIRED_AGENT_FILES = (
     "README.md",
     "memory/MEMORY.md",
     "memory/maintenance-rules.md",
-)
-REQUIRED_RESEARCH_ROLES = (
-    "governance",
-    "protocols",
-    "source_records",
-    "derived_data",
-    "methods",
-    "experiments_analyses",
-    "run_evidence",
-    "reports",
-    "deliverables",
-    "archive",
-    "temporary",
 )
 
 
@@ -68,6 +65,26 @@ def is_link_like(path: Path) -> bool:
         return bool(getattr(path.lstat(), "st_file_attributes", 0) & 0x400)
     except OSError:
         return True
+
+
+def first_link_component(path: Path) -> Path | None:
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current = current / part
+        if current.exists() and is_link_like(current):
+            return current
+    return None
+
+
+def resolve_project_root(raw: str) -> Path:
+    candidate = Path(raw).expanduser().absolute()
+    linked = first_link_component(candidate)
+    if linked is not None:
+        raise ValueError(f"project root path traverses a link or junction: {linked}")
+    resolved = candidate.resolve(strict=True)
+    if not resolved.is_dir():
+        raise ValueError(f"project root does not exist or is not a directory: {resolved}")
+    return resolved
 
 
 def existing_context_bundles(project: Path) -> list[Path]:
@@ -97,6 +114,42 @@ def canonical_hash(value: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def component_bindings(components: dict[str, Path | None]) -> dict[str, dict[str, Any]]:
+    bindings: dict[str, dict[str, Any]] = {}
+    for name, required in (
+        ("generator", True),
+        ("inventory", True),
+        ("knowledge", False),
+        ("comparison_validator", False),
+    ):
+        value = components.get(name)
+        available = isinstance(value, Path) and value.is_file()
+        bindings[name] = {
+            "required": required,
+            "available": available,
+            "path": str(value.resolve(strict=True)) if available else None,
+            "sha256": sha256_file(value) if available else None,
+        }
+    return bindings
+
+
+def result_document(status: str, **fields: Any) -> dict[str, Any]:
+    return {
+        "schema_version": PIPELINE_RESULT_SCHEMA,
+        "document_type": "pipeline-command-result",
+        "status": status,
+        **fields,
+    }
+
+
 def resolve_components(args: argparse.Namespace) -> dict[str, Path | None]:
     default_root = Path(__file__).resolve().parents[2]
     core_root = (
@@ -119,9 +172,9 @@ def resolve_components(args: argparse.Namespace) -> dict[str, Path | None]:
         if args.knowledge_script
         else core_root / "neat-freak" / "scripts" / "manage_project_knowledge.py"
     )
-    equivalence_validator = (
-        Path(args.equivalence_validator_script).expanduser().resolve()
-        if args.equivalence_validator_script
+    comparison_validator = (
+        Path(args.comparison_validator_script).expanduser().resolve()
+        if args.comparison_validator_script
         else core_root
         / "research-workspace-governance"
         / "scripts"
@@ -135,8 +188,8 @@ def resolve_components(args: argparse.Namespace) -> dict[str, Path | None]:
         "generator": generator,
         "inventory": inventory,
         "knowledge": knowledge if knowledge.is_file() else None,
-        "equivalence_validator": (
-            equivalence_validator if equivalence_validator.is_file() else None
+        "comparison_validator": (
+            comparison_validator if comparison_validator.is_file() else None
         ),
     }
 
@@ -175,6 +228,7 @@ def parse_component_json(process: subprocess.CompletedProcess[str], label: str) 
 def inspect_generator(project: Path, generator: Path) -> dict[str, Any]:
     process = run_process([
         sys.executable,
+        "-B",
         "-X",
         "utf8",
         str(generator),
@@ -191,6 +245,7 @@ def inspect_generator(project: Path, generator: Path) -> dict[str, Any]:
 def inspect_workspace(project: Path, inventory: Path) -> dict[str, Any]:
     process = run_process([
         sys.executable,
+        "-B",
         "-X",
         "utf8",
         str(inventory),
@@ -198,8 +253,64 @@ def inspect_workspace(project: Path, inventory: Path) -> dict[str, Any]:
         "--compact",
     ])
     payload = parse_component_json(process, "research workspace inventory")
-    if payload.get("schema_version") != INVENTORY_SCHEMA or payload.get("status") != "inspected":
+    if payload.get("status") != "inspected":
         raise ComponentError("unsupported or unsuccessful workspace inventory")
+    if payload.get("schema_version") == LEGACY_INVENTORY_SCHEMA:
+        legacy_roles = payload.get("role_candidates", {})
+        legacy_roles = legacy_roles if isinstance(legacy_roles, dict) else {}
+        role_mapping = {
+            "protocols": "protocols",
+            "source_records": "source_records",
+            "external_references": "external_references",
+            "derived_data": "derived_data",
+            "methods": "methods",
+            "experiments_analyses": "work_units",
+            "run_evidence": "evidence",
+            "reports": "reports",
+            "deliverables": "deliverables",
+            "archive": "archive",
+            "temporary": "temporary",
+            "data_container": "data_container",
+            "tests": "tests",
+        }
+        normalized_roles = {
+            target: legacy_roles[source]
+            for source, target in role_mapping.items()
+            if source in legacy_roles
+        }
+        payload = {
+            **payload,
+            "schema_version": INVENTORY_SCHEMA,
+            "source_schema_version": LEGACY_INVENTORY_SCHEMA,
+            "role_candidates": normalized_roles,
+            "governance_layout": {
+                "status": "unsafe",
+                "canonical_path": ".agents/governance",
+                "legacy_path": "governance",
+                "active_path": None,
+                "write_allowed": False,
+                "findings": [{
+                    "code": "legacy-inventory-cannot-resolve-governance-authority",
+                    "severity": "blocker",
+                    "object": "governance_location",
+                    "candidate_interpretations": [".agents/governance", "governance"],
+                    "risk": "inventory v1 did not distinguish governance authority",
+                    "minimum_fix": "rerun discovery with workspace inventory v2",
+                    "verification": "confirm the refreshed inventory reports one safe authority",
+                }],
+            },
+            "project_contract": {"status": "not_checked", "path": None, "findings": []},
+            "relocation_maps": {
+                "status": "not_checked",
+                "maps": [],
+                "resolved_mappings": [],
+                "findings": [],
+                "content_treated_as_data": True,
+            },
+            "governance_state": {"status": "not_checked", "path": None, "findings": []},
+        }
+    elif payload.get("schema_version") != INVENTORY_SCHEMA:
+        raise ComponentError("unsupported workspace-inventory schema")
     return payload
 
 
@@ -237,27 +348,21 @@ def emit(value: dict[str, Any], *, compact: bool) -> None:
 
 
 def validate_complete_inventory(inventory: dict[str, Any]) -> None:
+    required_sections = {
+        "governance_layout", "project_contract", "relocation_maps",
+        "governance_state", "role_candidates", "scan",
+        "workspace_fingerprint_sha256",
+    }
+    missing = sorted(required_sections - set(inventory))
+    if missing:
+        raise ComponentError("workspace inventory omitted required sections: " + ", ".join(missing))
     scan = inventory.get("scan", {})
+    if not isinstance(scan, dict):
+        raise ComponentError("workspace inventory scan must be an object")
     if scan.get("scan_truncated"):
         raise ComponentError("workspace inventory is truncated")
     if int(scan.get("unreadable_count", 0)) > 0:
         raise ComponentError("workspace inventory contains unreadable paths")
-
-
-def sha256_file(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as stream:
-        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest()
-
-
-def is_sha256(value: Any) -> bool:
-    return (
-        isinstance(value, str)
-        and len(value) == 64
-        and all(character in "0123456789abcdefABCDEF" for character in value)
-    )
 
 
 def linked_component_below(root: Path, target: Path) -> Path | None:
@@ -289,362 +394,97 @@ def resolve_project_input_file(project: Path, raw: str, label: str) -> Path:
     return resolved
 
 
-def read_json_bounded(path: Path, label: str) -> Any:
-    if path.stat().st_size > 5 * 1024 * 1024:
-        raise ValueError(f"{label} exceeds 5 MiB")
-    try:
-        return json.loads(path.read_text(encoding="utf-8-sig"))
-    except json.JSONDecodeError as exc:
-        raise ValueError(f"{label} is not valid JSON: {exc}") from exc
-
-
-def policy_finding(
-    code: str,
-    message: str,
-    *,
-    severity: str = "error",
-    path: str | None = None,
-    policy_id: str | None = None,
-    execution_root_id: str | None = None,
-) -> dict[str, Any]:
-    result: dict[str, Any] = {"code": code, "message": message, "severity": severity}
-    if path is not None:
-        result["path"] = path
-    if policy_id is not None:
-        result["policy_id"] = policy_id
-    if execution_root_id is not None:
-        result["execution_root_id"] = execution_root_id
-    return result
-
-
-def discover_execution_roots(project: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    discovered: dict[str, dict[str, Any]] = {
-        ".": {"id": "project-root", "path": ".", "context_bundles": []}
-    }
-    findings: list[dict[str, Any]] = []
-    visited = 0
-    for current_raw, directory_names, _file_names in os.walk(project, topdown=True, followlinks=False):
-        current = Path(current_raw)
-        visited += 1
-        if visited > MAX_POLICY_SCAN_DIRECTORIES:
-            findings.append(policy_finding(
-                "execution-root-scan-truncated",
-                f"execution-root discovery exceeded {MAX_POLICY_SCAN_DIRECTORIES} directories",
-                severity="error",
-            ))
-            break
-        safe_directories: list[str] = []
-        for name in directory_names:
-            child = current / name
-            if name in POLICY_SCAN_SKIP or name in AGENT_BUNDLE_NAMES or is_link_like(child):
-                continue
-            safe_directories.append(name)
-        directory_names[:] = safe_directories
-
-        bundles = [
-            name
-            for name in AGENT_BUNDLE_NAMES
-            if (current / name / "AGENTS.md").is_file()
-            and linked_component_below(project, current / name / "AGENTS.md") is None
-        ]
-        if not bundles:
-            continue
-        relative = current.relative_to(project).as_posix() or "."
-        entry = discovered.setdefault(
-            relative,
-            {
-                "id": "project-root" if relative == "." else f"execution:{relative}",
-                "path": relative,
-                "context_bundles": [],
-            },
-        )
-        entry["context_bundles"] = bundles
-        if len(bundles) > 1:
-            findings.append(policy_finding(
-                "context-ambiguity",
-                "both .agents and .agent contain AGENTS.md",
-                severity="finding",
-                path=relative,
-                execution_root_id=str(entry["id"]),
-            ))
-    return sorted(discovered.values(), key=lambda item: str(item["path"])), findings
-
-
-def safe_manifest_path(project: Path, raw: Any, label: str, findings: list[dict[str, Any]]) -> Path | None:
-    if not isinstance(raw, str) or not raw:
-        findings.append(policy_finding("invalid-policy-path", f"{label} must be a non-empty project-relative path"))
-        return None
-    relative = Path(raw)
-    if relative.is_absolute() or ".." in relative.parts:
-        findings.append(policy_finding("policy-path-outside-project", f"{label} must be project-contained: {raw}", path=raw))
-        return None
-    unresolved = (project / relative).absolute()
-    if linked_component_below(project, unresolved) is not None:
-        findings.append(policy_finding("linked-policy-path", f"{label} traverses a link or junction: {raw}", path=raw))
-        return None
-    resolved = unresolved.resolve(strict=False)
-    if not is_relative_to(resolved, project):
-        findings.append(policy_finding("policy-path-outside-project", f"{label} escapes the project: {raw}", path=raw))
-        return None
-    if not resolved.is_file():
-        findings.append(policy_finding("broken-policy-reference", f"{label} does not exist: {raw}", path=raw))
-        return None
-    return resolved
-
-
-def analyze_policy_topology(project: Path, manifest_arg: str | None) -> dict[str, Any]:
-    execution_roots, findings = discover_execution_roots(project)
+def policy_topology_handoff(project: Path, manifest_arg: str | None) -> dict[str, Any]:
     if not manifest_arg:
-        if len(execution_roots) > 1:
-            findings.append(policy_finding(
-                "policy-declaration-missing",
-                "nested execution roots were discovered but no mandatory-policy topology was declared",
-                severity="finding",
-            ))
-        exit_code = 1 if findings else 0
         return {
-            "schema_version": POLICY_TOPOLOGY_SCHEMA,
-            "status": "conditional" if exit_code else "undeclared",
+            "schema_version": "agent-loading-audit-handoff/v1",
+            "status": "not_declared",
+            "owner": "neat-freak",
             "manifest_path": None,
-            "policies": [],
-            "execution_roots": execution_roots,
-            "bindings": [],
-            "findings": findings,
-            "summary": {"exit_code": exit_code, "policy_count": 0, "execution_root_count": len(execution_roots), "binding_count": 0, "finding_count": len(findings)},
         }
-
     manifest_path = resolve_project_input_file(project, manifest_arg, "policy topology")
-    document = read_json_bounded(manifest_path, "policy topology")
-    if not isinstance(document, dict):
-        document = {}
-        findings.append(policy_finding("invalid-policy-topology", "policy topology must be a JSON object"))
-    if document.get("schema_version") != POLICY_TOPOLOGY_SCHEMA:
-        findings.append(policy_finding("unsupported-policy-topology-schema", f"schema_version must be {POLICY_TOPOLOGY_SCHEMA}"))
-
-    declared_roots = document.get("execution_roots", [])
-    if not isinstance(declared_roots, list):
-        findings.append(policy_finding("invalid-execution-roots", "execution_roots must be an array"))
-        declared_roots = []
-    roots_by_path = {str(item["path"]): item for item in execution_roots}
-    root_ids: set[str] = set()
-    declared_paths: set[str] = set()
-    for raw_root in declared_roots:
-        if not isinstance(raw_root, dict) or not isinstance(raw_root.get("id"), str) or not raw_root.get("id"):
-            findings.append(policy_finding("invalid-execution-root", "each declared execution root requires a non-empty id and path"))
-            continue
-        root_id = raw_root["id"]
-        raw_path = raw_root.get("path")
-        if not isinstance(raw_path, str) or not raw_path:
-            findings.append(policy_finding("invalid-execution-root", f"execution root {root_id} requires a path", execution_root_id=root_id))
-            continue
-        rel = Path(raw_path)
-        if rel.is_absolute() or ".." in rel.parts:
-            findings.append(policy_finding("execution-root-outside-project", f"execution root path must be project-contained: {raw_path}", execution_root_id=root_id))
-            continue
-        root_path = (project / rel).resolve(strict=False)
-        if not is_relative_to(root_path, project) or linked_component_below(project, (project / rel).absolute()) is not None:
-            findings.append(policy_finding("linked-or-outside-execution-root", f"unsafe execution root: {raw_path}", execution_root_id=root_id))
-            continue
-        normalized = root_path.relative_to(project).as_posix() or "."
-        if not root_path.is_dir():
-            findings.append(policy_finding("missing-execution-root", f"declared execution root does not exist: {normalized}", execution_root_id=root_id))
-        if normalized in declared_paths:
-            findings.append(policy_finding("duplicate-execution-root-path", f"duplicate execution root path: {normalized}", execution_root_id=root_id))
-            continue
-        declared_paths.add(normalized)
-        if root_id in root_ids:
-            findings.append(policy_finding("duplicate-execution-root-id", f"duplicate execution root id: {root_id}", execution_root_id=root_id))
-            continue
-        root_ids.add(root_id)
-        entry = roots_by_path.get(normalized)
-        if entry is None:
-            entry = {"id": root_id, "path": normalized, "context_bundles": []}
-            roots_by_path[normalized] = entry
-            findings.append(policy_finding("declared-execution-root-not-detected", "declared root has no .agents/AGENTS.md or .agent/AGENTS.md", severity="finding", path=normalized, execution_root_id=root_id))
-        else:
-            entry["id"] = root_id
-    execution_roots = sorted(roots_by_path.values(), key=lambda item: str(item["path"]))
-    output_ids = [str(item["id"]) for item in execution_roots]
-    for duplicate in sorted({item for item in output_ids if output_ids.count(item) > 1}):
-        findings.append(policy_finding("duplicate-execution-root-id", f"duplicate execution root id after discovery merge: {duplicate}", execution_root_id=duplicate))
-    for entry in execution_roots:
-        root_ids.add(str(entry["id"]))
-
-    raw_policies = document.get("policies", [])
-    if not isinstance(raw_policies, list) or not raw_policies:
-        findings.append(policy_finding("invalid-policies", "policies must be a non-empty array when a topology is declared"))
-        raw_policies = []
-    policies: list[dict[str, Any]] = []
-    policies_by_id: dict[str, dict[str, Any]] = {}
-    policy_paths: dict[str, Path] = {}
-    for raw_policy in raw_policies:
-        if not isinstance(raw_policy, dict) or not isinstance(raw_policy.get("id"), str) or not raw_policy.get("id"):
-            findings.append(policy_finding("invalid-policy", "each policy requires a non-empty id"))
-            continue
-        policy_id = raw_policy["id"]
-        if policy_id in policies_by_id:
-            findings.append(policy_finding("duplicate-policy-id", f"duplicate policy id: {policy_id}", policy_id=policy_id))
-            continue
-        policy_path = safe_manifest_path(project, raw_policy.get("path"), f"policy {policy_id}", findings)
-        expected_hash = raw_policy.get("sha256")
-        applies_to = raw_policy.get("applies_to", ["*"])
-        known_copies = raw_policy.get("known_copies", [])
-        if not isinstance(raw_policy.get("mandatory"), bool):
-            findings.append(policy_finding("invalid-policy-mandatory", "mandatory must be an explicit boolean", policy_id=policy_id))
-        if not isinstance(applies_to, list) or not applies_to or any(not isinstance(item, str) for item in applies_to):
-            findings.append(policy_finding("invalid-policy-scope", "applies_to must be a non-empty array of execution-root ids or *", policy_id=policy_id))
-            applies_to = []
-        unknown_roots = set(applies_to) - root_ids - {"*"}
-        if unknown_roots:
-            findings.append(policy_finding("unknown-policy-scope-root", "unknown execution roots: " + ", ".join(sorted(unknown_roots)), policy_id=policy_id))
-        if len(applies_to) != len(set(applies_to)):
-            findings.append(policy_finding("duplicate-policy-scope-root", "applies_to contains duplicate execution-root ids", policy_id=policy_id))
-        if not isinstance(known_copies, list) or any(not isinstance(item, str) or not item for item in known_copies):
-            findings.append(policy_finding("invalid-known-policy-copies", "known_copies must be an array of project-relative paths", policy_id=policy_id))
-            known_copies = []
-        elif len(known_copies) != len(set(known_copies)):
-            findings.append(policy_finding("duplicate-known-policy-copy", "known_copies contains duplicate paths", policy_id=policy_id))
-        normalized = {
-            "id": policy_id,
-            "path": raw_policy.get("path"),
-            "sha256": expected_hash,
-            "mandatory": raw_policy.get("mandatory") is True,
-            "applies_to": applies_to,
-            "known_copies": known_copies,
-        }
-        if policy_path:
-            actual_hash = sha256_file(policy_path)
-            normalized["actual_sha256"] = actual_hash
-            policy_paths[policy_id] = policy_path
-            if not is_sha256(expected_hash):
-                findings.append(policy_finding("invalid-policy-hash", "policy sha256 must contain 64 hexadecimal characters", policy_id=policy_id, path=str(raw_policy.get("path"))))
-            elif actual_hash.casefold() != expected_hash.casefold():
-                findings.append(policy_finding("policy-hash-mismatch", "policy file does not match its declared SHA-256", policy_id=policy_id, path=str(raw_policy.get("path"))))
-            path_parts = {part.casefold() for part in Path(str(raw_policy.get("path"))).parts}
-            if normalized["mandatory"] and "memory" in path_parts:
-                findings.append(policy_finding("mandatory-policy-in-optional-memory", "mandatory policies must not exist only in optional memory", policy_id=policy_id, path=str(raw_policy.get("path"))))
-        policies.append(normalized)
-        policies_by_id[policy_id] = normalized
-
-    raw_bindings = document.get("bindings")
-    if not isinstance(raw_bindings, list):
-        findings.append(policy_finding("invalid-policy-bindings", "bindings must be an array"))
-        raw_bindings = []
-    bindings: list[dict[str, Any]] = []
-    binding_keys: set[tuple[str, str]] = set()
-    roots_by_id = {str(item["id"]): item for item in execution_roots}
-    for raw_binding in raw_bindings:
-        if not isinstance(raw_binding, dict):
-            findings.append(policy_finding("invalid-policy-binding", "each binding must be an object"))
-            continue
-        root_id = raw_binding.get("execution_root_id")
-        policy_id = raw_binding.get("policy_id")
-        binding_type = raw_binding.get("type")
-        if root_id not in roots_by_id or policy_id not in policies_by_id or binding_type not in POLICY_BINDING_TYPES:
-            findings.append(policy_finding("invalid-policy-binding", "binding must name a known execution root, policy, and binding type", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            continue
-        key = (str(root_id), str(policy_id))
-        if key in binding_keys:
-            findings.append(policy_finding("duplicate-policy-binding", "duplicate root-policy binding", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            continue
-        binding_keys.add(key)
-        normalized_binding: dict[str, Any] = {
-            "execution_root_id": root_id,
-            "policy_id": policy_id,
-            "type": binding_type,
-            "status": "invalid",
-        }
-        root_path = project / str(roots_by_id[str(root_id)]["path"])
-        policy_path = policy_paths.get(str(policy_id))
-        if binding_type == "explicit_reference" and policy_path:
-            canonical_reference = os.path.relpath(policy_path, root_path).replace("\\", "/")
-            normalized_binding["canonical_reference"] = canonical_reference
-            agents_files = [root_path / name / "AGENTS.md" for name in roots_by_id[str(root_id)].get("context_bundles", [])]
-            readable = [path for path in agents_files if path.is_file() and path.stat().st_size <= MAX_POLICY_TEXT_BYTES]
-            texts = [path.read_text(encoding="utf-8-sig") for path in readable]
-            if not texts or not any(canonical_reference in text.replace("\\", "/") for text in texts):
-                findings.append(policy_finding("mandatory-policy-unreachable", f"no execution-root AGENTS.md explicitly references {canonical_reference}", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            elif raw_binding.get("non_weakening") is not True:
-                findings.append(policy_finding("missing-non-weakening-constraint", "explicit references must declare non_weakening=true", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            else:
-                review = raw_binding.get("semantic_review")
-                if not isinstance(review, dict) or review.get("status") != "approved" or not review.get("reviewer") or not review.get("reviewed_at"):
-                    normalized_binding["status"] = "conditional"
-                    findings.append(policy_finding("semantic-non-weakening-review-required", "path reachability is verified but natural-language non-weakening still requires an approved semantic review", severity="finding", policy_id=str(policy_id), execution_root_id=str(root_id)))
-                else:
-                    normalized_binding["status"] = "verified"
-        elif binding_type == "verified_loader":
-            loader = safe_manifest_path(project, raw_binding.get("loader_path"), "verified loader", findings)
-            evidence = raw_binding.get("verification_evidence")
-            evidence_path = safe_manifest_path(project, evidence.get("path") if isinstance(evidence, dict) else None, "loader verification evidence", findings)
-            hashes_ok = True
-            for checked_path, expected, code in (
-                (loader, raw_binding.get("loader_sha256"), "loader-hash-mismatch"),
-                (evidence_path, evidence.get("sha256") if isinstance(evidence, dict) else None, "loader-evidence-hash-mismatch"),
-            ):
-                if checked_path is None or not is_sha256(expected) or sha256_file(checked_path).casefold() != expected.casefold():
-                    hashes_ok = False
-                    findings.append(policy_finding(code, "verified loader evidence is missing or does not match its SHA-256", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            if not isinstance(evidence, dict) or evidence.get("result") != "pass":
-                hashes_ok = False
-                findings.append(policy_finding("loader-unverified", "verified_loader requires immutable passing verification evidence", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            elif evidence.get("covers_execution_root_id") != root_id or evidence.get("covers_policy_id") != policy_id:
-                hashes_ok = False
-                findings.append(policy_finding("loader-evidence-scope-mismatch", "loader verification evidence must name this execution root and policy", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            if hashes_ok:
-                normalized_binding["status"] = "verified"
-        elif binding_type == "owner_approved_isolation":
-            approval = raw_binding.get("approval")
-            if not isinstance(approval, dict) or not approval.get("owner") or not approval.get("approved_at") or not approval.get("rationale"):
-                findings.append(policy_finding("invalid-owner-approved-isolation", "isolation requires owner, approved_at, and rationale", policy_id=str(policy_id), execution_root_id=str(root_id)))
-            else:
-                normalized_binding["status"] = "isolated"
-                findings.append(policy_finding("owner-approved-isolation", "mandatory policy is intentionally isolated by an owner decision", severity="finding", policy_id=str(policy_id), execution_root_id=str(root_id)))
-        bindings.append(normalized_binding)
-
-    for policy in policies:
-        if not policy["mandatory"]:
-            continue
-        applicable = execution_roots if "*" in policy["applies_to"] else [item for item in execution_roots if item["id"] in policy["applies_to"]]
-        for root in applicable:
-            if (str(root["id"]), str(policy["id"])) not in binding_keys:
-                findings.append(policy_finding("mandatory-policy-unreachable", "no binding declares how this execution root reaches the mandatory policy", policy_id=str(policy["id"]), execution_root_id=str(root["id"])))
-
-    for policy in policies:
-        policy_path = policy_paths.get(str(policy["id"]))
-        if not policy_path:
-            continue
-        for raw_copy in policy.get("known_copies", []):
-            copy = safe_manifest_path(project, raw_copy, f"known copy of policy {policy['id']}", findings)
-            if not copy or copy == policy_path:
-                continue
-            kind = "duplicated-policy-body" if sha256_file(copy) == sha256_file(policy_path) else "duplicated-policy-drift"
-            severity = "finding" if kind == "duplicated-policy-body" else "error"
-            findings.append(policy_finding(kind, "declared copy duplicates the canonical policy; use a short reference" if kind == "duplicated-policy-body" else "declared policy copy has drifted from the canonical policy", severity=severity, path=copy.relative_to(project).as_posix(), policy_id=str(policy["id"])))
-
-    has_errors = any(item["severity"] == "error" for item in findings)
-    if has_errors:
-        status, exit_code = "invalid", 2
-    elif findings:
-        status, exit_code = "conditional", 1
-    else:
-        status, exit_code = "verified", 0
     return {
-        "schema_version": POLICY_TOPOLOGY_SCHEMA,
-        "status": status,
+        "schema_version": "agent-loading-audit-handoff/v1",
+        "status": "pending_neat_freak_audit",
+        "owner": "neat-freak",
         "manifest_path": manifest_path.relative_to(project).as_posix(),
-        "policies": policies,
-        "execution_roots": execution_roots,
-        "bindings": bindings,
-        "findings": findings,
-        "summary": {"exit_code": exit_code, "policy_count": len(policies), "execution_root_count": len(execution_roots), "binding_count": len(bindings), "finding_count": len(findings)},
     }
 
 
-def run_equivalence_validation(project: Path, script: Path | None, records_arg: str | None) -> dict[str, Any]:
+def findings_from(*sections: Any) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    blockers: list[dict[str, Any]] = []
+    non_blockers: list[dict[str, Any]] = []
+    for section in sections:
+        if not isinstance(section, dict):
+            continue
+        findings = section.get("findings", [])
+        if not isinstance(findings, list):
+            continue
+        for finding in findings:
+            if not isinstance(finding, dict):
+                continue
+            if finding.get("severity") in {"non_blocker", "finding"}:
+                non_blockers.append(finding)
+            else:
+                blockers.append(finding)
+    return blockers, non_blockers
+
+
+def review_gate_inputs(
+    *,
+    blockers: list[dict[str, Any]],
+    non_blockers: list[dict[str, Any]],
+    evidence: list[str],
+) -> dict[str, Any]:
+    suggested_actions = [
+        "Resolve the first blocker and rerun read-only discovery."
+        if blockers
+        else "Review the exact component actions and workspace fingerprint."
+    ]
+    return {
+        "result": "fail" if blockers else "conditional",
+        "scope": {"type": "project", "id": "research-project-integration"},
+        "blockers": blockers,
+        "non_blockers": non_blockers,
+        "evidence": evidence,
+        "suggested_actions": suggested_actions,
+        "allowed_actions": ["human_review"],
+        "forbidden_actions": [
+            "migration",
+            "overwrite",
+            "deletion",
+            "unreviewed_agent_context_change",
+        ],
+        "human_summary_required": True,
+        "human_summary_language": "current-user-language",
+        "human_summary_source": {
+            "what_is_reviewed": [
+                "The proposed component actions, governance authority, current state, and evidence boundaries."
+            ],
+            "why_review_is_required": [
+                "Approval is the boundary between read-only discovery and any controlled change."
+            ],
+            "evidence_to_review": list(evidence),
+            "pass_conditions": [
+                "No blocker remains, the evidence matches the intended project, and the named owner is authorized."
+            ],
+            "reject_conditions": [
+                "Reject when any blocker, ambiguous authority, unsafe path, stale component, or unsupported action remains."
+            ],
+            "after_pass": [
+                "Only the explicitly listed action may proceed through its named owning component."
+            ],
+            "minimum_repair": suggested_actions,
+            "render_language": "current-user-language",
+            "render_required": True,
+        },
+    }
+
+
+def run_comparison_validation(project: Path, script: Path | None, records_arg: str | None) -> dict[str, Any]:
     if not records_arg:
         return {
-            "schema_version": EQUIVALENCE_SCHEMA,
+            "schema_version": COMPARISON_SCHEMA,
             "status": "not_declared",
             "records_path": None,
             "findings": [],
@@ -652,17 +492,17 @@ def run_equivalence_validation(project: Path, script: Path | None, records_arg: 
             "summary": {"exit_code": 0, "record_count": 0, "verified_count": 0, "finding_count": 0},
         }
     if script is None:
-        raise ComponentError("equivalence validator interface is unavailable")
-    records_path = resolve_project_input_file(project, records_arg, "equivalence records")
+        raise ComponentError("comparison validator interface is unavailable")
+    records_path = resolve_project_input_file(project, records_arg, "comparison records")
     process = run_process(
-        [sys.executable, "-X", "utf8", str(script), str(records_path), "--project-root", str(project), "--compact"],
+        [sys.executable, "-B", "-X", "utf8", str(script), str(records_path), "--project-root", str(project), "--compact"],
         accepted_codes={0, 1, 2},
     )
-    payload = parse_component_json(process, "equivalence validator")
-    if payload.get("schema_version") != EQUIVALENCE_SCHEMA:
-        raise ComponentError("unsupported equivalence-validator schema")
+    payload = parse_component_json(process, "comparison validator")
+    if payload.get("schema_version") != COMPARISON_SCHEMA:
+        raise ComponentError("unsupported comparison-validator schema")
     if not isinstance(payload.get("summary"), dict):
-        raise ComponentError("equivalence validator omitted its summary")
+        raise ComponentError("comparison validator omitted its summary")
     payload["records_path"] = records_path.relative_to(project).as_posix()
     payload["summary"]["exit_code"] = process.returncode
     return payload
@@ -674,30 +514,52 @@ def build_plan(
     components: dict[str, Path | None],
     *,
     policy_topology: str | None = None,
-    equivalence_records: str | None = None,
+    comparison_records: str | None = None,
 ) -> dict[str, Any]:
     generator = inspect_generator(project, components["generator"])  # type: ignore[arg-type]
     inventory = inspect_workspace(project, components["inventory"])  # type: ignore[arg-type]
     validate_complete_inventory(inventory)
     roles = inventory.get("role_candidates", {})
-    role_gaps = [role for role in REQUIRED_RESEARCH_ROLES if not roles.get(role)]
+    governance_layout = inventory.get("governance_layout", {})
+    project_contract = inventory.get("project_contract", {})
+    relocation_maps = inventory.get("relocation_maps", {})
+    governance_state = inventory.get("governance_state", {})
+    governance_status = governance_layout.get("status") if isinstance(governance_layout, dict) else None
+    contract_status = project_contract.get("status") if isinstance(project_contract, dict) else None
+    state_status = governance_state.get("status") if isinstance(governance_state, dict) else None
+    relocation_status = relocation_maps.get("status") if isinstance(relocation_maps, dict) else None
     context_bundles = existing_context_bundles(project)
     context_exists = bool(context_bundles)
-    topology = analyze_policy_topology(project, policy_topology)
-    equivalence = run_equivalence_validation(
+    loading_handoff = policy_topology_handoff(project, policy_topology)
+    comparison = run_comparison_validation(
         project,
-        components["equivalence_validator"],  # type: ignore[arg-type]
-        equivalence_records,
+        components["comparison_validator"],  # type: ignore[arg-type]
+        comparison_records,
+    )
+    blockers, non_blockers = findings_from(
+        governance_layout,
+        project_contract,
+        relocation_maps,
+        governance_state,
+        comparison,
+    )
+    governance_blocked = (
+        governance_status in {"ambiguous", "unsafe"}
+        or contract_status == "invalid"
+        or relocation_status == "invalid"
+        or state_status == "invalid"
+        or comparison.get("status") == "invalid"
     )
     fingerprint = str(inventory["workspace_fingerprint_sha256"])
     pipeline_id = hashlib.sha256(
         f"{project}|{fingerprint}|{profile}".encode("utf-8")
     ).hexdigest()[:16]
     plan: dict[str, Any] = {
-        "schema_version": PIPELINE_SCHEMA,
+        "schema_version": PIPELINE_PLAN_SCHEMA,
+        "document_type": "pipeline-plan",
         "pipeline_id": pipeline_id,
         "plan_sha256": "",
-        "status": "architecture_review_required",
+        "status": "review_required",
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "project_root": str(project),
         "workspace_fingerprint_sha256": fingerprint,
@@ -708,21 +570,54 @@ def build_plan(
             "project_agent_generator": generator["schema_version"],
             "research_workspace_inventory": inventory["schema_version"],
             "knowledge_auditor_available": components["knowledge"] is not None,
-            "policy_topology": topology["schema_version"],
-            "equivalence_validator": equivalence["schema_version"],
+            "agent_loading_auditor": "neat-freak",
+            "comparison_validator": comparison["schema_version"],
         },
-        "policy_topology": topology,
-        "equivalence_contracts": equivalence,
-        "role_gaps_for_semantic_review": role_gaps,
+        "component_bindings": component_bindings(components),
+        "governance_layout": governance_layout,
+        "project_contract": project_contract,
+        "relocation_maps": relocation_maps,
+        "governance_state": governance_state,
+        "agent_loading_audit_handoff": loading_handoff,
+        "comparison_contracts": comparison,
+        "role_hints_for_semantic_review": roles,
+        "review_gate_inputs": review_gate_inputs(
+            blockers=blockers,
+            non_blockers=non_blockers,
+            evidence=[
+                "governance_layout",
+                "project_contract",
+                "relocation_maps",
+                "governance_state",
+                "comparison_contracts",
+                "workspace_fingerprint_sha256",
+                "component_actions",
+            ],
+        ),
         "stages": [
             {"name": "discover", "status": "complete", "mutation": False},
-            {"name": "architecture_design", "status": "requires_governance_review", "mutation": False},
-            {"name": "approval", "status": "required", "mutation": False},
-            {"name": "framework_apply", "status": "blocked_by_approval", "mutation": True},
-            {"name": "post_change_rediscovery", "status": "required_after_changes", "mutation": False},
-            {"name": "agent_context", "status": "preserve" if context_exists else "pending", "mutation": not context_exists},
-            {"name": "knowledge_bootstrap_audit", "status": "pending", "mutation": False},
-            {"name": "adversarial_verification", "status": "pending", "mutation": False},
+            {"name": "design", "status": "blocked" if governance_blocked else "review_required", "mutation": False},
+            {"name": "human_review", "status": "required", "mutation": False},
+            {"name": "controlled_change", "status": "blocked_by_review", "mutation": True},
+            {"name": "verify", "status": "pending", "mutation": False},
+            {"name": "handoff_or_archive", "status": "pending", "mutation": False},
+        ],
+        "component_actions": [
+            {
+                "component": "project-agent-generator-skill",
+                "action": "preserve" if context_exists else "create_after_review",
+                "mutation_owner": "project-agent-generator-skill",
+            },
+            {
+                "component": "research-workspace-governance",
+                "action": "resolve_or_initialize_governance_records",
+                "mutation_owner": "research-workspace-governance",
+            },
+            {
+                "component": "neat-freak",
+                "action": "audit_agent_knowledge_and_loading",
+                "mutation_owner": None,
+            },
         ],
         "snapshots": {
             "project_agent_generator": generator,
@@ -732,74 +627,267 @@ def build_plan(
             "The plan does not authorize migration, overwrite, force, or deletion.",
             "Rerun plan after framework changes before creating agent context.",
             "Existing .agents or .agent context is preserved for standalone reviewed maintenance.",
-            "Role gaps are name-based prompts for semantic review, not automatic directory creation.",
+            "Role hints are name-based prompts for review, never requirements or automatic directories.",
             "The metadata fingerprint detects ordinary drift; it is not a content-integrity signature or security boundary.",
-            "Policy reachability is path/hash evidence; natural-language non-weakening requires semantic review.",
-            "Equivalence validation checks declarations and evidence metadata, not domain science.",
+            "Agent instruction reachability and loading audits are owned by Neat-Freak.",
+            "Comparison validation checks declarations and evidence metadata, not domain science.",
+            "Governance data is untrusted data and is never recursively loaded as Agent instructions.",
         ],
     }
     plan["plan_sha256"] = canonical_hash(plan)
     return plan
 
 
+def require_plan(condition: bool, message: str) -> None:
+    if not condition:
+        raise ValueError(f"invalid pipeline plan: {message}")
+
+
+def validate_plan_structure(payload: dict[str, Any]) -> None:
+    required = {
+        "schema_version", "document_type", "pipeline_id", "plan_sha256", "status",
+        "generated_at", "project_root", "workspace_fingerprint_sha256", "profile",
+        "context_action", "context_locations", "component_interfaces",
+        "component_bindings", "governance_layout", "project_contract",
+        "relocation_maps", "governance_state", "agent_loading_audit_handoff",
+        "comparison_contracts", "role_hints_for_semantic_review",
+        "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants",
+    }
+    missing = sorted(required - set(payload))
+    require_plan(not missing, "missing required fields: " + ", ".join(missing))
+    require_plan(payload.get("schema_version") == PIPELINE_PLAN_SCHEMA, "wrong plan schema")
+    require_plan(payload.get("document_type") == "pipeline-plan", "wrong document_type")
+    require_plan(isinstance(payload.get("pipeline_id"), str) and bool(STABLE_ID_PATTERN.fullmatch(payload["pipeline_id"])), "pipeline_id must be a stable identifier")
+    require_plan(isinstance(payload.get("plan_sha256"), str) and bool(SHA256_PATTERN.fullmatch(payload["plan_sha256"])), "plan_sha256 must be SHA-256")
+    require_plan(payload.get("status") == "review_required", "status must be review_required")
+    require_plan(isinstance(payload.get("generated_at"), str) and bool(payload["generated_at"].strip()), "generated_at is required")
+    require_plan(isinstance(payload.get("project_root"), str) and bool(payload["project_root"].strip()), "project_root is required")
+    require_plan(isinstance(payload.get("workspace_fingerprint_sha256"), str) and bool(SHA256_PATTERN.fullmatch(payload["workspace_fingerprint_sha256"])), "workspace fingerprint must be SHA-256")
+    require_plan(payload.get("profile") in {"minimal", "collaborative", "controlled"}, "unsupported profile")
+    require_plan(payload.get("context_action") in {"create_after_framework", "preserve_and_audit"}, "unsupported context_action")
+    locations = payload.get("context_locations")
+    require_plan(isinstance(locations, list) and all(item in AGENT_BUNDLE_NAMES for item in locations) and len(locations) == len(set(locations)), "context_locations must contain unique supported bundle names")
+    require_plan((payload["context_action"] == "create_after_framework" and not locations) or (payload["context_action"] == "preserve_and_audit" and bool(locations)), "context_action conflicts with context_locations")
+
+    interfaces = payload.get("component_interfaces")
+    interface_fields = {
+        "project_agent_generator", "research_workspace_inventory",
+        "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator",
+    }
+    require_plan(isinstance(interfaces, dict) and interface_fields <= set(interfaces), "component_interfaces is incomplete")
+    require_plan(interfaces.get("project_agent_generator") == GENERATOR_SCHEMA, "generator interface mismatch")
+    require_plan(interfaces.get("research_workspace_inventory") == INVENTORY_SCHEMA, "inventory interface mismatch")
+    require_plan(isinstance(interfaces.get("knowledge_auditor_available"), bool), "knowledge auditor availability must be boolean")
+    require_plan(interfaces.get("agent_loading_auditor") == "neat-freak", "Agent loading audit owner must be neat-freak")
+    require_plan(interfaces.get("comparison_validator") == COMPARISON_SCHEMA, "comparison interface mismatch")
+
+    bindings = payload.get("component_bindings")
+    expected_bindings = {"generator", "inventory", "knowledge", "comparison_validator"}
+    require_plan(isinstance(bindings, dict) and expected_bindings == set(bindings), "component_bindings must identify all four interfaces")
+    for name in sorted(expected_bindings):
+        binding = bindings.get(name)
+        require_plan(isinstance(binding, dict), f"component binding {name} must be an object")
+        require_plan(set(binding) == {"required", "available", "path", "sha256"}, f"component binding {name} has unexpected fields")
+        expected_required = name in {"generator", "inventory"}
+        require_plan(binding.get("required") is expected_required, f"component binding {name} has wrong required flag")
+        require_plan(isinstance(binding.get("available"), bool), f"component binding {name} availability must be boolean")
+        require_plan(not expected_required or binding.get("available") is True, f"required component {name} is unavailable")
+        if binding.get("available"):
+            binding_path = binding.get("path")
+            require_plan(isinstance(binding_path, str) and Path(binding_path).is_absolute(), f"component binding {name} needs an absolute path")
+            require_plan(isinstance(binding.get("sha256"), str) and bool(SHA256_PATTERN.fullmatch(binding["sha256"])), f"component binding {name} needs SHA-256")
+        else:
+            require_plan(binding.get("path") is None and binding.get("sha256") is None, f"unavailable component {name} must not carry path or hash")
+    require_plan(
+        interfaces.get("knowledge_auditor_available") is bindings["knowledge"]["available"],
+        "knowledge auditor interface conflicts with its component binding",
+    )
+
+    section_statuses = {
+        "governance_layout": {"canonical", "legacy", "absent", "ambiguous", "unsafe"},
+        "project_contract": {"valid", "legacy", "invalid", "absent", "not_checked"},
+        "relocation_maps": {"valid", "invalid", "not_declared", "not_checked"},
+        "governance_state": {"valid", "invalid", "not_declared", "not_checked"},
+    }
+    for name, statuses in section_statuses.items():
+        section = payload.get(name)
+        require_plan(isinstance(section, dict), f"{name} must be an object")
+        require_plan(section.get("status") in statuses, f"{name} has an invalid status")
+        require_plan(isinstance(section.get("findings"), list), f"{name}.findings must be an array")
+    layout = payload["governance_layout"]
+    require_plan(layout.get("canonical_path") == ".agents/governance" and layout.get("legacy_path") == "governance", "governance path contract changed")
+    require_plan(isinstance(layout.get("write_allowed"), bool), "governance write_allowed must be boolean")
+    relocation = payload["relocation_maps"]
+    require_plan(isinstance(relocation.get("maps"), list) and isinstance(relocation.get("resolved_mappings"), list), "relocation map resolution is incomplete")
+    require_plan(relocation.get("content_treated_as_data") is True, "relocation maps must be treated as data")
+
+    handoff = payload.get("agent_loading_audit_handoff")
+    require_plan(isinstance(handoff, dict), "agent loading handoff must be an object")
+    require_plan(handoff.get("schema_version") == "agent-loading-audit-handoff/v1" and handoff.get("owner") == "neat-freak", "Agent loading handoff owner or schema changed")
+    require_plan(handoff.get("status") in {"not_declared", "pending_neat_freak_audit"}, "invalid Agent loading handoff status")
+    require_plan(isinstance(handoff.get("manifest_path"), str) or handoff.get("manifest_path") is None, "invalid Agent loading manifest path")
+    comparison = payload.get("comparison_contracts")
+    require_plan(isinstance(comparison, dict) and comparison.get("schema_version") == COMPARISON_SCHEMA, "comparison contract schema mismatch")
+    require_plan(comparison.get("status") in {"not_declared", "verified", "unverified", "invalid"}, "invalid comparison status")
+    require_plan(all(isinstance(comparison.get(field), expected) for field, expected in (("records", list), ("findings", list), ("summary", dict))), "comparison contract is incomplete")
+    require_plan(isinstance(payload.get("role_hints_for_semantic_review"), dict), "role hints must be an object")
+
+    gate = payload.get("review_gate_inputs")
+    gate_fields = {
+        "result", "scope", "blockers", "non_blockers", "evidence",
+        "suggested_actions", "allowed_actions", "forbidden_actions",
+        "human_summary_required", "human_summary_language", "human_summary_source",
+    }
+    require_plan(isinstance(gate, dict) and gate_fields <= set(gate), "review_gate_inputs is incomplete")
+    require_plan(gate.get("result") in {"conditional", "fail"}, "invalid review gate result")
+    require_plan(isinstance(gate.get("scope"), dict) and gate["scope"].get("type") == "project", "review gate scope must be project")
+    for field in ("blockers", "non_blockers", "evidence", "suggested_actions", "allowed_actions", "forbidden_actions"):
+        require_plan(isinstance(gate.get(field), list), f"review gate {field} must be an array")
+    expected_blockers, expected_non_blockers = findings_from(
+        payload["governance_layout"],
+        payload["project_contract"],
+        payload["relocation_maps"],
+        payload["governance_state"],
+        comparison,
+    )
+    require_plan(gate["blockers"] == expected_blockers, "review gate blockers do not match component findings")
+    require_plan(gate["non_blockers"] == expected_non_blockers, "review gate non-blockers do not match component findings")
+    require_plan((bool(gate["blockers"]) and gate["result"] == "fail") or (not gate["blockers"] and gate["result"] == "conditional"), "review gate result conflicts with blocker state")
+    require_plan(gate.get("human_summary_required") is True and gate.get("human_summary_language") == "current-user-language", "human summary rendering contract changed")
+    summary_source = gate.get("human_summary_source")
+    require_plan(isinstance(summary_source, dict), "human_summary_source must be an object")
+    require_plan(set(HUMAN_SUMMARY_FIELDS) <= set(summary_source), "human_summary_source is missing required review facts")
+    for field in HUMAN_SUMMARY_FIELDS:
+        require_plan(isinstance(summary_source.get(field), list) and all(isinstance(item, str) and item.strip() for item in summary_source[field]), f"human summary field {field} must contain reviewable facts")
+    require_plan(summary_source.get("render_language") == "current-user-language" and summary_source.get("render_required") is True, "human summary must be rendered in the current user language")
+
+    stages = payload.get("stages")
+    expected_stage_names = ["discover", "design", "human_review", "controlled_change", "verify", "handoff_or_archive"]
+    expected_mutations = [False, False, False, True, False, False]
+    require_plan(isinstance(stages, list) and len(stages) == 6, "exactly six lifecycle stages are required")
+    for index, (stage, name, mutation) in enumerate(zip(stages, expected_stage_names, expected_mutations)):
+        require_plan(isinstance(stage, dict) and stage.get("name") == name, f"stage {index} must be {name}")
+        require_plan(isinstance(stage.get("status"), str) and bool(stage["status"].strip()), f"stage {name} needs a status")
+        require_plan(stage.get("mutation") is mutation, f"stage {name} has the wrong mutation boundary")
+
+    actions = payload.get("component_actions")
+    expected_owners = {
+        "project-agent-generator-skill": "project-agent-generator-skill",
+        "research-workspace-governance": "research-workspace-governance",
+        "neat-freak": None,
+    }
+    require_plan(isinstance(actions, list) and len(actions) == len(expected_owners), "component_actions must preserve the unique responsibility table")
+    seen_components: set[str] = set()
+    for action in actions:
+        require_plan(isinstance(action, dict) and {"component", "action", "mutation_owner"} <= set(action), "component action is incomplete")
+        component = action.get("component")
+        require_plan(component in expected_owners and component not in seen_components, "component action owner is missing or duplicated")
+        seen_components.add(component)
+        require_plan(action.get("mutation_owner") == expected_owners[component], f"component {component} has an ownership conflict")
+        require_plan(isinstance(action.get("action"), str) and bool(action["action"].strip()), f"component {component} needs an action")
+        expected_action = {
+            "project-agent-generator-skill": "preserve" if payload["context_action"] == "preserve_and_audit" else "create_after_review",
+            "research-workspace-governance": "resolve_or_initialize_governance_records",
+            "neat-freak": "audit_agent_knowledge_and_loading",
+        }[component]
+        require_plan(action["action"] == expected_action, f"component {component} has an unsupported action")
+    snapshots = payload.get("snapshots")
+    require_plan(isinstance(snapshots, dict) and {"project_agent_generator", "research_workspace_inventory"} <= set(snapshots), "component snapshots are incomplete")
+    generator_snapshot = snapshots["project_agent_generator"]
+    inventory_snapshot = snapshots["research_workspace_inventory"]
+    require_plan(isinstance(generator_snapshot, dict) and generator_snapshot.get("schema_version") == GENERATOR_SCHEMA, "generator snapshot is invalid")
+    require_plan(isinstance(inventory_snapshot, dict) and inventory_snapshot.get("schema_version") == INVENTORY_SCHEMA, "inventory snapshot is invalid")
+    require_plan(inventory_snapshot.get("workspace_fingerprint_sha256") == payload["workspace_fingerprint_sha256"], "inventory snapshot fingerprint conflicts with the plan")
+    for section_name in (
+        "governance_layout", "project_contract", "relocation_maps", "governance_state",
+    ):
+        require_plan(inventory_snapshot.get(section_name) == payload[section_name], f"inventory snapshot {section_name} conflicts with the plan")
+    invariants = payload.get("invariants")
+    require_plan(isinstance(invariants, list) and bool(invariants) and all(isinstance(item, str) and item.strip() for item in invariants), "invariants must be a non-empty string array")
+
+
+def validate_component_binding(
+    plan: dict[str, Any],
+    name: str,
+    current: Path,
+) -> None:
+    binding = plan["component_bindings"][name]
+    current_path = current.resolve(strict=True)
+    if os.path.normcase(str(current_path)) != os.path.normcase(str(binding["path"])):
+        raise ValueError(f"component {name} differs from the reviewed plan; rerun plan")
+    if sha256_file(current_path).casefold() != str(binding["sha256"]).casefold():
+        raise ValueError(f"component {name} changed since the reviewed plan; rerun plan")
+
+
 def load_and_validate_plan(path: Path, project: Path, confirmed_hash: str) -> dict[str, Any]:
-    path = path.expanduser().resolve()
+    requested = path.expanduser().absolute()
+    if first_link_component(requested) is not None or is_link_like(requested):
+        raise ValueError("reviewed pipeline plan must be a regular non-linked file")
+    path = requested.resolve(strict=True)
     if is_relative_to(path, project):
         raise ValueError("reviewed pipeline plan must be outside the target project")
+    if not path.is_file() or path.stat().st_size > MAX_PLAN_BYTES:
+        raise ValueError("reviewed pipeline plan must be a regular JSON file no larger than 5 MiB")
     payload = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(payload, dict) or payload.get("schema_version") != PIPELINE_SCHEMA:
+    if not isinstance(payload, dict):
         raise ValueError("unsupported pipeline plan")
+    if payload.get("schema_version") in LEGACY_PIPELINE_SCHEMAS:
+        raise ValueError("legacy pipeline plan v1/v2 is recognized but cannot authorize mutation; rerun plan to create v3")
+    if payload.get("schema_version") != PIPELINE_PLAN_SCHEMA:
+        raise ValueError("unsupported pipeline plan")
+    validate_plan_structure(payload)
     embedded_hash = str(payload.get("plan_sha256", "")).casefold()
     calculated_hash = canonical_hash(payload).casefold()
     if embedded_hash != calculated_hash:
         raise ValueError("pipeline plan content does not match its embedded hash")
     if confirmed_hash.casefold() != embedded_hash:
         raise ValueError("confirmation hash does not match the reviewed pipeline plan")
-    if Path(str(payload.get("project_root", ""))).resolve() != project:
+    if os.path.normcase(str(Path(payload["project_root"]).resolve())) != os.path.normcase(str(project)):
         raise ValueError("pipeline plan targets a different project root")
     return payload
 
 
 def command_plan(args: argparse.Namespace, components: dict[str, Path | None]) -> int:
-    project = Path(args.project).expanduser().resolve()
+    project = resolve_project_root(args.project)
+    profile = "minimal" if args.profile == "lightweight" else args.profile
     plan = build_plan(
         project,
-        args.profile,
+        profile,
         components,
         policy_topology=args.policy_topology,
-        equivalence_records=args.equivalence_records,
+        comparison_records=args.comparison_records,
     )
     if args.output:
         output = Path(args.output).expanduser().resolve(strict=False)
         if is_relative_to(output, project):
             raise ValueError("pipeline plan output must be outside the target project")
         write_json_new(output, plan, compact=args.compact)
-        emit({
-            "schema_version": PIPELINE_SCHEMA,
-            "status": "plan_written",
-            "path": str(output),
-            "plan_sha256": plan["plan_sha256"],
-            "pipeline_id": plan["pipeline_id"],
-        }, compact=args.compact)
+        emit(result_document(
+            "plan_written",
+            path=str(output),
+            plan_sha256=plan["plan_sha256"],
+            pipeline_id=plan["pipeline_id"],
+        ), compact=args.compact)
     else:
         emit(plan, compact=args.compact)
     return 0
 
 
 def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | None]) -> int:
-    project = Path(args.project).expanduser().resolve()
-    if not project.is_dir():
-        raise ValueError(f"project root does not exist or is not a directory: {project}")
+    project = resolve_project_root(args.project)
     context_bundles = existing_context_bundles(project)
     agents_dir = project / ".agents"
     if context_bundles:
-        emit({
-            "schema_version": PIPELINE_SCHEMA,
-            "status": "existing_context_preserved",
-            "project_root": str(project),
-            "context_locations": [path.name for path in context_bundles],
-            "message": "Use project-agent-generator-skill independently for reviewed refresh.",
-        }, compact=args.compact)
+        emit(result_document(
+            "existing_context_preserved",
+            project_root=str(project),
+            context_locations=[path.name for path in context_bundles],
+            maintenance_owner="neat-freak",
+            message=(
+                "Initial Agent context already exists. Use Neat-Freak for reviewed "
+                "project-information maintenance."
+            ),
+        ), compact=args.compact)
         return 0 if not args.apply else 1
 
     generator_path = components["generator"]
@@ -807,6 +895,7 @@ def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | Non
     if not args.apply:
         process = run_process([
             sys.executable,
+            "-B",
             "-X",
             "utf8",
             str(generator_path),
@@ -815,32 +904,57 @@ def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | Non
             "--json",
         ])
         preview = parse_component_json(process, "project-agent generator dry-run")
-        emit({
-            "schema_version": PIPELINE_SCHEMA,
-            "status": "context_preview",
-            "project_root": str(project),
-            "generator_preview": preview,
-        }, compact=args.compact)
+        emit(result_document(
+            "context_preview",
+            project_root=str(project),
+            generator_preview=preview,
+        ), compact=args.compact)
         return 0
 
     if not args.plan or not args.confirm_plan_sha256:
         raise ValueError("--apply requires --plan and --confirm-plan-sha256")
     plan = load_and_validate_plan(
-        Path(args.plan).expanduser().resolve(),
+        Path(args.plan),
         project,
         args.confirm_plan_sha256,
     )
+    governance_layout = plan.get("governance_layout", {})
+    project_contract = plan.get("project_contract", {})
+    relocation_maps = plan.get("relocation_maps", {})
+    governance_state = plan.get("governance_state", {})
+    comparison_contracts = plan.get("comparison_contracts", {})
+    if isinstance(governance_layout, dict) and governance_layout.get("status") in {"ambiguous", "unsafe"}:
+        raise ValueError("reviewed plan contains a blocking governance-location finding")
+    if isinstance(project_contract, dict) and project_contract.get("status") == "invalid":
+        raise ValueError("reviewed plan contains an invalid project contract")
+    if isinstance(relocation_maps, dict) and relocation_maps.get("status") == "invalid":
+        raise ValueError("reviewed plan contains an invalid relocation map")
+    if isinstance(governance_state, dict) and governance_state.get("status") == "invalid":
+        raise ValueError("reviewed plan contains an invalid governance state")
+    if isinstance(comparison_contracts, dict) and comparison_contracts.get("status") == "invalid":
+        raise ValueError("reviewed plan contains an invalid comparison contract")
+    review_gate = plan.get("review_gate_inputs", {})
+    if not isinstance(review_gate, dict) or review_gate.get("result") == "fail":
+        raise ValueError("reviewed plan contains unresolved blocking findings")
     if plan.get("context_action") != "create_after_framework":
         raise ValueError("reviewed plan does not authorize creating a missing .agents bundle")
     inventory_path = components["inventory"]
     assert isinstance(inventory_path, Path)
+    validate_component_binding(plan, "generator", generator_path)
+    validate_component_binding(plan, "inventory", inventory_path)
     current_inventory = inspect_workspace(project, inventory_path)
     validate_complete_inventory(current_inventory)
     if current_inventory["workspace_fingerprint_sha256"] != plan["workspace_fingerprint_sha256"]:
         raise ValueError("project changed since the reviewed plan; rerun plan")
+    for section_name in (
+        "governance_layout", "project_contract", "relocation_maps", "governance_state",
+    ):
+        if current_inventory.get(section_name) != plan.get(section_name):
+            raise ValueError(f"project {section_name} changed since the reviewed plan; rerun plan")
 
     process = run_process([
         sys.executable,
+        "-B",
         "-X",
         "utf8",
         str(generator_path),
@@ -849,13 +963,14 @@ def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | Non
     missing = [name for name in REQUIRED_AGENT_FILES if not (agents_dir / name).is_file()]
     if missing:
         raise ComponentError(f"agent context creation incomplete: {missing}")
-    emit({
-        "schema_version": PIPELINE_SCHEMA,
-        "status": "context_created",
-        "project_root": str(project),
-        "plan_sha256": plan["plan_sha256"],
-        "generator_output": process.stdout.strip().splitlines(),
-    }, compact=args.compact)
+    emit(result_document(
+        "context_created",
+        project_root=str(project),
+        initialization_status="complete",
+        maintenance_owner="neat-freak",
+        plan_sha256=plan["plan_sha256"],
+        generator_output=process.stdout.strip().splitlines(),
+    ), compact=args.compact)
     return 0
 
 
@@ -868,6 +983,7 @@ def run_knowledge_audit(
 ) -> dict[str, Any]:
     command = [
         sys.executable,
+        "-B",
         "-X",
         "utf8",
         str(script),
@@ -885,21 +1001,34 @@ def run_knowledge_audit(
 
 
 def command_verify(args: argparse.Namespace, components: dict[str, Path | None]) -> int:
-    project = Path(args.project).expanduser().resolve()
+    project = resolve_project_root(args.project)
     generator_path = components["generator"]
     inventory_path = components["inventory"]
     assert isinstance(generator_path, Path)
     assert isinstance(inventory_path, Path)
     generator = inspect_generator(project, generator_path)
     inventory = inspect_workspace(project, inventory_path)
-    topology = analyze_policy_topology(project, args.policy_topology)
-    equivalence = run_equivalence_validation(
+    loading_handoff = policy_topology_handoff(project, args.policy_topology)
+    comparison = run_comparison_validation(
         project,
-        components["equivalence_validator"],  # type: ignore[arg-type]
-        args.equivalence_records,
+        components["comparison_validator"],  # type: ignore[arg-type]
+        args.comparison_records,
     )
-    policy_code = int(topology["summary"]["exit_code"])
-    equivalence_code = int(equivalence["summary"]["exit_code"])
+    comparison_code = int(comparison["summary"]["exit_code"])
+    governance_layout = inventory.get("governance_layout", {})
+    project_contract = inventory.get("project_contract", {})
+    relocation_maps = inventory.get("relocation_maps", {})
+    governance_state = inventory.get("governance_state", {})
+    governance_status = governance_layout.get("status") if isinstance(governance_layout, dict) else None
+    contract_status = project_contract.get("status") if isinstance(project_contract, dict) else None
+    state_status = governance_state.get("status") if isinstance(governance_state, dict) else None
+    relocation_status = relocation_maps.get("status") if isinstance(relocation_maps, dict) else None
+    if governance_status in {"ambiguous", "unsafe"} or contract_status == "invalid" or relocation_status == "invalid" or state_status == "invalid":
+        governance_code = 2
+    elif governance_status == "absent":
+        governance_code = 1
+    else:
+        governance_code = 0
     context_bundles = existing_context_bundles(project)
     context_ambiguity = len(context_bundles) > 1
     agents_dir = context_bundles[0] if context_bundles else project / ".agents"
@@ -919,11 +1048,7 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         audit: dict[str, Any] = {"status": "skipped_missing_context"}
         if (agents_dir / "memory").is_dir():
             audit = run_knowledge_audit(project, knowledge_script, "audit", memory_directory)
-        neat_topology = (
-            str(topology.get("manifest_path"))
-            if args.policy_topology and policy_code != 2
-            else None
-        )
+        neat_topology = loading_handoff.get("manifest_path")
         bootstrap = run_knowledge_audit(
             project,
             knowledge_script,
@@ -937,9 +1062,7 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
             "bootstrap_audit": bootstrap,
             "policy_topology_audit": (
                 "executed" if neat_topology else (
-                    "skipped_invalid_pipeline_topology"
-                    if args.policy_topology
-                    else "not_requested"
+                    "not_requested"
                 )
             ),
         }
@@ -948,7 +1071,10 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
             worst_code = max(int(audit["exit_code"]), worst_code)
 
     scan = inventory.get("scan", {})
-    if missing or worst_code == 2 or context_link_detected or policy_code == 2 or equivalence_code == 2:
+    loading_code = worst_code
+    if args.policy_topology and knowledge_results["status"] != "executed":
+        loading_code = 2
+    if missing or loading_code == 2 or context_link_detected or comparison_code == 2 or governance_code == 2:
         status = "fail"
         exit_code = 2
     elif context_ambiguity:
@@ -957,32 +1083,57 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     elif scan.get("scan_truncated") or int(scan.get("unreadable_count", 0)) > 0:
         status = "conditional"
         exit_code = 1
-    elif knowledge_results["status"] == "unavailable" or worst_code == 1 or policy_code == 1 or equivalence_code == 1:
+    elif knowledge_results["status"] == "unavailable" or loading_code == 1 or comparison_code == 1 or governance_code == 1:
         status = "conditional"
         exit_code = 1
     else:
         status = "pass"
         exit_code = 0
-    emit({
-        "schema_version": PIPELINE_SCHEMA,
-        "status": status,
-        "mode": "read-only-verification",
-        "project_root": str(project),
-        "context_locations": [path.name for path in context_bundles],
-        "context_ambiguity": context_ambiguity,
-        "context_link_detected": context_link_detected,
-        "missing_agent_files": missing,
-        "project_agent_inspection": generator,
-        "workspace_inventory": inventory,
-        "policy_topology": topology,
-        "equivalence_contracts": equivalence,
-        "knowledge_and_bootstrap": knowledge_results,
-        "next_action": (
+    blockers, non_blockers = findings_from(
+        governance_layout,
+        project_contract,
+        relocation_maps,
+        governance_state,
+        comparison,
+    )
+    if missing:
+        blockers.append({"code": "missing-agent-files", "severity": "blocker", "paths": missing})
+    if context_ambiguity:
+        blockers.append({"code": "context-ambiguity", "severity": "blocker", "candidate_interpretations": [path.name for path in context_bundles]})
+    if args.policy_topology and knowledge_results["status"] != "executed":
+        blockers.append({"code": "agent-loading-audit-not-executed", "severity": "blocker", "owner": "neat-freak"})
+    gate = review_gate_inputs(
+        blockers=blockers,
+        non_blockers=non_blockers,
+        evidence=[
+            "workspace_inventory",
+            "relocation_maps",
+            "project_agent_inspection",
+            "knowledge_and_bootstrap",
+            "comparison_contracts",
+        ],
+    )
+    gate["result"] = status
+    emit(result_document(
+        status,
+        mode="read-only-verification",
+        project_root=str(project),
+        context_locations=[path.name for path in context_bundles],
+        context_ambiguity=context_ambiguity,
+        context_link_detected=context_link_detected,
+        missing_agent_files=missing,
+        project_agent_inspection=generator,
+        workspace_inventory=inventory,
+        agent_loading_audit_handoff=loading_handoff,
+        comparison_contracts=comparison,
+        knowledge_and_bootstrap=knowledge_results,
+        review_gate_inputs=gate,
+        next_action=(
             "Run research-workspace-governance adversarial review against the approved architecture plan."
             if status != "fail"
             else "Resolve blocking context or audit failures before continuing."
         ),
-    }, compact=args.compact)
+    ), compact=args.compact)
     return exit_code
 
 
@@ -992,19 +1143,32 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     parser.add_argument("--generator-script", help="Override project-agent generator script")
     parser.add_argument("--inventory-script", help="Override governance inventory script")
     parser.add_argument("--knowledge-script", help="Override optional neat-freak script")
-    parser.add_argument("--equivalence-validator-script", help="Override optional equivalence validator script")
+    parser.add_argument(
+        "--comparison-validator-script",
+        "--equivalence-validator-script",
+        dest="comparison_validator_script",
+        help="Override optional domain-neutral comparison validator script",
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     plan = subparsers.add_parser("plan", help="Create a read-only pipeline plan")
     plan.add_argument("project")
     plan.add_argument(
         "--profile",
-        choices=("lightweight", "collaborative", "controlled"),
-        default="collaborative",
+        choices=("minimal", "lightweight", "collaborative", "controlled"),
+        default="minimal",
     )
     plan.add_argument("--output", help="Optional new plan file outside the project")
-    plan.add_argument("--policy-topology", help="Project-contained mandatory-policy topology JSON")
-    plan.add_argument("--equivalence-records", help="Project-contained typed-equivalence JSON")
+    plan.add_argument(
+        "--policy-topology",
+        help="Project-contained Agent loading manifest to hand off to Neat-Freak; Pipeline does not parse it",
+    )
+    plan.add_argument(
+        "--comparison-records",
+        "--equivalence-records",
+        dest="comparison_records",
+        help="Project-contained domain-reviewed comparison JSON",
+    )
     plan.add_argument("--compact", action="store_true")
 
     bootstrap = subparsers.add_parser(
@@ -1019,8 +1183,16 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
 
     verify = subparsers.add_parser("verify", help="Verify the integrated project without writing")
     verify.add_argument("project")
-    verify.add_argument("--policy-topology", help="Project-contained mandatory-policy topology JSON")
-    verify.add_argument("--equivalence-records", help="Project-contained typed-equivalence JSON")
+    verify.add_argument(
+        "--policy-topology",
+        help="Project-contained Agent loading manifest delegated to Neat-Freak for audit",
+    )
+    verify.add_argument(
+        "--comparison-records",
+        "--equivalence-records",
+        dest="comparison_records",
+        help="Project-contained domain-reviewed comparison JSON",
+    )
     verify.add_argument("--compact", action="store_true")
     return parser.parse_args(argv)
 
@@ -1037,11 +1209,7 @@ def main(argv: list[str]) -> int:
             return command_verify(args, components)
         raise ValueError(f"unsupported command: {args.command}")
     except (ComponentError, FileExistsError, OSError, RuntimeError, ValueError, json.JSONDecodeError) as exc:
-        print(json.dumps({
-            "schema_version": PIPELINE_SCHEMA,
-            "status": "error",
-            "error": str(exc),
-        }, ensure_ascii=False), file=sys.stderr)
+        print(json.dumps(result_document("error", error=str(exc)), ensure_ascii=False), file=sys.stderr)
         return 2
 
 

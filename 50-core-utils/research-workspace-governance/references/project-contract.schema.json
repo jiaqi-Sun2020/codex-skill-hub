@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-project-contract-v2",
+  "title": "Research Project Contract",
+  "type": "object",
+  "required": ["schema_version"],
+  "properties": {
+    "schema_version": {"const": "research-project-contract/v2"},
+    "governance_profile": {"enum": ["minimal", "collaborative", "controlled"]},
+    "method_profile_ids": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "roots": {
+      "type": "object",
+      "propertyNames": {
+        "enum": ["source", "method", "working", "evidence", "deliverable", "automation", "archive", "temporary", "protected"]
+      },
+      "additionalProperties": {
+        "type": "array",
+        "items": {"type": "string", "minLength": 1},
+        "uniqueItems": true
+      }
+    },
+    "identifier_fields": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "lifecycle_extensions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "governance_state_path": {"type": "string", "minLength": 1},
+    "relocation_map_paths": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "automations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "logical_id", "path", "scope", "working_directory", "command",
+          "trigger", "inputs", "outputs", "side_effects", "owner",
+          "concurrency_control", "failure_recovery", "verification_method",
+          "retirement_condition"
+        ],
+        "properties": {
+          "logical_id": {"type": "string", "minLength": 1},
+          "path": {"type": "string", "minLength": 1},
+          "scope": {"type": "string", "minLength": 1},
+          "working_directory": {"type": "string", "minLength": 1},
+          "command": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+          "trigger": {"type": "string", "minLength": 1},
+          "inputs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "outputs": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "side_effects": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "owner": {"type": "string", "minLength": 1},
+          "concurrency_control": {"type": "string", "minLength": 1},
+          "failure_recovery": {"type": "string", "minLength": 1},
+          "verification_method": {"type": "string", "minLength": 1},
+          "retirement_condition": {"type": "string", "minLength": 1}
+        },
+        "additionalProperties": false
+      }
+    },
+    "required_deliverables": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "deletion_policy": {"const": "explicit-exact-target-approval"}
+  },
+  "additionalProperties": false
+}
