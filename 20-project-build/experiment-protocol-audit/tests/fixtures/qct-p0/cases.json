@@ -1,0 +1,48 @@
+{
+  "schema_version": "experiment-audit-adversarial-fixtures/v1",
+  "cases": [
+    {
+      "id": "s3-k689-out-of-range",
+      "rule": {"id": "legal-k", "type": "numeric-bound", "input_path": "parameters.k", "operator": "<=", "expected": 344, "code": "domain-bound-violation"},
+      "observations": {"parameters": {"k": 689}},
+      "expected_code": "domain-bound-violation"
+    },
+    {
+      "id": "s3-k345-minimal-counterexample",
+      "rule": {"id": "legal-k", "type": "numeric-bound", "input_path": "parameters.k", "operator": "<=", "expected": 344, "code": "domain-bound-violation"},
+      "observations": {"parameters": {"k": 345}},
+      "expected_code": "domain-bound-violation"
+    },
+    {
+      "id": "d2-tag-scope-expansion",
+      "rule": {"id": "declared-tags", "type": "set-equality", "left_path": "generated.tags", "right_value": ["A", "B", "C"], "code": "tag-scope-mismatch"},
+      "observations": {"generated": {"tags": ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"]}},
+      "expected_code": "tag-scope-mismatch"
+    },
+    {
+      "id": "elementwise-absolute-value-gauge",
+      "rule": {"id": "allowed-gauge", "type": "allowed-transform", "input_path": "comparison.transform", "allowed": ["global_sign", "global_phase"], "code": "forbidden-transformation"},
+      "observations": {"comparison": {"transform": "elementwise_abs"}},
+      "expected_code": "forbidden-transformation"
+    },
+    {
+      "id": "marginal-full-grid-shape-confusion",
+      "rule": {"id": "representation-shape", "type": "shape-equality", "left_path": "observed.shape", "right_path": "declared.shape", "code": "profile-precondition-violation"},
+      "observations": {"observed": {"shape": [401]}, "declared": {"shape": [401, 401]}},
+      "expected_code": "profile-precondition-violation"
+    }
+  ],
+  "manifest_case": {
+    "requested": [
+      {"id": "legal", "output_path": "out/legal.json", "active": true},
+      {"id": "illegal-but-requested", "output_path": "out/illegal.json", "active": true}
+    ],
+    "generated": [
+      {"id": "legal", "output_path": "out/legal.json", "active": true}
+    ],
+    "approved": [
+      {"id": "legal", "output_path": "out/legal.json", "active": true}
+    ],
+    "expected_code": "manifest-set-mismatch"
+  }
+}

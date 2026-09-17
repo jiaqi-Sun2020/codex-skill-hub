@@ -1,4 +1,0 @@
-interface:
-  display_name: "Research Project Pipeline"
-  short_description: "Orchestrate one-time research project setup"
-  default_prompt: "Use $research-project-pipeline once to plan, initialize, and verify a research project workspace, then hand ongoing information maintenance to Neat-Freak."

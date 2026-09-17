@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "experiment-runtime-evidence/v1",
+  "title": "Experiment runtime evidence",
+  "type": "object",
+  "required": ["schema_version", "cells"],
+  "properties": {
+    "schema_version": {"const": "experiment-runtime-evidence/v1"},
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "output_path", "status"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "output_path": {"type": "string", "minLength": 1},
+          "status": {"enum": ["complete", "failed", "missing"]}
+        }
+      }
+    }
+  }
+}

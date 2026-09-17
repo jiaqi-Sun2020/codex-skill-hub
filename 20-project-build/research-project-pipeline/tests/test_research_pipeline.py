@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -13,6 +14,7 @@ from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "research_pipeline.py"
+DOMAIN_AUDITOR = SCRIPT.parents[2] / "experiment-protocol-audit" / "scripts" / "audit_experiment_protocol.py"
 SPEC = importlib.util.spec_from_file_location("research_pipeline", SCRIPT)
 assert SPEC and SPEC.loader
 pipeline = importlib.util.module_from_spec(SPEC)
@@ -57,7 +59,8 @@ class ResearchPipelineTests(unittest.TestCase):
         ])
         self.assertEqual(code, 0, stderr)
         response = json.loads(stdout)
-        self.assertEqual(response["status"], "plan_written")
+        self.assertEqual(response["outcome"], "plan_written")
+        self.assertEqual(response["command_status"], "ok")
         self.assertEqual(response["schema_version"], pipeline.PIPELINE_RESULT_SCHEMA)
         self.assertEqual(response["document_type"], "pipeline-command-result")
         return json.loads(destination.read_text(encoding="utf-8"))
@@ -148,6 +151,35 @@ class ResearchPipelineTests(unittest.TestCase):
         )
         return records
 
+    def make_domain_record(self, project: Path) -> Path:
+        (project / "domain-profile.json").write_text(json.dumps({
+            "schema_version": "experiment-domain-profile/v1",
+            "profile_id": "example-domain",
+            "version": "1.0.0",
+            "rules": [{"id": "positive", "type": "numeric-bound", "input_path": "value", "operator": ">", "expected": 0}],
+        }), encoding="utf-8")
+        (project / "project-protocol.json").write_text(json.dumps({
+            "schema_version": "experiment-project-protocol/v1",
+            "protocol_id": "example-protocol",
+            "version": "1.0.0",
+            "profile_id": "example-domain",
+            "owner": {"kind": "human", "id": "domain-reviewer"},
+            "claim_ceiling": "diagnostic_only",
+            "source_paths": ["src/analysis.py"],
+        }), encoding="utf-8")
+        (project / "domain-observations.json").write_text(json.dumps({
+            "schema_version": "experiment-runtime-observation/v1",
+            "observations": {"value": 1},
+        }), encoding="utf-8")
+        record = project / "domain-record.json"
+        process = subprocess.run([
+            sys.executable, "-B", str(DOMAIN_AUDITOR), "audit-design", str(project),
+            "--profile", "domain-profile.json", "--protocol", "project-protocol.json",
+            "--observations", "domain-observations.json", "--output", "domain-record.json", "--compact",
+        ], capture_output=True, text=True, encoding="utf-8", errors="replace", check=False)
+        self.assertEqual(process.returncode, 0, process.stderr)
+        return record
+
     def test_plan_is_read_only_and_hash_bound(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
@@ -217,7 +249,7 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertFalse(inspected["governance_layout"]["write_allowed"])
             self.assertEqual(inspected["role_candidates"]["work_units"], ["work/"])
 
-    def test_legacy_v1_and_v2_plans_cannot_be_applied(self) -> None:
+    def test_legacy_plans_cannot_be_applied(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)
             project = self.make_project(root).resolve()
@@ -330,7 +362,7 @@ class ResearchPipelineTests(unittest.TestCase):
             ])
             self.assertEqual(code, 0, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "context_created")
+            self.assertEqual(payload["outcome"], "context_created")
             self.assertEqual(payload["initialization_status"], "complete")
             self.assertEqual(payload["maintenance_owner"], "neat-freak")
             self.assertTrue((project / ".agents" / "AGENTS.md").is_file())
@@ -377,7 +409,7 @@ class ResearchPipelineTests(unittest.TestCase):
                 for path in project.rglob("*")
             }
             self.assertEqual(code, 0, stderr)
-            self.assertEqual(json.loads(stdout)["status"], "context_preview")
+            self.assertEqual(json.loads(stdout)["outcome"], "context_preview")
             self.assertEqual(before, after)
             self.assertFalse((project / ".agents").exists())
 
@@ -414,7 +446,7 @@ class ResearchPipelineTests(unittest.TestCase):
             ])
             self.assertEqual(code, 1, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "existing_context_preserved")
+            self.assertEqual(payload["outcome"], "existing_context_preserved")
             self.assertEqual(payload["maintenance_owner"], "neat-freak")
             self.assertIn("Neat-Freak", payload["message"])
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "preserve\n")
@@ -430,7 +462,7 @@ class ResearchPipelineTests(unittest.TestCase):
             ])
             self.assertEqual(code, 1, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "existing_context_preserved")
+            self.assertEqual(payload["outcome"], "existing_context_preserved")
             self.assertEqual(payload["maintenance_owner"], "neat-freak")
             self.assertEqual(payload["context_locations"], [".agent"])
             self.assertEqual(sentinel.read_text(encoding="utf-8"), "legacy-preserve\n")
@@ -445,7 +477,8 @@ class ResearchPipelineTests(unittest.TestCase):
             ])
             self.assertEqual(code, 1, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "conditional")
+            self.assertEqual(payload["outcome"], "verification_complete")
+            self.assertEqual(payload["readiness"]["onboarding_state"], "conditional")
             self.assertEqual(payload["context_locations"], [".agent"])
             self.assertEqual(payload["missing_agent_files"], [])
 
@@ -459,7 +492,8 @@ class ResearchPipelineTests(unittest.TestCase):
             ])
             self.assertEqual(code, 1, stderr)
             payload = json.loads(stdout)
-            self.assertEqual(payload["status"], "conditional")
+            self.assertEqual(payload["outcome"], "verification_complete")
+            self.assertEqual(payload["readiness"]["onboarding_state"], "conditional")
             self.assertTrue(payload["context_ambiguity"])
             self.assertEqual(payload["context_locations"], [".agents", ".agent"])
             self.assertEqual(
@@ -572,7 +606,8 @@ class ResearchPipelineTests(unittest.TestCase):
             }
             self.assertIn(code, {0, 1}, stderr)
             payload = json.loads(stdout)
-            self.assertIn(payload["status"], {"pass", "conditional"})
+            self.assertEqual(payload["outcome"], "verification_complete")
+            self.assertIn(payload["readiness"]["onboarding_state"], {"ready", "conditional"})
             self.assertEqual(payload["mode"], "read-only-verification")
             self.assertEqual(before, after)
 
@@ -703,6 +738,110 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(code, 2)
             self.assertEqual(stdout, "")
             self.assertIn("must stay inside", stderr)
+
+    def test_domain_validation_is_a_scoped_axis_not_an_onboarding_blocker(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required", "--compact"
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["domain_validation_handoff"]["effective_state"], "not_declared")
+            self.assertEqual(payload["readiness"]["domain_validation_state"], "not_declared")
+            self.assertEqual(payload["readiness"]["execution_state"], "not_authorized")
+            self.assertEqual(payload["readiness"]["claim_state"], "unsupported")
+            self.assertNotIn("domain-validation-not-declared", {item.get("code") for item in payload["review_gate_inputs"]["blockers"]})
+            self.assertIn("domain-validation-not-declared", {item.get("code") for item in payload["review_gate_inputs"]["non_blockers"]})
+            self.assertNotEqual(payload.get("status"), "pass")
+
+    def test_not_applicable_requires_and_records_a_named_owner(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "not-applicable", "--compact"
+            ])
+            self.assertEqual(code, 0, stderr)
+            unresolved = json.loads(stdout)["domain_validation_handoff"]
+            self.assertEqual(unresolved["effective_state"], "not_declared")
+
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "not-applicable",
+                "--domain-validation-owner", "principal-investigator", "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            handoff = json.loads(stdout)["domain_validation_handoff"]
+            self.assertEqual(handoff["effective_state"], "not_applicable")
+            self.assertEqual(handoff["owner"], {"kind": "human", "id": "principal-investigator"})
+            self.assertEqual(handoff["claim_ceiling"], "unsupported")
+
+    def test_current_domain_record_is_verified_and_hash_bound(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project)
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            handoff = payload["domain_validation_handoff"]
+            self.assertEqual(handoff["effective_state"], "verified")
+            self.assertEqual(handoff["claim_ceiling"], "diagnostic_only")
+            self.assertEqual(payload["readiness"]["claim_state"], "diagnostic_only")
+            self.assertEqual(handoff["validator"]["sha256"], pipeline.sha256_file(DOMAIN_AUDITOR))
+            pipeline.validate_plan_structure(payload)
+
+    def test_domain_record_becomes_stale_when_source_changes(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project)
+            (project / "src" / "analysis.py").write_text("print('changed')\n", encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["domain_validation_handoff"]["effective_state"], "stale")
+            self.assertEqual(payload["readiness"]["claim_state"], "unsupported")
+            self.assertIn("domain-validation-evidence-stale", {item["code"] for item in payload["domain_validation_handoff"]["findings"]})
+
+    def test_forged_verified_record_with_blocker_is_invalid(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project)
+            payload = json.loads(record.read_text(encoding="utf-8"))
+            payload["findings"] = [{"code": "unresolved-domain-defect", "severity": "blocker"}]
+            record.write_text(json.dumps(payload), encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            handoff = json.loads(stdout)["domain_validation_handoff"]
+            self.assertEqual(handoff["effective_state"], "invalid")
+            self.assertIn("domain-validation-status-conflict", {item["code"] for item in handoff["findings"]})
+
+    def test_domain_record_must_be_project_contained(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            project = self.make_project(root)
+            outside = root / "domain-record.json"
+            outside.write_text("{}\n", encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation-record", str(outside), "--compact"
+            ])
+            self.assertEqual(code, 2)
+            self.assertEqual(stdout, "")
+            self.assertIn("must stay inside", stderr)
+
+    def test_component_discovery_separates_project_build_and_reusable_core(self) -> None:
+        args = pipeline.parse_args(["plan", str(Path.cwd())])
+        components = pipeline.resolve_components(args)
+        self.assertIn("20-project-build", str(components["generator"]))
+        self.assertIn("20-project-build", str(components["domain_validator"]))
+        self.assertIn("50-core-utils", str(components["knowledge"]))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "experiment-runtime-observation/v1",
+  "title": "Normalized experiment observations",
+  "type": "object",
+  "required": ["schema_version", "observations"],
+  "properties": {
+    "schema_version": {"const": "experiment-runtime-observation/v1"},
+    "observations": {"type": "object"}
+  }
+}

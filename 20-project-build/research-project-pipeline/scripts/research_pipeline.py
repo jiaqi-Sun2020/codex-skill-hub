@@ -15,17 +15,21 @@ import sys
 from typing import Any
 
 
-PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v3"
-PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v1"
+PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v4"
+PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v2"
 LEGACY_PIPELINE_SCHEMAS = {
     "research-project-pipeline/v1",
     "research-project-pipeline/v2",
+    "research-project-pipeline-plan/v3",
 }
 GENERATOR_SCHEMA = "project-agent-generator/v1"
 INVENTORY_SCHEMA = "research-workspace-inventory/v2"
 LEGACY_INVENTORY_SCHEMA = "research-workspace-inventory/v1"
 COMPARISON_SCHEMA = "research-comparison-record/v2"
+DOMAIN_RECORD_SCHEMA = "experiment-protocol-audit-result/v1"
+DOMAIN_HANDOFF_SCHEMA = "research-domain-validation-handoff/v1"
 MAX_PLAN_BYTES = 5 * 1024 * 1024
+MAX_DOMAIN_RECORD_BYTES = 5 * 1024 * 1024
 SHA256_PATTERN = re.compile(r"^[A-Fa-f0-9]{64}$")
 STABLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$")
 HUMAN_SUMMARY_FIELDS = (
@@ -36,6 +40,7 @@ HUMAN_SUMMARY_FIELDS = (
     "reject_conditions",
     "after_pass",
     "minimum_repair",
+    "what_has_not_been_validated",
 )
 AGENT_BUNDLE_NAMES = (".agents", ".agent")
 REQUIRED_AGENT_FILES = (
@@ -129,6 +134,7 @@ def component_bindings(components: dict[str, Path | None]) -> dict[str, dict[str
         ("inventory", True),
         ("knowledge", False),
         ("comparison_validator", False),
+        ("domain_validator", False),
     ):
         value = components.get(name)
         available = isinstance(value, Path) and value.is_file()
@@ -141,56 +147,77 @@ def component_bindings(components: dict[str, Path | None]) -> dict[str, dict[str
     return bindings
 
 
-def result_document(status: str, **fields: Any) -> dict[str, Any]:
+def result_document(outcome: str, **fields: Any) -> dict[str, Any]:
     return {
         "schema_version": PIPELINE_RESULT_SCHEMA,
         "document_type": "pipeline-command-result",
-        "status": status,
+        "command_status": "error" if outcome == "error" else "ok",
+        "outcome": outcome,
         **fields,
     }
 
 
 def resolve_components(args: argparse.Namespace) -> dict[str, Path | None]:
-    default_root = Path(__file__).resolve().parents[2]
-    core_root = (
+    default_project_build_root = Path(__file__).resolve().parents[2]
+    legacy_root = (
         Path(args.core_utils_root).expanduser().resolve()
         if args.core_utils_root
-        else default_root
+        else None
+    )
+    project_build_root = (
+        Path(args.project_build_root).expanduser().resolve()
+        if args.project_build_root
+        else legacy_root or default_project_build_root
+    )
+    reusable_core_root = (
+        Path(args.reusable_core_root).expanduser().resolve()
+        if args.reusable_core_root
+        else legacy_root or default_project_build_root.parent / "50-core-utils"
     )
     generator = (
         Path(args.generator_script).expanduser().resolve()
         if args.generator_script
-        else core_root / "project-agent-generator-skill" / "scripts" / "generate_project_agents.py"
+        else project_build_root / "project-agent-generator-skill" / "scripts" / "generate_project_agents.py"
     )
     inventory = (
         Path(args.inventory_script).expanduser().resolve()
         if args.inventory_script
-        else core_root / "research-workspace-governance" / "scripts" / "inventory_workspace.py"
+        else project_build_root / "research-workspace-governance" / "scripts" / "inventory_workspace.py"
     )
     knowledge = (
         Path(args.knowledge_script).expanduser().resolve()
         if args.knowledge_script
-        else core_root / "neat-freak" / "scripts" / "manage_project_knowledge.py"
+        else reusable_core_root / "neat-freak" / "scripts" / "manage_project_knowledge.py"
     )
     comparison_validator = (
         Path(args.comparison_validator_script).expanduser().resolve()
         if args.comparison_validator_script
-        else core_root
+        else project_build_root
         / "research-workspace-governance"
         / "scripts"
         / "validate_equivalence_records.py"
+    )
+    domain_validator = (
+        Path(args.domain_validator_script).expanduser().resolve()
+        if args.domain_validator_script
+        else project_build_root
+        / "experiment-protocol-audit"
+        / "scripts"
+        / "audit_experiment_protocol.py"
     )
     for label, path in (("generator", generator), ("inventory", inventory)):
         if not path.is_file():
             raise ComponentError(f"{label} interface not found: {path}")
     return {
-        "core_root": core_root,
+        "project_build_root": project_build_root,
+        "reusable_core_root": reusable_core_root,
         "generator": generator,
         "inventory": inventory,
         "knowledge": knowledge if knowledge.is_file() else None,
         "comparison_validator": (
             comparison_validator if comparison_validator.is_file() else None
         ),
+        "domain_validator": domain_validator if domain_validator.is_file() else None,
     }
 
 
@@ -423,7 +450,14 @@ def findings_from(*sections: Any) -> tuple[list[dict[str, Any]], list[dict[str, 
         for finding in findings:
             if not isinstance(finding, dict):
                 continue
-            if finding.get("severity") in {"non_blocker", "finding"}:
+            blocked_scopes = finding.get("blocks", [])
+            scoped_only = (
+                isinstance(blocked_scopes, list)
+                and bool(blocked_scopes)
+                and "context_creation" not in blocked_scopes
+                and "workspace_onboarding" not in blocked_scopes
+            )
+            if finding.get("severity") in {"non_blocker", "finding"} or scoped_only:
                 non_blockers.append(finding)
             else:
                 blockers.append(finding)
@@ -435,6 +469,7 @@ def review_gate_inputs(
     blockers: list[dict[str, Any]],
     non_blockers: list[dict[str, Any]],
     evidence: list[str],
+    unvalidated: list[str] | None = None,
 ) -> dict[str, Any]:
     suggested_actions = [
         "Resolve the first blocker and rerun read-only discovery."
@@ -475,6 +510,13 @@ def review_gate_inputs(
                 "Only the explicitly listed action may proceed through its named owning component."
             ],
             "minimum_repair": suggested_actions,
+            "what_has_not_been_validated": (
+                unvalidated
+                if unvalidated is not None
+                else [
+                    "Domain methods, experiment validity, and scientific claims are outside this gate unless a current domain-validation handoff says otherwise."
+                ]
+            ),
             "render_language": "current-user-language",
             "render_required": True,
         },
@@ -508,6 +550,318 @@ def run_comparison_validation(project: Path, script: Path | None, records_arg: s
     return payload
 
 
+def scoped_domain_finding(
+    code: str,
+    risk: str,
+    minimum_fix: str,
+    verification: str,
+) -> dict[str, Any]:
+    return {
+        "code": code,
+        "severity": "scoped_blocker",
+        "blocks": ["experiment_execution", "claim_support"],
+        "does_not_block": ["context_creation", "workspace_onboarding"],
+        "risk": risk,
+        "minimum_fix": minimum_fix,
+        "verification": verification,
+    }
+
+
+def domain_requirement(raw: str) -> str:
+    return raw.replace("-", "_")
+
+
+def validate_fingerprint_entries(
+    project: Path,
+    entries: Any,
+    label: str,
+    *,
+    require_kind: bool = False,
+) -> tuple[list[dict[str, str]], bool]:
+    if not isinstance(entries, list):
+        raise ValueError(f"domain validation {label} must be an array")
+    normalized: list[dict[str, str]] = []
+    stale = False
+    for index, item in enumerate(entries):
+        if not isinstance(item, dict):
+            raise ValueError(f"domain validation {label}[{index}] must be an object")
+        raw_path = item.get("path")
+        expected_hash = item.get("sha256")
+        kind = item.get("kind") if require_kind else None
+        if not isinstance(raw_path, str) or not raw_path.strip():
+            raise ValueError(f"domain validation {label}[{index}] needs a path")
+        if not isinstance(expected_hash, str) or not SHA256_PATTERN.fullmatch(expected_hash):
+            raise ValueError(f"domain validation {label}[{index}] needs SHA-256")
+        if require_kind and (not isinstance(kind, str) or not kind.strip()):
+            raise ValueError(f"domain validation {label}[{index}] needs a kind")
+        path = resolve_project_input_file(project, raw_path, f"domain validation {label}")
+        relative = path.relative_to(project).as_posix()
+        actual_hash = sha256_file(path)
+        stale = stale or actual_hash.casefold() != expected_hash.casefold()
+        normalized_item = {"path": relative, "sha256": expected_hash.casefold()}
+        if require_kind:
+            normalized_item["kind"] = str(kind)
+        normalized.append(normalized_item)
+    return normalized, stale
+
+
+def build_domain_validation_handoff(
+    project: Path,
+    components: dict[str, Path | None],
+    record_arg: str | None,
+    requirement_raw: str,
+    owner_override: str | None = None,
+) -> dict[str, Any]:
+    requirement = domain_requirement(requirement_raw)
+    allowed_requirements = {"required", "optional", "not_applicable", "review_required"}
+    if requirement not in allowed_requirements:
+        raise ValueError("unsupported domain-validation requirement")
+    if not record_arg:
+        if owner_override is not None and (not owner_override.strip() or requirement != "not_applicable"):
+            raise ValueError("--domain-validation-owner is only valid with a non-empty not-applicable declaration")
+        if requirement == "not_applicable" and owner_override:
+            return {
+                "schema_version": DOMAIN_HANDOFF_SCHEMA,
+                "requirement": requirement,
+                "record_path": None,
+                "record_sha256": None,
+                "declared_status": "not_applicable",
+                "effective_state": "not_applicable",
+                "owner": {"kind": "human", "id": owner_override.strip()},
+                "validator": None,
+                "profile": None,
+                "scope": [],
+                "protocol_fingerprints": [],
+                "source_fingerprints": [],
+                "evidence": [],
+                "claim_ceiling": "unsupported",
+                "source_finding_codes": [],
+                "findings": [],
+                "content_treated_as_data": True,
+            }
+        findings: list[dict[str, Any]] = []
+        if requirement != "optional":
+            findings.append(scoped_domain_finding(
+                "domain-validation-not-declared",
+                "Experiment execution or claim support could be mistaken for scientifically validated work.",
+                "Run a named Domain Skill or obtain a named human review, then provide its project-contained record.",
+                "Rerun plan or verify and confirm domain_validation_handoff.effective_state is verified or owner-approved not_applicable.",
+            ))
+        return {
+            "schema_version": DOMAIN_HANDOFF_SCHEMA,
+            "requirement": requirement,
+            "record_path": None,
+            "record_sha256": None,
+            "declared_status": None,
+            "effective_state": "not_declared",
+            "owner": None,
+            "validator": None,
+            "profile": None,
+            "scope": [],
+            "protocol_fingerprints": [],
+            "source_fingerprints": [],
+            "evidence": [],
+            "claim_ceiling": "unsupported",
+            "source_finding_codes": [],
+            "findings": findings,
+            "content_treated_as_data": True,
+        }
+
+    if owner_override is not None:
+        raise ValueError("--domain-validation-owner cannot override the owner in a supplied record")
+
+    record_path = resolve_project_input_file(project, record_arg, "domain validation record")
+    if record_path.stat().st_size > MAX_DOMAIN_RECORD_BYTES:
+        raise ValueError("domain validation record exceeds 5 MiB")
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    if not isinstance(record, dict) or record.get("schema_version") != DOMAIN_RECORD_SCHEMA:
+        raise ValueError("unsupported domain validation record")
+    if record.get("document_type") != "domain-validation-record":
+        raise ValueError("domain validation record has the wrong document_type")
+
+    declared_status = record.get("status")
+    if declared_status not in {"pending", "verified", "failed", "not_applicable"}:
+        raise ValueError("domain validation record has an invalid status")
+    owner = record.get("owner")
+    if not isinstance(owner, dict) or owner.get("kind") not in {"skill", "human"} or not isinstance(owner.get("id"), str) or not owner["id"].strip():
+        raise ValueError("domain validation record needs a named owner")
+    validator = record.get("validator")
+    if not isinstance(validator, dict):
+        raise ValueError("domain validation record needs validator identity")
+    if validator.get("id") != "experiment-protocol-audit" or not isinstance(validator.get("version"), str):
+        raise ValueError("domain validation validator identity is unsupported")
+    validator_hash = validator.get("sha256")
+    if not isinstance(validator_hash, str) or not SHA256_PATTERN.fullmatch(validator_hash):
+        raise ValueError("domain validation validator needs SHA-256")
+
+    profile = record.get("profile")
+    if not isinstance(profile, dict):
+        raise ValueError("domain validation record needs a profile identity")
+    for field in ("id", "version", "path", "sha256"):
+        if not isinstance(profile.get(field), str) or not profile[field].strip():
+            raise ValueError(f"domain validation profile needs {field}")
+    if not SHA256_PATTERN.fullmatch(profile["sha256"]):
+        raise ValueError("domain validation profile needs SHA-256")
+    profile_path = resolve_project_input_file(project, profile["path"], "domain profile")
+    normalized_profile = {
+        "id": profile["id"],
+        "version": profile["version"],
+        "path": profile_path.relative_to(project).as_posix(),
+        "sha256": profile["sha256"].casefold(),
+    }
+    stale = sha256_file(profile_path).casefold() != profile["sha256"].casefold()
+
+    scope = record.get("scope")
+    if not isinstance(scope, list) or not scope or len(scope) != len(set(scope)) or not set(scope) <= {"design", "manifest", "runtime"}:
+        raise ValueError("domain validation scope must contain unique supported scopes")
+    protocol_fingerprints, protocol_stale = validate_fingerprint_entries(
+        project, record.get("protocol_fingerprints"), "protocol_fingerprints"
+    )
+    source_fingerprints, source_stale = validate_fingerprint_entries(
+        project, record.get("source_fingerprints"), "source_fingerprints"
+    )
+    evidence, evidence_stale = validate_fingerprint_entries(
+        project, record.get("evidence"), "evidence", require_kind=True
+    )
+    stale = stale or protocol_stale or source_stale or evidence_stale
+
+    source_findings = record.get("findings", [])
+    if not isinstance(source_findings, list):
+        raise ValueError("domain validation findings must be an array")
+    if any(not isinstance(item, dict) or not isinstance(item.get("code"), str) for item in source_findings):
+        raise ValueError("domain validation findings must be structured objects with codes")
+    source_finding_codes = sorted({
+        str(item.get("code"))
+        for item in source_findings
+        if isinstance(item, dict) and isinstance(item.get("code"), str)
+    })
+    claim_ceiling = record.get("claim_ceiling")
+    if claim_ceiling not in {"unsupported", "diagnostic_only", "conditionally_supported", "supported"}:
+        raise ValueError("domain validation claim_ceiling is invalid")
+
+    findings: list[dict[str, Any]] = []
+    validator_path = components.get("domain_validator")
+    if not isinstance(validator_path, Path):
+        findings.append(scoped_domain_finding(
+            "domain-validator-unavailable",
+            "The validator implementation named by the record cannot be independently bound.",
+            "Restore the central experiment-protocol-audit Skill or pass its reviewed script path explicitly.",
+            "Confirm the validator binding exists and its SHA-256 matches the record.",
+        ))
+        effective_state = "invalid"
+    elif sha256_file(validator_path).casefold() != validator_hash.casefold():
+        findings.append(scoped_domain_finding(
+            "domain-validator-stale",
+            "The validator implementation changed after the scientific decision was recorded.",
+            "Rerun the domain audit with the current validator and produce a new record.",
+            "Confirm the current validator SHA-256 matches the new record.",
+        ))
+        effective_state = "stale"
+    elif stale:
+        findings.append(scoped_domain_finding(
+            "domain-validation-evidence-stale",
+            "A profile, protocol, source, or evidence file changed after validation.",
+            "Rerun the domain audit against the current files instead of rewriting the old record.",
+            "Confirm every recorded fingerprint matches the current project-contained file.",
+        ))
+        effective_state = "stale"
+    else:
+        effective_state = str(declared_status)
+
+    if declared_status == "verified" and (not evidence or not protocol_fingerprints or not source_fingerprints):
+        raise ValueError("verified domain validation needs protocol, source, and evidence fingerprints")
+    if declared_status == "verified" and any(item.get("severity") in {"blocker", "scoped_blocker"} for item in source_findings):
+        effective_state = "invalid"
+        findings.append(scoped_domain_finding(
+            "domain-validation-status-conflict",
+            "The record declares verified while retaining a blocking source finding.",
+            "Resolve the source finding or mark the record failed; never relabel a failing record as verified.",
+            "Confirm a new record has a status consistent with all structured findings.",
+        ))
+    if declared_status == "failed":
+        findings.append(scoped_domain_finding(
+            "domain-validation-failed",
+            "The named domain review found blocking scientific or protocol defects.",
+            "Resolve the Domain Skill findings and produce a new versioned validation record.",
+            "Rerun the domain audit and confirm the new record is verified.",
+        ))
+    elif declared_status == "pending":
+        findings.append(scoped_domain_finding(
+            "domain-validation-pending",
+            "The domain review has not reached a scientific decision.",
+            "Complete the declared review scopes and produce evidence-bound results.",
+            "Confirm the effective state becomes verified.",
+        ))
+    if requirement == "required" and declared_status == "not_applicable":
+        effective_state = "invalid"
+        findings.append(scoped_domain_finding(
+            "domain-validation-requirement-conflict",
+            "The project requires domain validation but the supplied record declares it not applicable.",
+            "Resolve the requirement with the project owner and produce a consistent record.",
+            "Confirm requirement and declared status no longer conflict.",
+        ))
+    if requirement == "not_applicable" and declared_status != "not_applicable":
+        effective_state = "invalid"
+        findings.append(scoped_domain_finding(
+            "domain-validation-requirement-conflict",
+            "The invocation declares validation not applicable but the record declares another state.",
+            "Use the correct explicit requirement or obtain an owner-reviewed not-applicable record.",
+            "Confirm requirement and declared status match.",
+        ))
+
+    effective_claim = claim_ceiling if effective_state == "verified" else "unsupported"
+    return {
+        "schema_version": DOMAIN_HANDOFF_SCHEMA,
+        "requirement": requirement,
+        "record_path": record_path.relative_to(project).as_posix(),
+        "record_sha256": sha256_file(record_path),
+        "declared_status": declared_status,
+        "effective_state": effective_state,
+        "owner": {"kind": owner["kind"], "id": owner["id"]},
+        "validator": {
+            "id": validator["id"],
+            "version": validator["version"],
+            "sha256": validator_hash.casefold(),
+        },
+        "profile": normalized_profile,
+        "scope": list(scope),
+        "protocol_fingerprints": protocol_fingerprints,
+        "source_fingerprints": source_fingerprints,
+        "evidence": evidence,
+        "claim_ceiling": effective_claim,
+        "source_finding_codes": source_finding_codes,
+        "findings": findings,
+        "content_treated_as_data": True,
+    }
+
+
+def readiness_axes(
+    *,
+    onboarding_state: str,
+    agent_context_state: str,
+    governance_state: str,
+    domain_handoff: dict[str, Any],
+    execution_ready: bool = False,
+) -> dict[str, str]:
+    domain_state = str(domain_handoff["effective_state"])
+    claim_state = str(domain_handoff["claim_ceiling"]) if domain_state == "verified" else "unsupported"
+    execution_state = (
+        "ready_for_authorization"
+        if execution_ready and domain_state in {"verified", "not_applicable"}
+        else "blocked"
+        if domain_state in {"failed", "stale", "invalid"}
+        else "not_authorized"
+    )
+    return {
+        "onboarding_state": onboarding_state,
+        "agent_context_state": agent_context_state,
+        "governance_state": governance_state,
+        "domain_validation_state": domain_state,
+        "execution_state": execution_state,
+        "claim_state": claim_state,
+    }
+
+
 def build_plan(
     project: Path,
     profile: str,
@@ -515,6 +869,9 @@ def build_plan(
     *,
     policy_topology: str | None = None,
     comparison_records: str | None = None,
+    domain_validation_record: str | None = None,
+    domain_validation_requirement: str = "review-required",
+    domain_validation_owner: str | None = None,
 ) -> dict[str, Any]:
     generator = inspect_generator(project, components["generator"])  # type: ignore[arg-type]
     inventory = inspect_workspace(project, components["inventory"])  # type: ignore[arg-type]
@@ -536,12 +893,20 @@ def build_plan(
         components["comparison_validator"],  # type: ignore[arg-type]
         comparison_records,
     )
+    domain_handoff = build_domain_validation_handoff(
+        project,
+        components,
+        domain_validation_record,
+        domain_validation_requirement,
+        domain_validation_owner,
+    )
     blockers, non_blockers = findings_from(
         governance_layout,
         project_contract,
         relocation_maps,
         governance_state,
         comparison,
+        domain_handoff,
     )
     governance_blocked = (
         governance_status in {"ambiguous", "unsafe"}
@@ -552,8 +917,17 @@ def build_plan(
     )
     fingerprint = str(inventory["workspace_fingerprint_sha256"])
     pipeline_id = hashlib.sha256(
-        f"{project}|{fingerprint}|{profile}".encode("utf-8")
+        (
+            f"{project}|{fingerprint}|{profile}|"
+            f"{domain_handoff['requirement']}|{domain_handoff['record_sha256']}|{domain_handoff['owner']}"
+        ).encode("utf-8")
     ).hexdigest()[:16]
+    readiness = readiness_axes(
+        onboarding_state="blocked" if governance_blocked else "review_required",
+        agent_context_state="preserved" if context_exists else "pending_generation",
+        governance_state="blocked" if governance_blocked else "review_required",
+        domain_handoff=domain_handoff,
+    )
     plan: dict[str, Any] = {
         "schema_version": PIPELINE_PLAN_SCHEMA,
         "document_type": "pipeline-plan",
@@ -572,6 +946,8 @@ def build_plan(
             "knowledge_auditor_available": components["knowledge"] is not None,
             "agent_loading_auditor": "neat-freak",
             "comparison_validator": comparison["schema_version"],
+            "domain_validator_available": components["domain_validator"] is not None,
+            "domain_validation_handoff": DOMAIN_HANDOFF_SCHEMA,
         },
         "component_bindings": component_bindings(components),
         "governance_layout": governance_layout,
@@ -580,6 +956,8 @@ def build_plan(
         "governance_state": governance_state,
         "agent_loading_audit_handoff": loading_handoff,
         "comparison_contracts": comparison,
+        "domain_validation_handoff": domain_handoff,
+        "readiness": readiness,
         "role_hints_for_semantic_review": roles,
         "review_gate_inputs": review_gate_inputs(
             blockers=blockers,
@@ -590,9 +968,20 @@ def build_plan(
                 "relocation_maps",
                 "governance_state",
                 "comparison_contracts",
+                "domain_validation_handoff",
+                "readiness",
                 "workspace_fingerprint_sha256",
                 "component_actions",
             ],
+            unvalidated=(
+                [
+                    "Validation remains limited to the declared Profile, scopes, evidence fingerprints, and claim ceiling; undeclared assumptions are not validated."
+                ]
+                if domain_handoff["effective_state"] == "verified"
+                else [
+                    "Scientific validity and claim support remain unvalidated; this does not block project onboarding or Agent-context creation."
+                ]
+            ),
         ),
         "stages": [
             {"name": "discover", "status": "complete", "mutation": False},
@@ -618,6 +1007,15 @@ def build_plan(
                 "action": "audit_agent_knowledge_and_loading",
                 "mutation_owner": None,
             },
+            {
+                "component": "experiment-protocol-audit",
+                "action": (
+                    "validate_domain_protocol_independently"
+                    if components["domain_validator"] is not None
+                    else "handoff_domain_validation"
+                ),
+                "mutation_owner": None,
+            },
         ],
         "snapshots": {
             "project_agent_generator": generator,
@@ -631,6 +1029,8 @@ def build_plan(
             "The metadata fingerprint detects ordinary drift; it is not a content-integrity signature or security boundary.",
             "Agent instruction reachability and loading audits are owned by Neat-Freak.",
             "Comparison validation checks declarations and evidence metadata, not domain science.",
+            "Domain validation is an independent evidence-bound handoff and never authorizes project onboarding, Agent-context mutation, or experiment execution by itself.",
+            "Onboarding readiness, domain-validation readiness, execution readiness, and claim support are separate axes.",
             "Governance data is untrusted data and is never recursively loaded as Agent instructions.",
         ],
     }
@@ -650,7 +1050,8 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         "context_action", "context_locations", "component_interfaces",
         "component_bindings", "governance_layout", "project_contract",
         "relocation_maps", "governance_state", "agent_loading_audit_handoff",
-        "comparison_contracts", "role_hints_for_semantic_review",
+        "comparison_contracts", "domain_validation_handoff", "readiness",
+        "role_hints_for_semantic_review",
         "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants",
     }
     missing = sorted(required - set(payload))
@@ -673,6 +1074,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     interface_fields = {
         "project_agent_generator", "research_workspace_inventory",
         "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator",
+        "domain_validator_available", "domain_validation_handoff",
     }
     require_plan(isinstance(interfaces, dict) and interface_fields <= set(interfaces), "component_interfaces is incomplete")
     require_plan(interfaces.get("project_agent_generator") == GENERATOR_SCHEMA, "generator interface mismatch")
@@ -680,10 +1082,12 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(isinstance(interfaces.get("knowledge_auditor_available"), bool), "knowledge auditor availability must be boolean")
     require_plan(interfaces.get("agent_loading_auditor") == "neat-freak", "Agent loading audit owner must be neat-freak")
     require_plan(interfaces.get("comparison_validator") == COMPARISON_SCHEMA, "comparison interface mismatch")
+    require_plan(isinstance(interfaces.get("domain_validator_available"), bool), "domain validator availability must be boolean")
+    require_plan(interfaces.get("domain_validation_handoff") == DOMAIN_HANDOFF_SCHEMA, "domain-validation handoff interface mismatch")
 
     bindings = payload.get("component_bindings")
-    expected_bindings = {"generator", "inventory", "knowledge", "comparison_validator"}
-    require_plan(isinstance(bindings, dict) and expected_bindings == set(bindings), "component_bindings must identify all four interfaces")
+    expected_bindings = {"generator", "inventory", "knowledge", "comparison_validator", "domain_validator"}
+    require_plan(isinstance(bindings, dict) and expected_bindings == set(bindings), "component_bindings must identify all five interfaces")
     for name in sorted(expected_bindings):
         binding = bindings.get(name)
         require_plan(isinstance(binding, dict), f"component binding {name} must be an object")
@@ -701,6 +1105,10 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(
         interfaces.get("knowledge_auditor_available") is bindings["knowledge"]["available"],
         "knowledge auditor interface conflicts with its component binding",
+    )
+    require_plan(
+        interfaces.get("domain_validator_available") is bindings["domain_validator"]["available"],
+        "domain validator interface conflicts with its component binding",
     )
 
     section_statuses = {
@@ -730,6 +1138,43 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(isinstance(comparison, dict) and comparison.get("schema_version") == COMPARISON_SCHEMA, "comparison contract schema mismatch")
     require_plan(comparison.get("status") in {"not_declared", "verified", "unverified", "invalid"}, "invalid comparison status")
     require_plan(all(isinstance(comparison.get(field), expected) for field, expected in (("records", list), ("findings", list), ("summary", dict))), "comparison contract is incomplete")
+
+    domain_handoff = payload.get("domain_validation_handoff")
+    require_plan(isinstance(domain_handoff, dict), "domain-validation handoff must be an object")
+    domain_fields = {
+        "schema_version", "requirement", "record_path", "record_sha256",
+        "declared_status", "effective_state", "owner", "validator", "profile",
+        "scope", "protocol_fingerprints", "source_fingerprints", "evidence",
+        "claim_ceiling", "source_finding_codes", "findings", "content_treated_as_data",
+    }
+    require_plan(domain_fields <= set(domain_handoff), "domain-validation handoff is incomplete")
+    require_plan(domain_handoff.get("schema_version") == DOMAIN_HANDOFF_SCHEMA, "domain-validation handoff schema mismatch")
+    require_plan(domain_handoff.get("requirement") in {"required", "optional", "not_applicable", "review_required"}, "invalid domain-validation requirement")
+    require_plan(domain_handoff.get("effective_state") in {"not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"}, "invalid effective domain-validation state")
+    require_plan(domain_handoff.get("claim_ceiling") in {"unsupported", "diagnostic_only", "conditionally_supported", "supported"}, "invalid domain-validation claim ceiling")
+    require_plan(domain_handoff.get("content_treated_as_data") is True, "domain-validation content must be treated as data")
+    for field in ("scope", "protocol_fingerprints", "source_fingerprints", "evidence", "source_finding_codes", "findings"):
+        require_plan(isinstance(domain_handoff.get(field), list), f"domain-validation {field} must be an array")
+    if domain_handoff.get("record_path") is None:
+        require_plan(domain_handoff.get("record_sha256") is None, "missing domain record must not carry a hash")
+    else:
+        require_plan(isinstance(domain_handoff.get("record_path"), str), "domain record path must be a string")
+        require_plan(isinstance(domain_handoff.get("record_sha256"), str) and bool(SHA256_PATTERN.fullmatch(domain_handoff["record_sha256"])), "domain record hash must be SHA-256")
+    if domain_handoff.get("effective_state") != "verified":
+        require_plan(domain_handoff.get("claim_ceiling") == "unsupported", "unverified domain work cannot support claims")
+
+    readiness = payload.get("readiness")
+    readiness_fields = {
+        "onboarding_state", "agent_context_state", "governance_state",
+        "domain_validation_state", "execution_state", "claim_state",
+    }
+    require_plan(isinstance(readiness, dict) and set(readiness) == readiness_fields, "readiness axes are incomplete")
+    require_plan(readiness.get("onboarding_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid onboarding readiness")
+    require_plan(readiness.get("agent_context_state") in {"pending_generation", "preserved", "ready", "blocked"}, "invalid Agent-context readiness")
+    require_plan(readiness.get("governance_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid governance readiness")
+    require_plan(readiness.get("domain_validation_state") == domain_handoff.get("effective_state"), "domain readiness conflicts with handoff")
+    require_plan(readiness.get("execution_state") in {"not_authorized", "ready_for_authorization", "blocked"}, "invalid execution readiness")
+    require_plan(readiness.get("claim_state") == domain_handoff.get("claim_ceiling"), "claim readiness conflicts with handoff")
     require_plan(isinstance(payload.get("role_hints_for_semantic_review"), dict), "role hints must be an object")
 
     gate = payload.get("review_gate_inputs")
@@ -749,6 +1194,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         payload["relocation_maps"],
         payload["governance_state"],
         comparison,
+        domain_handoff,
     )
     require_plan(gate["blockers"] == expected_blockers, "review gate blockers do not match component findings")
     require_plan(gate["non_blockers"] == expected_non_blockers, "review gate non-blockers do not match component findings")
@@ -775,6 +1221,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         "project-agent-generator-skill": "project-agent-generator-skill",
         "research-workspace-governance": "research-workspace-governance",
         "neat-freak": None,
+        "experiment-protocol-audit": None,
     }
     require_plan(isinstance(actions, list) and len(actions) == len(expected_owners), "component_actions must preserve the unique responsibility table")
     seen_components: set[str] = set()
@@ -789,6 +1236,11 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
             "project-agent-generator-skill": "preserve" if payload["context_action"] == "preserve_and_audit" else "create_after_review",
             "research-workspace-governance": "resolve_or_initialize_governance_records",
             "neat-freak": "audit_agent_knowledge_and_loading",
+            "experiment-protocol-audit": (
+                "validate_domain_protocol_independently"
+                if bindings["domain_validator"]["available"]
+                else "handoff_domain_validation"
+            ),
         }[component]
         require_plan(action["action"] == expected_action, f"component {component} has an unsupported action")
     snapshots = payload.get("snapshots")
@@ -832,7 +1284,7 @@ def load_and_validate_plan(path: Path, project: Path, confirmed_hash: str) -> di
     if not isinstance(payload, dict):
         raise ValueError("unsupported pipeline plan")
     if payload.get("schema_version") in LEGACY_PIPELINE_SCHEMAS:
-        raise ValueError("legacy pipeline plan v1/v2 is recognized but cannot authorize mutation; rerun plan to create v3")
+        raise ValueError("legacy pipeline plan is recognized but cannot authorize mutation; rerun plan to create v4")
     if payload.get("schema_version") != PIPELINE_PLAN_SCHEMA:
         raise ValueError("unsupported pipeline plan")
     validate_plan_structure(payload)
@@ -856,6 +1308,9 @@ def command_plan(args: argparse.Namespace, components: dict[str, Path | None]) -
         components,
         policy_topology=args.policy_topology,
         comparison_records=args.comparison_records,
+        domain_validation_record=args.domain_validation_record,
+        domain_validation_requirement=args.domain_validation,
+        domain_validation_owner=args.domain_validation_owner,
     )
     if args.output:
         output = Path(args.output).expanduser().resolve(strict=False)
@@ -1014,6 +1469,13 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         components["comparison_validator"],  # type: ignore[arg-type]
         args.comparison_records,
     )
+    domain_handoff = build_domain_validation_handoff(
+        project,
+        components,
+        args.domain_validation_record,
+        args.domain_validation,
+        args.domain_validation_owner,
+    )
     comparison_code = int(comparison["summary"]["exit_code"])
     governance_layout = inventory.get("governance_layout", {})
     project_contract = inventory.get("project_contract", {})
@@ -1075,19 +1537,19 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     if args.policy_topology and knowledge_results["status"] != "executed":
         loading_code = 2
     if missing or loading_code == 2 or context_link_detected or comparison_code == 2 or governance_code == 2:
-        status = "fail"
+        onboarding_state = "blocked"
         exit_code = 2
     elif context_ambiguity:
-        status = "conditional"
+        onboarding_state = "conditional"
         exit_code = 1
     elif scan.get("scan_truncated") or int(scan.get("unreadable_count", 0)) > 0:
-        status = "conditional"
+        onboarding_state = "conditional"
         exit_code = 1
     elif knowledge_results["status"] == "unavailable" or loading_code == 1 or comparison_code == 1 or governance_code == 1:
-        status = "conditional"
+        onboarding_state = "conditional"
         exit_code = 1
     else:
-        status = "pass"
+        onboarding_state = "ready"
         exit_code = 0
     blockers, non_blockers = findings_from(
         governance_layout,
@@ -1095,6 +1557,7 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         relocation_maps,
         governance_state,
         comparison,
+        domain_handoff,
     )
     if missing:
         blockers.append({"code": "missing-agent-files", "severity": "blocker", "paths": missing})
@@ -1111,11 +1574,40 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
             "project_agent_inspection",
             "knowledge_and_bootstrap",
             "comparison_contracts",
+            "domain_validation_handoff",
+            "readiness",
         ],
+        unvalidated=(
+            [
+                "Validation remains limited to the declared Profile, scopes, evidence fingerprints, and claim ceiling; undeclared assumptions are not validated."
+            ]
+            if domain_handoff["effective_state"] == "verified"
+            else [
+                "Scientific validity and claim support remain unvalidated; this verification only reports onboarding and governance readiness."
+            ]
+        ),
     )
-    gate["result"] = status
+    domain_state = str(domain_handoff["effective_state"])
+    if exit_code < 2 and domain_state in {"failed", "stale", "invalid"}:
+        exit_code = 1
+    elif exit_code == 0 and domain_state == "not_declared" and domain_handoff["requirement"] != "optional":
+        exit_code = 1
+    elif exit_code == 0 and domain_state == "pending":
+        exit_code = 1
+    readiness = readiness_axes(
+        onboarding_state=onboarding_state,
+        agent_context_state=(
+            "blocked"
+            if missing or context_ambiguity or context_link_detected
+            else "ready"
+        ),
+        governance_state=(
+            "blocked" if governance_code == 2 else "conditional" if governance_code == 1 else "ready"
+        ),
+        domain_handoff=domain_handoff,
+    )
     emit(result_document(
-        status,
+        "verification_complete",
         mode="read-only-verification",
         project_root=str(project),
         context_locations=[path.name for path in context_bundles],
@@ -1126,11 +1618,13 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         workspace_inventory=inventory,
         agent_loading_audit_handoff=loading_handoff,
         comparison_contracts=comparison,
+        domain_validation_handoff=domain_handoff,
+        readiness=readiness,
         knowledge_and_bootstrap=knowledge_results,
         review_gate_inputs=gate,
         next_action=(
             "Run research-workspace-governance adversarial review against the approved architecture plan."
-            if status != "fail"
+            if onboarding_state != "blocked"
             else "Resolve blocking context or audit failures before continuing."
         ),
     ), compact=args.compact)
@@ -1139,7 +1633,18 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--core-utils-root", help="Override the sibling Skills root")
+    parser.add_argument(
+        "--project-build-root",
+        help="Override the project-build Skill directory containing Generator and Governance",
+    )
+    parser.add_argument(
+        "--reusable-core-root",
+        help="Override the reusable-core Skill directory containing Neat-Freak",
+    )
+    parser.add_argument(
+        "--core-utils-root",
+        help="Legacy override for layouts where every component shares one sibling directory",
+    )
     parser.add_argument("--generator-script", help="Override project-agent generator script")
     parser.add_argument("--inventory-script", help="Override governance inventory script")
     parser.add_argument("--knowledge-script", help="Override optional neat-freak script")
@@ -1148,6 +1653,10 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--equivalence-validator-script",
         dest="comparison_validator_script",
         help="Override optional domain-neutral comparison validator script",
+    )
+    parser.add_argument(
+        "--domain-validator-script",
+        help="Override optional independent experiment-protocol auditor script",
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -1168,6 +1677,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--equivalence-records",
         dest="comparison_records",
         help="Project-contained domain-reviewed comparison JSON",
+    )
+    plan.add_argument(
+        "--domain-validation-record",
+        help="Project-contained experiment-protocol-audit result to bind as untrusted data",
+    )
+    plan.add_argument(
+        "--domain-validation",
+        choices=("required", "optional", "not-applicable", "review-required"),
+        default="review-required",
+        help="Whether domain validation is required for later experiment execution or claim support",
+    )
+    plan.add_argument(
+        "--domain-validation-owner",
+        help="Named human owner required for a record-free not-applicable decision",
     )
     plan.add_argument("--compact", action="store_true")
 
@@ -1192,6 +1715,20 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--equivalence-records",
         dest="comparison_records",
         help="Project-contained domain-reviewed comparison JSON",
+    )
+    verify.add_argument(
+        "--domain-validation-record",
+        help="Project-contained experiment-protocol-audit result to bind as untrusted data",
+    )
+    verify.add_argument(
+        "--domain-validation",
+        choices=("required", "optional", "not-applicable", "review-required"),
+        default="review-required",
+        help="Whether domain validation is required for later experiment execution or claim support",
+    )
+    verify.add_argument(
+        "--domain-validation-owner",
+        help="Named human owner required for a record-free not-applicable decision",
     )
     verify.add_argument("--compact", action="store_true")
     return parser.parse_args(argv)

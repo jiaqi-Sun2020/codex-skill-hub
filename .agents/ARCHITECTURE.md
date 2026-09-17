@@ -28,15 +28,17 @@ My_skills/
 |-- 10-paper-build/
 |   |-- paper-build.lnk
 |   `-- academic-figure-workflow/
+|-- 20-project-build/
+|   |-- experiment-protocol-audit/
+|   |-- project-agent-generator-skill/
+|   |-- research-project-pipeline/
+|   `-- research-workspace-governance/
 |-- 30-papertrace/
 |   `-- papertrace-skills.lnk
 |-- 40-skill-registry/
 |   `-- skill-registry.lnk
 |-- 50-core-utils/
 |   |-- neat-freak/
-|   |-- project-agent-generator-skill/
-|   |-- research-project-pipeline/
-|   |-- research-workspace-governance/
 |   |-- skill-audit-refactor/
 |   |-- skill-registry/
 |   |-- training-code-architecture-skill/
@@ -52,6 +54,7 @@ My_skills/
 - `.agents/`
 - `.codex/`
 - `10-paper-build/`
+- `20-project-build/`
 - `30-papertrace/`
 - `40-skill-registry/`
 - `50-core-utils/`
@@ -75,9 +78,10 @@ My_skills/
 - `.agents/AGENTS.md`
 - `.agents/memory/MEMORY.md`
 - `.codex/hooks/load_project_agents.py`
-- `50-core-utils/project-agent-generator-skill/SKILL.md`
-- `50-core-utils/research-project-pipeline/SKILL.md`
-- `50-core-utils/research-workspace-governance/SKILL.md`
+- `20-project-build/experiment-protocol-audit/SKILL.md`
+- `20-project-build/project-agent-generator-skill/SKILL.md`
+- `20-project-build/research-project-pipeline/SKILL.md`
+- `20-project-build/research-workspace-governance/SKILL.md`
 - `50-core-utils/skill-audit-refactor/SKILL.md`
 - `50-core-utils/training-code-architecture-skill/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
@@ -89,10 +93,11 @@ My_skills/
 
 - `50-core-utils/neat-freak/tests/test_audit_memory_index.py`
 - `50-core-utils/neat-freak/tests/test_manage_project_knowledge.py`
-- `50-core-utils/project-agent-generator-skill/tests/test_generate_project_agents.py`
-- `50-core-utils/research-project-pipeline/tests/test_research_pipeline.py`
-- `50-core-utils/research-workspace-governance/tests/test_inventory_workspace.py`
-- `50-core-utils/research-workspace-governance/tests/test_equivalence_records.py`
+- `20-project-build/experiment-protocol-audit/tests/test_audit_experiment_protocol.py`
+- `20-project-build/project-agent-generator-skill/tests/test_generate_project_agents.py`
+- `20-project-build/research-project-pipeline/tests/test_research_pipeline.py`
+- `20-project-build/research-workspace-governance/tests/test_inventory_workspace.py`
+- `20-project-build/research-workspace-governance/tests/test_equivalence_records.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_feedback_visible_wiki_pipeline.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_profile_safety.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_visible_wiki.py`
@@ -114,17 +119,18 @@ My_skills/
 
 ## Boundary Notes
 
-- `50-core-utils/` owns exactly six direct central core Skills plus the non-Skill
-  `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback
-  directory.
+- `20-project-build/` owns the four direct project-build Skill sources: Protocol
+  Audit, Generator, Pipeline, and Workspace Governance. `50-core-utils/` owns the
+  three reusable core Skills plus the non-Skill `skill-registry` infrastructure and
+  `.pipeline-interface-backups/` rollback directory.
 - Project-owned skills remain behind their shortcut targets. The shortcuts do not
   transfer ownership to this folder.
 - `10-paper-build/academic-figure-workflow/` is a centrally stored paper-building
-  Skill; it is not a shortcut target and is not one of the six core Skills.
+  Skill; it is not a shortcut target and is not one of the seven core Skills.
 - `90-personal/logic-chain-tutor/` is the centrally stored personal teaching
   Skill; its former external source and personal shortcut are retired.
-- The six direct core Skills are used from the central source and are not vendored
-  into projects.
+- The seven direct core Skills are used from their designated central category
+  directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison
   record boundaries. `research-project-pipeline` coordinates those components only
@@ -133,6 +139,9 @@ My_skills/
   a supplied loading manifest but does not infer policy content or scientific claims.
 - `neat-freak` owns later project-information maintenance and may repair only
   existing marked Bootstrap wiring with explicit authorization.
+- `experiment-protocol-audit` validates declared protocol, manifest, and runtime
+  evidence only from project-contained normalized data. It neither executes an
+  adapter nor establishes a domain method or scientific claim.
 - `skill-registry/sources/` is editable shared source; `skill-registry/releases/`
   is immutable; project copies are controlled by manifest and lock files.
 - The Generator creates a missing context bundle once. Its retained forced-refresh

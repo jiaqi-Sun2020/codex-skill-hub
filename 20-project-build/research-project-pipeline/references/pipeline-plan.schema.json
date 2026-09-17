@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-project-pipeline-plan-v4",
+  "title": "Research Project Pipeline Plan",
+  "type": "object",
+  "required": [
+    "schema_version", "document_type", "pipeline_id", "plan_sha256", "status", "generated_at", "project_root",
+    "workspace_fingerprint_sha256", "profile", "context_action", "context_locations", "component_interfaces",
+    "component_bindings", "governance_layout", "project_contract", "relocation_maps", "governance_state",
+    "agent_loading_audit_handoff", "comparison_contracts", "domain_validation_handoff", "readiness",
+    "role_hints_for_semantic_review", "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants"
+  ],
+  "properties": {
+    "schema_version": {"const": "research-project-pipeline-plan/v4"},
+    "document_type": {"const": "pipeline-plan"},
+    "pipeline_id": {"type": "string", "minLength": 12},
+    "plan_sha256": {"$ref": "#/$defs/sha256"},
+    "status": {"const": "review_required"},
+    "generated_at": {"type": "string", "minLength": 1},
+    "project_root": {"type": "string", "minLength": 1},
+    "workspace_fingerprint_sha256": {"$ref": "#/$defs/sha256"},
+    "profile": {"enum": ["minimal", "collaborative", "controlled"]},
+    "context_action": {"enum": ["create_after_framework", "preserve_and_audit"]},
+    "context_locations": {"type": "array", "items": {"enum": [".agents", ".agent"]}, "uniqueItems": true},
+    "component_interfaces": {
+      "type": "object",
+      "required": ["project_agent_generator", "research_workspace_inventory", "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator", "domain_validator_available", "domain_validation_handoff"],
+      "properties": {"agent_loading_auditor": {"const": "neat-freak"}, "domain_validator_available": {"type": "boolean"}, "domain_validation_handoff": {"const": "research-domain-validation-handoff/v1"}},
+      "additionalProperties": true
+    },
+    "component_bindings": {
+      "type": "object",
+      "required": ["generator", "inventory", "knowledge", "comparison_validator", "domain_validator"],
+      "properties": {
+        "generator": {"$ref": "#/$defs/requiredComponentBinding"}, "inventory": {"$ref": "#/$defs/requiredComponentBinding"},
+        "knowledge": {"$ref": "#/$defs/optionalComponentBinding"}, "comparison_validator": {"$ref": "#/$defs/optionalComponentBinding"},
+        "domain_validator": {"$ref": "#/$defs/optionalComponentBinding"}
+      },
+      "additionalProperties": false
+    },
+    "governance_layout": {"type": "object", "required": ["status", "canonical_path", "legacy_path", "write_allowed", "findings"], "properties": {"status": {"enum": ["canonical", "legacy", "absent", "ambiguous", "unsafe"]}, "write_allowed": {"type": "boolean"}, "findings": {"type": "array"}}, "additionalProperties": true},
+    "project_contract": {"$ref": "#/$defs/governanceSection"},
+    "relocation_maps": {"type": "object", "required": ["status", "maps", "resolved_mappings", "findings", "content_treated_as_data"], "properties": {"status": {"enum": ["valid", "invalid", "not_declared", "not_checked"]}, "maps": {"type": "array"}, "resolved_mappings": {"type": "array"}, "findings": {"type": "array"}, "content_treated_as_data": {"const": true}}, "additionalProperties": true},
+    "governance_state": {"$ref": "#/$defs/governanceSection"},
+    "agent_loading_audit_handoff": {"type": "object", "required": ["schema_version", "status", "owner", "manifest_path"], "properties": {"schema_version": {"const": "agent-loading-audit-handoff/v1"}, "status": {"enum": ["not_declared", "pending_neat_freak_audit"]}, "owner": {"const": "neat-freak"}, "manifest_path": {"type": ["string", "null"]}}, "additionalProperties": false},
+    "comparison_contracts": {"type": "object", "required": ["schema_version", "status", "records", "findings", "summary"], "properties": {"schema_version": {"const": "research-comparison-record/v2"}, "status": {"enum": ["not_declared", "verified", "unverified", "invalid"]}}, "additionalProperties": true},
+    "domain_validation_handoff": {"$ref": "domain-validation-handoff.schema.json"},
+    "readiness": {
+      "type": "object",
+      "required": ["onboarding_state", "agent_context_state", "governance_state", "domain_validation_state", "execution_state", "claim_state"],
+      "properties": {
+        "onboarding_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
+        "agent_context_state": {"enum": ["pending_generation", "preserved", "ready", "blocked"]},
+        "governance_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
+        "domain_validation_state": {"enum": ["not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"]},
+        "execution_state": {"enum": ["not_authorized", "ready_for_authorization", "blocked"]},
+        "claim_state": {"enum": ["unsupported", "diagnostic_only", "conditionally_supported", "supported"]}
+      },
+      "additionalProperties": false
+    },
+    "role_hints_for_semantic_review": {"type": "object"},
+    "review_gate_inputs": {
+      "type": "object",
+      "required": ["result", "scope", "blockers", "non_blockers", "evidence", "suggested_actions", "allowed_actions", "forbidden_actions", "human_summary_required", "human_summary_language", "human_summary_source"],
+      "properties": {
+        "result": {"enum": ["conditional", "fail"]}, "scope": {"type": "object"}, "blockers": {"type": "array"}, "non_blockers": {"type": "array"},
+        "evidence": {"type": "array", "items": {"type": "string"}}, "suggested_actions": {"type": "array", "items": {"type": "string"}},
+        "allowed_actions": {"type": "array", "items": {"type": "string"}}, "forbidden_actions": {"type": "array", "items": {"type": "string"}},
+        "human_summary_required": {"const": true}, "human_summary_language": {"const": "current-user-language"},
+        "human_summary_source": {
+          "type": "object",
+          "required": ["what_is_reviewed", "why_review_is_required", "evidence_to_review", "pass_conditions", "reject_conditions", "after_pass", "minimum_repair", "what_has_not_been_validated", "render_language", "render_required"],
+          "properties": {
+            "what_is_reviewed": {"$ref": "#/$defs/nonEmptyStringArray"}, "why_review_is_required": {"$ref": "#/$defs/nonEmptyStringArray"}, "evidence_to_review": {"$ref": "#/$defs/nonEmptyStringArray"},
+            "pass_conditions": {"$ref": "#/$defs/nonEmptyStringArray"}, "reject_conditions": {"$ref": "#/$defs/nonEmptyStringArray"}, "after_pass": {"$ref": "#/$defs/nonEmptyStringArray"},
+            "minimum_repair": {"$ref": "#/$defs/nonEmptyStringArray"}, "what_has_not_been_validated": {"$ref": "#/$defs/nonEmptyStringArray"},
+            "render_language": {"const": "current-user-language"}, "render_required": {"const": true}
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": true
+    },
+    "component_actions": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "object", "required": ["component", "action", "mutation_owner"]}},
+    "stages": {"type": "array", "minItems": 6, "maxItems": 6},
+    "snapshots": {"type": "object"},
+    "invariants": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+    "nonEmptyStringArray": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+    "governanceSection": {"type": "object", "required": ["status", "findings"], "properties": {"status": {"enum": ["valid", "legacy", "invalid", "absent", "not_declared", "not_checked"]}, "findings": {"type": "array"}}, "additionalProperties": true},
+    "requiredComponentBinding": {"type": "object", "required": ["required", "available", "path", "sha256"], "properties": {"required": {"const": true}, "available": {"const": true}, "path": {"type": "string", "minLength": 1}, "sha256": {"$ref": "#/$defs/sha256"}}, "additionalProperties": false},
+    "optionalComponentBinding": {"type": "object", "required": ["required", "available", "path", "sha256"], "properties": {"required": {"const": false}, "available": {"type": "boolean"}, "path": {"type": ["string", "null"]}, "sha256": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"}}, "additionalProperties": false}
+  },
+  "additionalProperties": true
+}

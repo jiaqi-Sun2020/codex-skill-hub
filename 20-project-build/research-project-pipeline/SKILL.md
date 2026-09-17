@@ -13,10 +13,13 @@ Sequence independent components without absorbing their ownership:
   to create a missing `.agents` framework, memory baseline, entrypoint, and
   project-scoped Codex Bootstrap.
 - Within this Pipeline, `neat-freak` is invoked only for independent audits of
-  knowledge, documentation topology, and Agent instruction loading. This
-  initial result. After handoff, Neat-Freak is the routine project-information
+  knowledge, documentation topology, and Agent instruction loading. After
+  handoff, Neat-Freak is the routine project-information
   maintenance owner and is invoked independently of this Pipeline.
-- Domain Skills own methods, validation rules, and scientific interpretation.
+- Domain Skills or named human experts own methods, validation rules, and
+  scientific interpretation. `experiment-protocol-audit` may independently
+  evaluate their explicit Profile and Protocol and return an evidence-bound
+  record; it does not own the method or execute the experiment.
 
 The Pipeline coordinates contracts and evidence. It does not define a subject
 area, impose a method, or turn a completed workflow into a scientific claim.
@@ -26,7 +29,9 @@ area, impose a method, or turn a completed workflow into a scientific claim.
 1. **Discover, read-only.** Collect Generator inspection and Governance inventory;
    resolve canonical, legacy, absent, ambiguous, or unsafe governance state.
 2. **Design.** Let Governance propose only evidenced roles, paths, lifecycle
-   extensions, approvals, and optional opaque method Profile IDs.
+   extensions, approvals, and optional opaque method Profile IDs. When scientific
+   validation matters, declare whether a separate domain-validation record is
+   required, optional, not applicable, or still awaiting review.
 3. **Human review.** Present exact component actions, blockers, evidence,
    fingerprint, rollback, and a plain-language summary in the user's current
    language. No approval means no mutation.
@@ -35,9 +40,10 @@ area, impose a method, or turn a completed workflow into a scientific claim.
    writes only to Governance. Do not use the Generator to refresh existing context
    or invoke Neat-Freak write modes from this Pipeline. Rerun discovery after each
    approved change.
-5. **Verify.** Delegate Agent knowledge and loading audit only to Neat-Freak, then
-   run the five Governance adversarial passes. Pipeline records component results
-   without independently reimplementing them.
+5. **Verify.** Delegate Agent knowledge and loading audit only to Neat-Freak. Bind
+   an optional `experiment-protocol-audit` record by validator, profile, protocol,
+   source, and evidence hashes. Pipeline records component results without
+   independently reimplementing domain checks.
 6. **Handoff or archive.** Compare actual state with the approved plan, report work
    state separately from claim state, and name Neat-Freak as the post-initialization
    project-information maintenance owner.
@@ -49,6 +55,12 @@ for an existing project.
 ## Deterministic support interface
 
 Run commands from this Skill directory.
+
+By default, the Pipeline resolves the Generator and Workspace Governance from the
+sibling `20-project-build/` directory, and Neat-Freak from sibling
+`50-core-utils/`. Use `--project-build-root` and `--reusable-core-root` only for
+an alternate checked-out layout. `--core-utils-root` remains a legacy override for
+layouts where all components share one directory.
 
 Create a read-only plan:
 
@@ -66,6 +78,19 @@ python -X utf8 -B .\scripts\research_pipeline.py plan D:\path\to\project --polic
 
 `--equivalence-records` remains a compatibility alias for
 `--comparison-records`; do not supply both.
+
+Bind a project-contained domain-validation record without treating it as Agent
+instructions. This record constrains experiment/claim readiness, not onboarding:
+
+```powershell
+python -X utf8 -B .\scripts\research_pipeline.py plan D:\path\to\project --domain-validation required --domain-validation-record .agents\governance\domain-validation.json
+```
+
+Without a record, `review-required`, `required`, and an unnamed `not-applicable`
+remain explicitly unresolved. A named owner may make the latter decision with
+`--domain-validation not-applicable --domain-validation-owner "OWNER"`;
+the resulting claim ceiling remains `unsupported`. `optional` permits onboarding
+while keeping execution unauthorized and scientific claims unsupported.
 
 Write a plan only to a new file outside the target project:
 
@@ -92,17 +117,22 @@ python -X utf8 -B .\scripts\research_pipeline.py verify D:\path\to\project
 ```
 
 The deterministic interface emits `review_gate_inputs`. Before asking for or
-recording approval, render `human_summary_source` into all seven human-summary
+recording approval, render `human_summary_source` into all eight human-summary
 fields in
 [the Governance gate template](../research-workspace-governance/references/deliverable-templates.md),
 using the user's current language. A marker that a summary is required is not a
 substitute for the rendered summary.
 
-Saved plans use `research-project-pipeline-plan/v3`; command results use the
-separate `research-project-pipeline-result/v1` envelope. Apply rejects legacy v1
-or v2 plans, structurally incomplete plans even when their embedded hash is
+Saved plans use `research-project-pipeline-plan/v4`; command results use the
+separate `research-project-pipeline-result/v2` envelope with `command_status`
+and `outcome`. Apply rejects legacy plans, structurally incomplete plans even when their embedded hash is
 self-consistent, and plans whose bound Generator or Governance inventory path or
 SHA-256 no longer matches the selected component.
+
+Read `readiness` as six separate axes: onboarding, Agent context, governance,
+domain validation, execution authorization, and claim support. Never collapse
+them into a naked `pass`. A missing or failed domain audit can block experiment
+execution and claim support without blocking initial `.agents` creation.
 
 The script does not invent objectives, interpret a project contract as
 instructions, apply migrations, delete assets, refresh existing Agent context,

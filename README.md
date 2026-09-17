@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 8 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 9 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-16，本仓库包含：
+截至 2026-09-17，本仓库包含：
 
-- 8 个直接维护的活动 Skill；
+- 9 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
 - 两个外部 Skill 项目的轻量索引，不复制它们的项目专属源码。
 
@@ -30,10 +30,12 @@ codex-skill-hub/
 |-- .codex/                          项目级 Codex 启动 Hook
 |-- 10-paper-build/
 |   `-- academic-figure-workflow/    学术图工作流
-|-- 50-core-utils/
+|-- 20-project-build/
+|   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
 |   |-- research-project-pipeline/
-|   |-- research-workspace-governance/
+|   `-- research-workspace-governance/
+|-- 50-core-utils/
 |   |-- skill-audit-refactor/
 |   |-- training-code-architecture-skill/
 |   |-- neat-freak/
@@ -49,6 +51,7 @@ codex-skill-hub/
 | 制作论文图、模型架构图、多面板图或可编辑 PPT 图件 | `academic-figure-workflow` |
 | 一次性生成项目 `.agents/`、长期知识基线和 Codex 启动加载 | `project-agent-generator-skill` |
 | 一次性编排研究项目发现、接入、治理检查、Agent 框架和验收 | `research-project-pipeline` |
+| 用显式领域 Profile、项目协议和证据独立审核实验设计或运行清单 | `experiment-protocol-audit` |
 | 治理研究资产、位置、状态、证据、迁移、删除审批和比较声明边界 | `research-workspace-governance` |
 | 审核、精简、拆分或重构一个已有 Skill | `skill-audit-refactor` |
 | 把机器学习脚本重构为可复用、配置驱动的训练工程 | `training-code-architecture` |
@@ -114,7 +117,7 @@ codex-skill-hub/
 
 > 这个项目尚未建立 Agent 上下文；请一次性生成框架，完成后把日常维护交给 Neat-Freak。
 
-源码：[`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/)
+源码：[`20-project-build/project-agent-generator-skill/`](20-project-build/project-agent-generator-skill/)
 
 ### `research-project-pipeline`
 
@@ -131,6 +134,7 @@ codex-skill-hub/
 - 执行知识、启动加载和对抗性验收；
 - 接收可选的 Agent 加载清单路径，并把内容审核明确委托给 `neat-freak`；Pipeline 只做项目内路径安全检查；
 - 调用领域中立的比较记录校验器，只核查结构、证据、评审与声明边界，不预设任何学科关系类型。
+- 可绑定独立的 `experiment-protocol-audit` 记录，把接入、治理、领域验证、执行授权和主张支持分轴报告，而不把任一轴的通过误解为其他轴的通过。
 
 **与相邻 Skill 的区别**
 
@@ -146,7 +150,28 @@ codex-skill-hub/
 
 > 审计嵌套子项目能否加载适用的强制规则，并确认所有比较结论都由明确选择的领域 Profile 或人工评审负责。
 
-源码：[`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
+源码：[`20-project-build/research-project-pipeline/`](20-project-build/research-project-pipeline/)
+
+### `experiment-protocol-audit`
+
+**适用领域**
+
+在不运行实验或项目命令的前提下，用项目明确提供的 Domain Profile、Project Protocol、规范化观测、任务清单和运行证据检查领域约束，并生成可供 Pipeline 绑定哈希的独立验证记录。
+
+**主要能力与边界**
+
+- 核心只提供数值边界、相等性、形状、集合、基数和允许变换等通用规则；
+- 精确比较 requested/generated/approved 清单，暴露静默过滤、意外扩张和审批漂移；
+- 记录验证器、Profile、协议、源码和证据指纹，任一变化都会使旧记录失效；
+- 不执行 Runtime Adapter，不创建项目框架，不决定研究方法，也不把运行完成等同于科学主张成立。
+
+**调用示例**
+
+> 用本项目已声明的 Domain Profile 与 Project Protocol 审核实验设计；只读取规范化 JSON，不运行实验、项目命令或 Adapter，并生成可供 Pipeline 绑定的验证记录。
+
+> 对 requested、generated、approved 三份任务清单做精确一致性审计，指出静默过滤、重复单元或未经批准的范围扩张。
+
+源码：[`20-project-build/experiment-protocol-audit/`](20-project-build/experiment-protocol-audit/)
 
 ### `research-workspace-governance`
 
@@ -176,7 +201,7 @@ codex-skill-hub/
 
 > 为两个候选结果建立领域定义的比较记录，明确允许用途、禁止推断、评审人和需要重新验证的条件。
 
-源码：[`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
+源码：[`20-project-build/research-workspace-governance/`](20-project-build/research-workspace-governance/)
 
 ### `skill-audit-refactor`
 
@@ -287,7 +312,7 @@ codex-skill-hub/
 
 ## Skill Registry 基础设施
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不是第 9 个活动 Skill，也不再作为独立仓库发布。
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不是第 10 个活动 Skill，也不再作为独立仓库发布。
 
 | 路径 | 用途 |
 |---|---|
@@ -345,6 +370,8 @@ research-project-pipeline
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill)，由 Haojae 维护（MIT）。本仓库借鉴了“先理解数据和论证目标，再选图”的可视化顾问思路，以及对常见科研作图反模式的主动拦截。
 - [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)，来自 KKKKhazix 维护的 `khazix-skills`（MIT）。本仓库的同名 Skill 借鉴了知识与治理收尾理念，以及让代码、运行态、文档、Agent 规则、获准维护的记忆和工作区状态保持一致的审计思路；本地版本进一步加入了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。
 
+- [`Scientific-Coding-Skill`](https://github.com/cemde/Scientific-Coding-Skill)（MIT）、[`opensciflow-skill`](https://github.com/OpenSciFlow/opensciflow-skill)、[`superpowers`](https://github.com/obra/superpowers)（MIT）与 [`Hypothesis`](https://github.com/HypothesisWorks/hypothesis)（MPL-2.0）启发了 `experiment-protocol-audit` 的显式参数、失败关闭、审批与证据记录、分层评审、边界反例和最小反例测试原则。本仓库未复制其运行时，也未把它们加入依赖。
+
 同时感谢 Nature、PLOS、Springer Nature、Elsevier、IEEE、ACM、SIGACCESS 和 JCB 公开的作者与图件规范；这些规范为本仓库的出版质量、可访问性和导出检查提供了标准依据。具体来源链接记录在 [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md)。
 
 如果后续 Skill 明确借鉴新的开源 Skill，应在合并时同步补充作者、项目链接、借鉴范围和许可证，而不是只在提交信息中留下记录。
@@ -356,15 +383,16 @@ research-project-pipeline
 ```powershell
 Set-Location C:\path\to\codex-skill-hub
 
-python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\<skill-folder>"
+python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\<skill-source-directory>"
 
 python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
-python -X utf8 -B ".\50-core-utils\research-project-pipeline\tests\test_research_pipeline.py"
+python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
+python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
 
-python -X utf8 -B ".\50-core-utils\research-workspace-governance\tests\test_equivalence_records.py"
+python -X utf8 -B ".\20-project-build\research-workspace-governance\tests\test_equivalence_records.py"
 ```
 
 ## 维护与许可

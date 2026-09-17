@@ -63,11 +63,14 @@ the old JSON subset is a readable legacy v1 input; real YAML is not guessed. If
 both filenames exist, contract authority is ambiguous and write-blocking.
 
 Workspace inventory uses v2. Saved Pipeline plans use
-`research-project-pipeline-plan/v3`, while command results use
-`research-project-pipeline-result/v1`. A v1 inventory may be adapted for
+`research-project-pipeline-plan/v4`, while command results use
+`research-project-pipeline-result/v2`. A v1 inventory may be adapted for
 read-only discovery but cannot establish governance authority; refresh it with
-v2 before mutation. Hash-bound Pipeline plans using the former v1 or ambiguous
-v2 identifier must be regenerated rather than translated and applied.
+v2 before mutation. Hash-bound Pipeline plans using any former identifier,
+including v3, must be regenerated rather than translated and applied. Legacy
+projects do not need a domain-validation record for onboarding, but experiment
+execution and claim support remain unauthorized until the explicit requirement
+is satisfied or an owner-reviewed not-applicable decision is bound.
 
 ## Compatibility gate
 

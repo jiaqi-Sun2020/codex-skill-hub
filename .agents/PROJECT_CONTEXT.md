@@ -39,7 +39,7 @@ detail and provide concise navigation for 17 external project-owned Skills.
 - `.agents/AGENTS.md`: project rules and long-term-memory entry point.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
-- `50-core-utils/*/SKILL.md`: direct utility-skill entry points.
+- `20-project-build/*/SKILL.md` and `50-core-utils/*/SKILL.md`: direct core-Skill entry points, grouped by project-build or reusable-utility ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
 - `10-paper-build/`: paper-building navigation plus the centrally stored
   `academic-figure-workflow` Skill.
@@ -48,29 +48,36 @@ detail and provide concise navigation for 17 external project-owned Skills.
 
 ## Current Facts
 
-- The six direct central core Skills are `project-agent-generator-skill`,
-  `research-project-pipeline`, `research-workspace-governance`,
-  `skill-audit-refactor`, `training-code-architecture-skill`, and `neat-freak`.
+- The seven direct central core Skills span two category directories:
+  `experiment-protocol-audit`, `project-agent-generator-skill`,
+  `research-project-pipeline`, and `research-workspace-governance` are maintained
+  under `20-project-build/`; `skill-audit-refactor`,
+  `training-code-architecture-skill`, and `neat-freak` remain under
+  `50-core-utils/`.
 - `research-workspace-governance` owns domain-neutral governance of asset roles,
   locations, status, evidence, migration, retention, deletion approval, and
   comparison-record structure. Its validator checks record shape, evidence metadata,
   review state, invalidation, and allowed uses without establishing scientific validity.
 - `research-project-pipeline` coordinates one-time onboarding only. It delegates
   missing Agent-framework generation to the Generator, loading audits to Neat-Freak,
-  and governance records to the Governance Skill; routine project-information
-  maintenance is outside the Pipeline.
+  governance records to the Governance Skill, and optional protocol validation to
+  the Protocol Audit Skill; routine project-information maintenance is outside the
+  Pipeline.
+- `experiment-protocol-audit` independently reads explicit normalized project data,
+  emits a fingerprint-bound validation record, and neither executes experiments nor
+  turns a validated protocol into a supported scientific claim.
 - Optional policy-topology declarations are boundary-checked by the Pipeline and
   audited for content only by `neat-freak`, which also owns narrowly scoped repair
   of existing marked Bootstrap wiring after explicit authorization.
 - `academic-figure-workflow` is stored directly under `10-paper-build/` as a
-  paper-building Skill and is separate from the six core Skills.
+  paper-building Skill and is separate from the seven core Skills.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
   personal Skill and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized
   rewrite, and method-simplification contracts before selecting explanation
   depth; it also distinguishes mathematical objects, operations, and information
   carriers before derivation.
-- `skill-registry` is infrastructure, not one of the six direct core Skills.
+- `skill-registry` is infrastructure, not one of the seven direct core Skills.
   `.pipeline-interface-backups/` contains rollback material and is not an active
   Skill source.
 - The registry retains `reader-learner` version `1.0.0` as historical release

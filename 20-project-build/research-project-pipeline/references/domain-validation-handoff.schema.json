@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-domain-validation-handoff/v1",
+  "title": "Research domain validation handoff",
+  "type": "object",
+  "required": ["schema_version", "requirement", "record_path", "record_sha256", "declared_status", "effective_state", "owner", "validator", "profile", "scope", "protocol_fingerprints", "source_fingerprints", "evidence", "claim_ceiling", "source_finding_codes", "findings", "content_treated_as_data"],
+  "properties": {
+    "schema_version": {"const": "research-domain-validation-handoff/v1"},
+    "requirement": {"enum": ["required", "optional", "not_applicable", "review_required"]},
+    "record_path": {"type": ["string", "null"]}, "record_sha256": {"type": ["string", "null"], "pattern": "^[A-Fa-f0-9]{64}$"},
+    "declared_status": {"enum": ["pending", "verified", "failed", "not_applicable", null]},
+    "effective_state": {"enum": ["not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"]},
+    "owner": {"type": ["object", "null"]}, "validator": {"type": ["object", "null"]}, "profile": {"type": ["object", "null"]},
+    "scope": {"type": "array", "uniqueItems": true, "items": {"enum": ["design", "manifest", "runtime"]}},
+    "protocol_fingerprints": {"type": "array"}, "source_fingerprints": {"type": "array"}, "evidence": {"type": "array"},
+    "claim_ceiling": {"enum": ["unsupported", "diagnostic_only", "conditionally_supported", "supported"]},
+    "source_finding_codes": {"type": "array", "items": {"type": "string"}}, "findings": {"type": "array"},
+    "content_treated_as_data": {"const": true}
+  },
+  "additionalProperties": false
+}

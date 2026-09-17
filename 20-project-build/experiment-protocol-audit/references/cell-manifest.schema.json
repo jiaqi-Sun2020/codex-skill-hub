@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "experiment-cell-manifest/v1",
+  "title": "Experiment cell manifest",
+  "type": "object",
+  "required": ["schema_version", "cells"],
+  "properties": {
+    "schema_version": {"const": "experiment-cell-manifest/v1"},
+    "cells": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "output_path", "active"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "output_path": {"type": "string", "minLength": 1},
+          "active": {"type": "boolean"}
+        }
+      }
+    }
+  }
+}

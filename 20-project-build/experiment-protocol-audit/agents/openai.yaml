@@ -1,0 +1,4 @@
+interface:
+  display_name: "Experiment Protocol Audit"
+  short_description: "Audit declared protocols and evidence without running experiments"
+  default_prompt: "Use $experiment-protocol-audit to validate this project's declared protocol, manifests, and evidence against its explicit domain profile, without executing project commands."

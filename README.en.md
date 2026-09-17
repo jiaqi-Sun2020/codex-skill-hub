@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eight active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
+`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **nine active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-16, this repository contains:
+As of 2026-09-17, this repository contains:
 
-- eight directly maintained active Skills;
+- nine directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
 - lightweight indexes for two external Skill projects, without duplicating their project-owned source.
 
@@ -30,10 +30,12 @@ codex-skill-hub/
 |-- .codex/                          Project-local Codex bootstrap
 |-- 10-paper-build/
 |   `-- academic-figure-workflow/    Academic figure workflow
-|-- 50-core-utils/
+|-- 20-project-build/
+|   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
 |   |-- research-project-pipeline/
-|   |-- research-workspace-governance/
+|   `-- research-workspace-governance/
+|-- 50-core-utils/
 |   |-- skill-audit-refactor/
 |   |-- training-code-architecture-skill/
 |   |-- neat-freak/
@@ -49,6 +51,7 @@ codex-skill-hub/
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
 | Generate the initial `.agents/`, durable-knowledge baseline, and Codex bootstrap loading once | `project-agent-generator-skill` |
 | Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
+| Independently audit an experimental design or run manifest against an explicit domain profile, protocol, and evidence | `experiment-protocol-audit` |
 | Govern research assets, locations, statuses, evidence, migration, deletion approval, and comparison-claim boundaries | `research-workspace-governance` |
 | Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
 | Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
@@ -114,7 +117,7 @@ Generate repository-local Agent context once for a project that has not yet init
 
 > This project has no Agent context yet. Generate the framework once, then hand routine maintenance to Neat-Freak.
 
-Source: [`50-core-utils/project-agent-generator-skill/`](50-core-utils/project-agent-generator-skill/)
+Source: [`20-project-build/project-agent-generator-skill/`](20-project-build/project-agent-generator-skill/)
 
 ### `research-project-pipeline`
 
@@ -131,6 +134,7 @@ Initialize a new research project, or onboard a legacy project that has not comp
 - Run knowledge, bootstrap, and adversarial acceptance checks.
 - Accept an optional Agent-loading manifest path and delegate its content audit to `neat-freak`; Pipeline performs only project-boundary path checks.
 - Invoke a domain-neutral comparison-record validator that checks structure, evidence, review, and declared boundaries without prescribing relation types.
+- Bind an independent `experiment-protocol-audit` record when applicable, reporting onboarding, governance, domain validation, execution authorization, and claim support on separate axes.
 
 **Difference from adjacent Skills**
 
@@ -146,7 +150,27 @@ Initialize a new research project, or onboard a legacy project that has not comp
 
 > Audit whether nested subprojects can load every applicable mandatory policy, and confirm that comparison claims remain owned by an explicitly selected domain Profile or reviewer.
 
-Source: [`50-core-utils/research-project-pipeline/`](50-core-utils/research-project-pipeline/)
+Source: [`20-project-build/research-project-pipeline/`](20-project-build/research-project-pipeline/)
+
+### `experiment-protocol-audit`
+
+**Domain**
+
+Use this Skill to evaluate explicit domain constraints against a project-owned Domain Profile, Project Protocol, normalized observations, manifests, and runtime evidence without running experiments or project commands.
+
+**Core capabilities and boundary**
+
+- Support generic numeric bounds, equality, shapes, sets, cardinality, and allowed transforms.
+- Compare requested/generated/approved manifests exactly and record validator/profile/protocol/source/evidence hashes so a change makes the old record stale.
+- Emit an independent record for Pipeline binding; never execute Runtime Adapters, create project frameworks, choose methods, or equate completed work with a supported scientific claim.
+
+**Example prompts**
+
+> Audit the experimental design against this project's declared Domain Profile and Project Protocol. Read normalized JSON only; do not run experiments, project commands, or adapters. Produce a validation record that the Pipeline can bind.
+
+> Compare the requested, generated, and approved task manifests exactly. Identify silent filtering, duplicate units, or unapproved scope expansion.
+
+Source: [`20-project-build/experiment-protocol-audit/`](20-project-build/experiment-protocol-audit/)
 
 ### `research-workspace-governance`
 
@@ -176,7 +200,7 @@ This Skill owns research assets, locations, status, evidence, and change governa
 
 > Create a domain-defined comparison record for two candidate results, including allowed uses, forbidden inferences, reviewer, and revalidation conditions.
 
-Source: [`50-core-utils/research-workspace-governance/`](50-core-utils/research-workspace-governance/)
+Source: [`20-project-build/research-workspace-governance/`](20-project-build/research-workspace-governance/)
 
 ### `skill-audit-refactor`
 
@@ -287,7 +311,7 @@ Source: [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/)
 
 ## Skill Registry infrastructure
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a ninth active Skill and is no longer published as a separate repository.
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a tenth active Skill and is no longer published as a separate repository.
 
 | Path | Purpose |
 |---|---|
@@ -345,6 +369,8 @@ We thank the authors and maintainers of the following open-source Skills. The Sk
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill), maintained by Haojae (MIT). This repository draws on its data-first visualization-advisor approach—understand the data and argument before selecting a chart—and its active interception of common scientific-plotting anti-patterns.
 - [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md), from `khazix-skills` maintained by KKKKhazix (MIT). The local Skill draws on its knowledge-and-governance closeout concept and its approach to reconciling code, runtime state, documentation, Agent rules, authorized memory, and workspace state. This repository extends that foundation with `.agents/memory/`, hash-bound updates, and Codex bootstrap audits.
 
+- [`Scientific-Coding-Skill`](https://github.com/cemde/Scientific-Coding-Skill) (MIT), [`opensciflow-skill`](https://github.com/OpenSciFlow/opensciflow-skill), [`superpowers`](https://github.com/obra/superpowers) (MIT), and [`Hypothesis`](https://github.com/HypothesisWorks/hypothesis) (MPL-2.0) informed `experiment-protocol-audit` principles for explicit parameters, fail-closed evidence, approval records, separated review layers, boundary counterexamples, and minimal failing examples. Their runtimes were neither copied nor added as dependencies.
+
 We also thank the authors of the public figure and accessibility guidance from Nature, PLOS, Springer Nature, Elsevier, IEEE, ACM, SIGACCESS, and JCB. Those sources ground the publication-quality, accessibility, and export checks in this repository. Exact links are recorded in [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md).
 
 When a future Skill explicitly draws from another open-source Skill, its author, project link, scope of influence, and license should be added here during integration rather than being recorded only in a commit message.
@@ -356,15 +382,16 @@ Run all commands from the repository root:
 ```powershell
 Set-Location C:\path\to\codex-skill-hub
 
-python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\<skill-folder>"
+python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\<skill-source-directory>"
 
 python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
-python -X utf8 -B ".\50-core-utils\research-project-pipeline\tests\test_research_pipeline.py"
+python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
+python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
 
-python -X utf8 -B ".\50-core-utils\research-workspace-governance\tests\test_equivalence_records.py"
+python -X utf8 -B ".\20-project-build\research-workspace-governance\tests\test_equivalence_records.py"
 ```
 
 ## Maintenance and licensing

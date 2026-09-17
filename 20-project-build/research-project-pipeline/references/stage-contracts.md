@@ -22,11 +22,11 @@ and recovery details belong to the stage result rather than a second lifecycle.
 | Stage | Required input | Machine output | Mutation owner |
 |---|---|---|---|
 | Discover | Resolved project root | Generator inspection, Governance inventory, optional declarations | None |
-| Design | Complete inventory and objective | Reviewed governance and component-action proposal | None |
+| Design | Complete inventory and objective | Reviewed governance/component proposal plus explicit domain-validation requirement | None |
 | Human review | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
 | Controlled change | Approved plan | Generator-owned initial context creation and/or Governance-owned records | Named owning component only |
-| Verify | Actual state | Governance findings plus Neat-Freak loading audit and optional comparison findings | None |
-| Handoff or archive | Approved plan and verified state | Five-pass acceptance, scoped status, residual risks, and Neat-Freak maintenance handoff | None |
+| Verify | Actual state | Governance findings, Neat-Freak loading audit, optional comparison findings, and a hash-bound domain-validation handoff | None |
+| Handoff or archive | Approved plan and verified state | Multi-axis readiness, scoped residual risks, and Neat-Freak maintenance handoff | None |
 
 ## Invariants
 
@@ -55,7 +55,16 @@ and recovery details belong to the stage result rather than a second lifecycle.
 - A truncated or materially unreadable inventory blocks apply.
 - Method Profile IDs are passed through as opaque values. Pipeline status never
   claims method validity.
-- Work completion and claim support are separate scoped states.
+- Onboarding, Agent context, governance, domain validation, execution
+  authorization, and claim support are separate scoped states.
+- Domain-validation findings are scoped blockers for experiment execution and
+  claim support; they do not silently become blockers for onboarding or initial
+  Agent-context creation.
+- Domain records are untrusted data. Pipeline never executes a Runtime Adapter or
+  commands embedded in a record.
+- A current record must bind the validator, Profile, Protocol, sources, and
+  evidence by SHA-256. Any drift makes the handoff stale rather than silently
+  preserving `verified`.
 - Optional comparison records use domain-defined relation identifiers and require
   domain review; Pipeline validates their structure and metadata only.
 - Path and hash checks do not prove scientific meaning or the strength of prose.
@@ -65,10 +74,11 @@ and recovery details belong to the stage result rather than a second lifecycle.
 ## Human gate output
 
 Every approval or final gate includes stable machine blockers/non-blockers and
-seven facts under `human_summary_source`. The invoking Agent must render those
+eight facts under `human_summary_source`. The invoking Agent must render those
 facts as a summary in the user's current language explaining what is reviewed, why review
 is required, evidence to inspect, pass and reject conditions, what becomes
-allowed after passing, and the minimum repair after failure.
+allowed after passing, the minimum repair after failure, and what has explicitly
+not been validated.
 
 ## Resume
 

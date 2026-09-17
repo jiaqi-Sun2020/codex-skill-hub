@@ -88,6 +88,17 @@
   maps preserve historical paths; comparison records retain evidence, review,
   invalidation, and inference boundaries. The fixed relation-type decision from
   2026-09-14 is superseded by domain-Profile or reviewer-owned semantics.
+- 2026-09-16: `project-agent-generator-skill`, `research-project-pipeline`, and
+  `research-workspace-governance` move to `20-project-build/` as the canonical
+  project-build sources. `50-core-utils/` retains the three reusable core Skills,
+  registry infrastructure, and rollback material; the 2026-09-11 location decision
+  is superseded.
+- 2026-09-17: `experiment-protocol-audit` is a fourth canonical project-build
+  Skill. It validates only explicit domain Profile, Protocol, manifest, observation,
+  and runtime-evidence contracts from project-contained normalized data, emits a
+  fingerprint-bound record, and never executes project commands or adapters. The
+  Pipeline may bind that record but reports domain validation separately from
+  onboarding, governance, execution authorization, and claim support.
 
 ## Open Questions
 
