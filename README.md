@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 9 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 11 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-17，本仓库包含：
+截至 2026-09-20，本仓库包含：
 
-- 9 个直接维护的活动 Skill；
+- 11 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
 - 两个外部 Skill 项目的轻量索引，不复制它们的项目专属源码。
 
@@ -33,9 +33,11 @@ codex-skill-hub/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
+|   |-- project-submission-audit/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 50-core-utils/
+|   |-- handoff/
 |   |-- skill-audit-refactor/
 |   |-- training-code-architecture-skill/
 |   |-- neat-freak/
@@ -52,7 +54,9 @@ codex-skill-hub/
 | 一次性生成项目 `.agents/`、长期知识基线和 Codex 启动加载 | `project-agent-generator-skill` |
 | 一次性编排研究项目发现、接入、治理检查、Agent 框架和验收 | `research-project-pipeline` |
 | 用显式领域 Profile、项目协议和证据独立审核实验设计或运行清单 | `experiment-protocol-audit` |
+| 在 commit、PR、release、交付或交接前只读审计实际变更面 | `project-submission-audit` |
 | 治理研究资产、位置、状态、证据、迁移、删除审批和比较声明边界 | `research-workspace-governance` |
+| 为下一位 Agent 或后续会话生成紧凑、可追溯的任务交接 | `handoff` |
 | 审核、精简、拆分或重构一个已有 Skill | `skill-audit-refactor` |
 | 把机器学习脚本重构为可复用、配置驱动的训练工程 | `training-code-architecture` |
 | 持续更新项目文档、`.agents/memory/` 并审计或修复受管启动接线 | `neat-freak` |
@@ -173,6 +177,26 @@ codex-skill-hub/
 
 源码：[`20-project-build/experiment-protocol-audit/`](20-project-build/experiment-protocol-audit/)
 
+### `project-submission-audit`
+
+**适用领域**
+
+在 commit、PR、release、外部交付或任务交接前，对实际准备提交的变更面做只读审计。它检查范围、行为契约、架构、测试、安全、文档和仓库清洁度，并给出 `PASS`、`BLOCKED` 或 `INCOMPLETE`。
+
+**主要能力与边界**
+
+- 同时核对 staged、unstaged 和 untracked 状态，避免“审了但没审到将要提交的内容”；
+- 建立“需求 → 实现 → 受影响接口 → 验证”的证据映射；
+- 以 locality、module depth、seam 和 deletion test 检查变更相关架构，不借机重构整个仓库；
+- 用 P0/P1/P2 记录证据、影响、最小修复和验证方法；
+- 默认只读，不提交、不推送、不发布，也不把结构质量当作科学有效性证明。
+
+**调用示例**
+
+> 在提交这个分支前审计最终 diff；检查测试是否真正覆盖改动，并给出可追溯的 PASS 或 BLOCKED。
+
+源码：[`20-project-build/project-submission-audit/`](20-project-build/project-submission-audit/)
+
 ### `research-workspace-governance`
 
 **适用领域**
@@ -282,6 +306,26 @@ codex-skill-hub/
 
 源码：[`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
 
+### `handoff`
+
+**适用领域**
+
+当任务暂停、转交、压缩上下文或准备由下一位 Agent/后续会话继续时，生成一份紧凑、证据链接明确的交接文档。
+
+**主要能力与边界**
+
+- 以当前文件、Git 状态和测试输出优先于聊天记忆；
+- 区分已完成、进行中、未开始、受阻和未授权事项；
+- 引用现有 spec、issue、ADR、diff 和报告，不复制大段内容；
+- 记录工作目录、完整命令、结果、关键决定、剩余风险和唯一下一步；
+- 默认写入操作系统临时目录，不修改项目，也不把交接文档当作完成证明或外部操作授权。
+
+**调用示例**
+
+> 为下一次会话整理交接，只保留当前状态、验证证据、阻塞项和准确的下一步，文件放到系统临时目录。
+
+源码：[`50-core-utils/handoff/`](50-core-utils/handoff/)
+
 ## 3. 个人教学 Skill
 
 ### `logic-chain-tutor`
@@ -312,7 +356,7 @@ codex-skill-hub/
 
 ## Skill Registry 基础设施
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不是第 10 个活动 Skill，也不再作为独立仓库发布。
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不是第 12 个活动 Skill，也不再作为独立仓库发布。
 
 | 路径 | 用途 |
 |---|---|
@@ -337,6 +381,8 @@ research-project-pipeline
   → project-agent-generator-skill（一次性生成）
   → research-workspace-governance（治理设计与检查）
   → neat-freak（初次验收）
+  → project-submission-audit（提交或交付前审计）
+  → handoff（交给后续会话或 Agent）
 
 后续项目信息更新
 项目变化 → neat-freak（重复维护）
@@ -349,6 +395,10 @@ research-project-pipeline
 
 概念学习
 当前卡点 → logic-chain-tutor → 前置桥梁 → 推导 / 例子 / 验证
+
+普通项目提交
+最终变更面 → project-submission-audit → PASS / BLOCKED / INCOMPLETE
+  → handoff（需要继续或转交时）
 ```
 
 ## 外部 Skill 项目概览
@@ -364,13 +414,15 @@ research-project-pipeline
 
 ## 致谢与借鉴
 
-感谢以下开源 Skill 的作者和维护者。本仓库中能够明确追溯的 Skill 级借鉴主要集中在 `academic-figure-workflow` 和 `neat-freak`；相关本地实现经过重新组织和扩展，致谢不表示原作者对本项目背书。
+感谢以下开源 Skill 的作者和维护者。相关本地实现经过重新组织和扩展，致谢不表示原作者对本项目背书。
 
 - [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure)，来自 Yuan1z0825 维护的 `nature-skills`（Apache-2.0）。本仓库借鉴了以论文论点组织多面板信息、语义配色、可编辑 SVG 和投稿前 QA 的设计思想。
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill)，由 Haojae 维护（MIT）。本仓库借鉴了“先理解数据和论证目标，再选图”的可视化顾问思路，以及对常见科研作图反模式的主动拦截。
 - [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)，来自 KKKKhazix 维护的 `khazix-skills`（MIT）。本仓库的同名 Skill 借鉴了知识与治理收尾理念，以及让代码、运行态、文档、Agent 规则、获准维护的记忆和工作区状态保持一致的审计思路；本地版本进一步加入了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。
 
 - [`Scientific-Coding-Skill`](https://github.com/cemde/Scientific-Coding-Skill)（MIT）、[`opensciflow-skill`](https://github.com/OpenSciFlow/opensciflow-skill)、[`superpowers`](https://github.com/obra/superpowers)（MIT）与 [`Hypothesis`](https://github.com/HypothesisWorks/hypothesis)（MPL-2.0）启发了 `experiment-protocol-audit` 的显式参数、失败关闭、审批与证据记录、分层评审、边界反例和最小反例测试原则。本仓库未复制其运行时，也未把它们加入依赖。
+
+- Matt Pocock 的 [`improve-codebase-architecture`](https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture) 和 [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)（MIT）分别启发了 `project-submission-audit` 的变更面优先、locality/module depth/deletion test 架构审查，以及本仓库 `handoff` 的临时目录、引用现有证据和敏感信息清理原则。本地实现扩展为泛用提交门禁与可验证交接，未引入对方运行时依赖。
 
 同时感谢 Nature、PLOS、Springer Nature、Elsevier、IEEE、ACM、SIGACCESS 和 JCB 公开的作者与图件规范；这些规范为本仓库的出版质量、可访问性和导出检查提供了标准依据。具体来源链接记录在 [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md)。
 

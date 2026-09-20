@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **nine active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
+`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eleven active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-17, this repository contains:
+As of 2026-09-20, this repository contains:
 
-- nine directly maintained active Skills;
+- eleven directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
 - lightweight indexes for two external Skill projects, without duplicating their project-owned source.
 
@@ -33,9 +33,11 @@ codex-skill-hub/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
+|   |-- project-submission-audit/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 50-core-utils/
+|   |-- handoff/
 |   |-- skill-audit-refactor/
 |   |-- training-code-architecture-skill/
 |   |-- neat-freak/
@@ -52,7 +54,9 @@ codex-skill-hub/
 | Generate the initial `.agents/`, durable-knowledge baseline, and Codex bootstrap loading once | `project-agent-generator-skill` |
 | Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
 | Independently audit an experimental design or run manifest against an explicit domain profile, protocol, and evidence | `experiment-protocol-audit` |
+| Audit the actual change surface before a commit, PR, release, delivery, or handoff | `project-submission-audit` |
 | Govern research assets, locations, statuses, evidence, migration, deletion approval, and comparison-claim boundaries | `research-workspace-governance` |
+| Prepare a compact, traceable task handoff for another agent or later session | `handoff` |
 | Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
 | Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
 | Repeatedly update project documentation and `.agents/memory/`, then audit or repair managed bootstrap wiring | `neat-freak` |
@@ -172,6 +176,26 @@ Use this Skill to evaluate explicit domain constraints against a project-owned D
 
 Source: [`20-project-build/experiment-protocol-audit/`](20-project-build/experiment-protocol-audit/)
 
+### `project-submission-audit`
+
+**Domain**
+
+Perform a read-only audit of the exact proposed change surface before a commit, pull request, release, external delivery, or task handoff. It checks scope, behavior contracts, architecture, tests, security, documentation, and repository cleanliness, then returns `PASS`, `BLOCKED`, or `INCOMPLETE`.
+
+**Core capabilities and boundary**
+
+- Reconcile staged, unstaged, and untracked state so the reviewed content matches the proposed submission.
+- Map requirements to implementation, affected interfaces, and verification evidence.
+- Apply locality, module depth, seams, and the deletion test only to architecture relevant to the change.
+- Record P0/P1/P2 findings with evidence, impact, smallest repair, and verification method.
+- Remain read-only by default; it does not commit, push, publish, or establish scientific validity.
+
+**Example prompt**
+
+> Audit the final diff before I submit this branch. Confirm that tests reach the changed behavior and return an evidence-backed PASS or BLOCKED decision.
+
+Source: [`20-project-build/project-submission-audit/`](20-project-build/project-submission-audit/)
+
 ### `research-workspace-governance`
 
 **Domain**
@@ -281,6 +305,26 @@ Requests phrased as “audit,” “check,” or “review” are read-only. Wri
 
 Source: [`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
 
+### `handoff`
+
+**Domain**
+
+Create a compact, evidence-linked continuation document when work is paused, transferred, compacted, or continued by another agent or later session.
+
+**Core capabilities and boundary**
+
+- Prefer current files, Git state, and test output over conversational memory.
+- Separate completed, in-progress, not-started, blocked, and unauthorized work.
+- Link to existing specs, issues, ADRs, diffs, and reports instead of copying them.
+- Record working directories, complete commands, results, decisions, residual risks, and one exact next action.
+- Write to the operating-system temporary directory by default; it neither mutates the project nor proves completion or authorizes external actions.
+
+**Example prompt**
+
+> Prepare a handoff for the next session with only the current state, verification evidence, blockers, and exact next action, saved in the system temporary directory.
+
+Source: [`50-core-utils/handoff/`](50-core-utils/handoff/)
+
 ## 3. Personal teaching Skill
 
 ### `logic-chain-tutor`
@@ -311,7 +355,7 @@ Source: [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/)
 
 ## Skill Registry infrastructure
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a tenth active Skill and is no longer published as a separate repository.
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a twelfth active Skill and is no longer published as a separate repository.
 
 | Path | Purpose |
 |---|---|
@@ -336,6 +380,8 @@ research-project-pipeline
   → project-agent-generator-skill (one-time generation)
   → research-workspace-governance (governance design and checks)
   → neat-freak (initial acceptance)
+  → project-submission-audit (pre-submission or pre-delivery audit)
+  → handoff (continue in another session or agent)
 
 Later project-information updates
 project change → neat-freak (repeated maintenance)
@@ -348,6 +394,10 @@ claim / code / data → academic-figure-workflow → editable source + exports +
 
 Concept learning
 current blockage → logic-chain-tutor → prerequisite bridge → derivation / example / check
+
+Ordinary project submission
+final change surface → project-submission-audit → PASS / BLOCKED / INCOMPLETE
+  → handoff (when work continues elsewhere)
 ```
 
 ## External Skill projects at a glance
@@ -363,13 +413,15 @@ Obtain external Skills from their own repositories. Their presence in this READM
 
 ## Acknowledgements and influences
 
-We thank the authors and maintainers of the following open-source Skills. The Skill-level influences that can be traced explicitly in this repository are concentrated in `academic-figure-workflow` and `neat-freak`. The local implementation has been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
+We thank the authors and maintainers of the following open-source Skills. The local implementations have been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
 
 - [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), from the `nature-skills` project maintained by Yuan1z0825 (Apache-2.0). This repository draws on its ideas for claim-driven multi-panel information architecture, semantic colour, editable SVG, and pre-submission QA.
 - [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill), maintained by Haojae (MIT). This repository draws on its data-first visualization-advisor approach—understand the data and argument before selecting a chart—and its active interception of common scientific-plotting anti-patterns.
 - [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md), from `khazix-skills` maintained by KKKKhazix (MIT). The local Skill draws on its knowledge-and-governance closeout concept and its approach to reconciling code, runtime state, documentation, Agent rules, authorized memory, and workspace state. This repository extends that foundation with `.agents/memory/`, hash-bound updates, and Codex bootstrap audits.
 
 - [`Scientific-Coding-Skill`](https://github.com/cemde/Scientific-Coding-Skill) (MIT), [`opensciflow-skill`](https://github.com/OpenSciFlow/opensciflow-skill), [`superpowers`](https://github.com/obra/superpowers) (MIT), and [`Hypothesis`](https://github.com/HypothesisWorks/hypothesis) (MPL-2.0) informed `experiment-protocol-audit` principles for explicit parameters, fail-closed evidence, approval records, separated review layers, boundary counterexamples, and minimal failing examples. Their runtimes were neither copied nor added as dependencies.
+
+- Matt Pocock's [`improve-codebase-architecture`](https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture) and [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT) informed, respectively, the change-surface-first, locality/module-depth/deletion-test architecture review in `project-submission-audit`, and the temporary-directory, evidence-linking, and sensitive-data rules in this repository's `handoff`. The local Skills extend those ideas into a generic submission gate and verifiable transfer without adding the upstream runtime as a dependency.
 
 We also thank the authors of the public figure and accessibility guidance from Nature, PLOS, Springer Nature, Elsevier, IEEE, ACM, SIGACCESS, and JCB. Those sources ground the publication-quality, accessibility, and export checks in this repository. Exact links are recorded in [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md).
 

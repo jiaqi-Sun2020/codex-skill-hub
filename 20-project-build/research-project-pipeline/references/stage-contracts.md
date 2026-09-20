@@ -26,7 +26,7 @@ and recovery details belong to the stage result rather than a second lifecycle.
 | Human review | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
 | Controlled change | Approved plan | Generator-owned initial context creation and/or Governance-owned records | Named owning component only |
 | Verify | Actual state | Governance findings, Neat-Freak loading audit, optional comparison findings, and a hash-bound domain-validation handoff | None |
-| Handoff or archive | Approved plan and verified state | Multi-axis readiness, scoped residual risks, and Neat-Freak maintenance handoff | None |
+| Handoff or archive | Approved plan and verified state | Multi-axis readiness, scoped residual risks, Neat-Freak maintenance ownership, and a compact continuation document produced by Handoff outside the project by default | None |
 
 ## Invariants
 
@@ -70,6 +70,23 @@ and recovery details belong to the stage result rather than a second lifecycle.
 - Path and hash checks do not prove scientific meaning or the strength of prose.
 - Policy topology and Agent-loading checks are delegated to Neat-Freak; Pipeline
   neither parses the declaration nor maintains a second validator.
+
+## Pre-submission gate
+
+Project Submission Audit is a separate model-level gate after deterministic
+verification and before an actual commit, PR, release, delivery, or transfer of the
+change set. It is not an additional lifecycle state and is not emitted by
+`research_pipeline.py verify`.
+
+- Project Submission Audit evaluates the final commit, PR, release, delivery, or
+  handoff surface. It does not reimplement governance, Agent-loading, or domain
+  checks, and its pass never establishes scientific claim support.
+- The deterministic `verify` command does not impersonate the model-level Project
+  Submission Audit. If submission is in scope, a current audit decision must be
+  obtained after the final change and before submission.
+- Handoff summarizes and links verified state; it does not create new evidence or
+  turn pending work into completion. Its default temporary-file output is outside
+  the project and therefore is not a project mutation.
 
 ## Human gate output
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Project Submission Audit"
+  short_description: "Audit project changes before commit, PR, release, or delivery"
+  default_prompt: "Use $project-submission-audit to audit this project before submission and return an evidence-backed PASS or BLOCKED decision without modifying files."

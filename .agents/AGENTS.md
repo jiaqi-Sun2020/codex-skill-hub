@@ -54,7 +54,7 @@ codex-skill-hub/
   README's overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
-- Maintain the four project-build core Skill sources under `20-project-build/` and the three reusable core Skill sources under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
+- Maintain the five project-build core Skill sources under `20-project-build/` and the four reusable core Skill sources under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
 - Treat `50-core-utils/skill-registry/releases/` as immutable published snapshots.
 - Preserve registry history and user changes; inspect the root Git worktree before editing or committing.
 - Shortcut targets are external projects or collections. Do not modify those targets merely because their `.lnk` files are present here.
@@ -63,6 +63,8 @@ codex-skill-hub/
 - `research-project-pipeline` coordinates one-time onboarding and may boundary-check a project-contained loading manifest, but only `neat-freak` audits its policy content.
 - `research-workspace-governance` owns domain-neutral assets, locations, statuses, evidence, migration, deletion boundaries, and comparison-record structure; it does not perform domain science.
 - `neat-freak` owns routine project-information maintenance, independently audits declared policy reachability, and may repair only existing marked Bootstrap wiring with explicit authorization.
+- `project-submission-audit` performs the final read-only audit of the exact change surface before a commit, PR, release, delivery, or handoff; its decision never establishes scientific validity.
+- `handoff` writes a compact evidence-linked continuation document outside the project by default; it does not create authority for the receiving agent.
 - Preserve the distinction between work completion, claim review, verified results, and conditional owner decisions.
 
 ## Generated Or Special Directories

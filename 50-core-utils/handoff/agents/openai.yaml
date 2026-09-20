@@ -1,0 +1,4 @@
+interface:
+  display_name: "Handoff"
+  short_description: "Prepare a compact, evidence-linked task handoff"
+  default_prompt: "Use $handoff to prepare a compact handoff for the next agent or session without changing the project."

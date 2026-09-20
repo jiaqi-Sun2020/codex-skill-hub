@@ -31,6 +31,7 @@ My_skills/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
+|   |-- project-submission-audit/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 30-papertrace/
@@ -38,6 +39,7 @@ My_skills/
 |-- 40-skill-registry/
 |   `-- skill-registry.lnk
 |-- 50-core-utils/
+|   |-- handoff/
 |   |-- neat-freak/
 |   |-- skill-audit-refactor/
 |   |-- skill-registry/
@@ -80,8 +82,10 @@ My_skills/
 - `.codex/hooks/load_project_agents.py`
 - `20-project-build/experiment-protocol-audit/SKILL.md`
 - `20-project-build/project-agent-generator-skill/SKILL.md`
+- `20-project-build/project-submission-audit/SKILL.md`
 - `20-project-build/research-project-pipeline/SKILL.md`
 - `20-project-build/research-workspace-governance/SKILL.md`
+- `50-core-utils/handoff/SKILL.md`
 - `50-core-utils/skill-audit-refactor/SKILL.md`
 - `50-core-utils/training-code-architecture-skill/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
@@ -119,17 +123,17 @@ My_skills/
 
 ## Boundary Notes
 
-- `20-project-build/` owns the four direct project-build Skill sources: Protocol
-  Audit, Generator, Pipeline, and Workspace Governance. `50-core-utils/` owns the
-  three reusable core Skills plus the non-Skill `skill-registry` infrastructure and
-  `.pipeline-interface-backups/` rollback directory.
+- `20-project-build/` owns the five direct project-build Skill sources: Protocol
+  Audit, Generator, Submission Audit, Pipeline, and Workspace Governance.
+  `50-core-utils/` owns the four reusable core Skills plus the non-Skill
+  `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
 - Project-owned skills remain behind their shortcut targets. The shortcuts do not
   transfer ownership to this folder.
 - `10-paper-build/academic-figure-workflow/` is a centrally stored paper-building
-  Skill; it is not a shortcut target and is not one of the seven core Skills.
+  Skill; it is not a shortcut target and is not one of the nine core Skills.
 - `90-personal/logic-chain-tutor/` is the centrally stored personal teaching
   Skill; its former external source and personal shortcut are retired.
-- The seven direct core Skills are used from their designated central category
+- The nine direct core Skills are used from their designated central category
   directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison
@@ -142,6 +146,10 @@ My_skills/
 - `experiment-protocol-audit` validates declared protocol, manifest, and runtime
   evidence only from project-contained normalized data. It neither executes an
   adapter nor establishes a domain method or scientific claim.
+- `project-submission-audit` is a read-only final change-surface gate; it does not
+  commit, push, publish, or replace governance or domain validation.
+- `handoff` writes an evidence-linked continuation document outside the repository
+  by default and never authorizes a receiver to mutate or publish.
 - `skill-registry/sources/` is editable shared source; `skill-registry/releases/`
   is immutable; project copies are controlled by manifest and lock files.
 - The Generator creates a missing context bundle once. Its retained forced-refresh

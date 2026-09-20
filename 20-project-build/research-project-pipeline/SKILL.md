@@ -20,6 +20,12 @@ Sequence independent components without absorbing their ownership:
   scientific interpretation. `experiment-protocol-audit` may independently
   evaluate their explicit Profile and Protocol and return an evidence-bound
   record; it does not own the method or execute the experiment.
+- `project-submission-audit` owns the final read-only audit of the actual change
+  surface before a commit, pull request, release, or external delivery. It does
+  not replace Governance, Neat-Freak, or domain validation.
+- `handoff` owns the compact continuation document after verification. It
+  references existing evidence and writes outside the project by default; it
+  does not decide whether onboarding or scientific claims passed.
 
 The Pipeline coordinates contracts and evidence. It does not define a subject
 area, impose a method, or turn a completed workflow into a scientific claim.
@@ -43,10 +49,15 @@ area, impose a method, or turn a completed workflow into a scientific claim.
 5. **Verify.** Delegate Agent knowledge and loading audit only to Neat-Freak. Bind
    an optional `experiment-protocol-audit` record by validator, profile, protocol,
    source, and evidence hashes. Pipeline records component results without
-   independently reimplementing domain checks.
+   independently reimplementing domain checks. When the initialized project or
+   Pipeline changes are about to be committed, submitted, released, or delivered,
+   invoke `project-submission-audit` against that exact change surface. Its
+   `PASS` does not substitute for any scientific or governance decision.
 6. **Handoff or archive.** Compare actual state with the approved plan, report work
    state separately from claim state, and name Neat-Freak as the post-initialization
-   project-information maintenance owner.
+   project-information maintenance owner. Use `handoff` to write the continuation
+   document outside the project unless the owner explicitly chooses another
+   destination.
 
 Read [references/stage-contracts.md](references/stage-contracts.md) before apply
 or resume. Read [references/legacy-integration.md](references/legacy-integration.md)
@@ -115,6 +126,12 @@ Verify without writing:
 ```powershell
 python -X utf8 -B .\scripts\research_pipeline.py verify D:\path\to\project
 ```
+
+The deterministic `verify` command covers onboarding structure and the component
+records it knows how to validate. It does not silently run the model-level
+`project-submission-audit` or create a handoff document. Before an actual
+submission, invoke that audit separately against the final diff; after the audit,
+invoke `handoff` when another session or agent will continue.
 
 The deterministic interface emits `review_gate_inputs`. Before asking for or
 recording approval, render `human_summary_source` into all eight human-summary

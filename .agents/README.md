@@ -9,9 +9,9 @@ This directory contains agent-facing context for `My_skills`.
 
 `My_skills` is the navigation and central-source hub for local Codex skills. The
 root `README.md` and `README.en.md` are the canonical Chinese and English
-human-facing overviews and inventories; six
-directly used central core Skills and the versioned skill registry live in
-`50-core-utils/`.
+human-facing overviews and inventories; five project-build core Skills live in
+`20-project-build/`, while four reusable core Skills and the versioned skill
+registry live in `50-core-utils/`.
 The root is the public `jiaqi-Sun2020/codex-skill-hub` monorepo. Agent context
 remains in `.agents/` and project-scoped startup configuration remains in `.codex/`.
 

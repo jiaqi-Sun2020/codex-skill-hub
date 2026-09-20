@@ -99,6 +99,12 @@
   fingerprint-bound record, and never executes project commands or adapters. The
   Pipeline may bind that record but reports domain validation separately from
   onboarding, governance, execution authorization, and claim support.
+- 2026-09-20: `project-submission-audit` becomes a fifth canonical project-build
+  Skill and `handoff` becomes a fourth reusable core Skill. Submission Audit is a
+  read-only, evidence-backed gate over the exact change surface; Handoff writes a
+  compact continuation document outside the repository by default. Pipeline may
+  route to both after its owned verification, but neither replaces governance,
+  Neat-Freak maintenance, domain validation, or explicit authority to publish.
 
 ## Open Questions
 

@@ -10,6 +10,8 @@
 | Command | Source | Status |
 |---|---|---|
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for each directly maintained skill | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\20-project-build\project-submission-audit"` | run from repository root; new submission-audit Skill structure | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\handoff"` | run from repository root; new handoff Skill structure | verified |
 | `python -X utf8 -B ".\tools\skill_registry.py" registry-check --registry .` | `50-core-utils/skill-registry/README.md`; run from the registry directory | verified |
 | `python -X utf8 -B ".\tools\skill_registry.py" check --project "<project-root>"` | registry README; run from `50-core-utils/skill-registry`; replace the documented placeholder | verified |
 | `python -X utf8 -B ".\tests\test_skill_registry.py"` | `50-core-utils/skill-registry/tests/` | verified |
