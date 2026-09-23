@@ -1,0 +1,8 @@
+name: tests
+on: [push]
+jobs:
+  test:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -B -m unittest discover -s tests

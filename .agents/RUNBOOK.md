@@ -16,11 +16,13 @@
 | `python -X utf8 -B ".\tools\skill_registry.py" check --project "<project-root>"` | registry README; run from `50-core-utils/skill-registry`; replace the documented placeholder | verified |
 | `python -X utf8 -B ".\tests\test_skill_registry.py"` | `50-core-utils/skill-registry/tests/` | verified |
 | `python -X utf8 -B ".\scripts\generate_project_agents.py" "..\.." --dry-run` | run from `20-project-build/project-agent-generator-skill` only for missing initial context | verified |
+| `python -X utf8 -B ".\scripts\generate_project_agents.py" "..\.." --bootstrap-only --dry-run --json` | run from `20-project-build/project-agent-generator-skill` only for one safe existing Agent bundle with incomplete Bootstrap | verified |
+| `python -X utf8 -B ".\tests\test_generate_project_agents.py"` | run from `20-project-build/project-agent-generator-skill`; 26 tests verified | verified |
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." audit` | run from `50-core-utils/neat-freak` | verified |
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-audit` | run from `50-core-utils/neat-freak`; add `--policy-topology .agents\policy-topology.json` for a reviewed nested-root declaration | verified |
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-repair --dry-run` | run from `50-core-utils/neat-freak`; previews only existing marked Bootstrap wiring | verified |
 | `python -X utf8 -B ".\tests\test_manage_project_knowledge.py"` and `python -X utf8 -B ".\tests\test_audit_memory_index.py"` | run from `50-core-utils/neat-freak`; 29 tests verified | verified |
-| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `20-project-build/research-project-pipeline`; 35 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `20-project-build/research-project-pipeline`; 46 tests verified | verified |
 | `python -X utf8 -B ".\tests\test_audit_experiment_protocol.py"` | run from `20-project-build/experiment-protocol-audit`; 10 tests verified | verified |
 | `python -X utf8 -B ".\tests\test_inventory_workspace.py"` | run from `20-project-build/research-workspace-governance`; 22 tests verified |
 | `python -X utf8 -B ".\tests\test_equivalence_records.py"` | run from `20-project-build/research-workspace-governance`; 14 tests verified |

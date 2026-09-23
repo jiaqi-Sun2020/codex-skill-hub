@@ -21,10 +21,10 @@ and recovery details belong to the stage result rather than a second lifecycle.
 
 | Stage | Required input | Machine output | Mutation owner |
 |---|---|---|---|
-| Discover | Resolved project root | Generator inspection, Governance inventory, optional declarations | None |
+| Discover | Resolved project root | Generator inspection, Governance inventory, evidence-backed project facts, separate knowledge/Bootstrap state, optional declarations | None |
 | Design | Complete inventory and objective | Reviewed governance/component proposal plus explicit domain-validation requirement | None |
 | Human review | Exact plan and fingerprint | Owner authorization bound to plan hash | None |
-| Controlled change | Approved plan | Generator-owned initial context creation and/or Governance-owned records | Named owning component only |
+| Controlled change | Approved plan | Generator-owned initial context creation, or create-only Bootstrap completion for one preserved legacy bundle, and/or Governance-owned records | Named owning component only |
 | Verify | Actual state | Governance findings, Neat-Freak loading audit, optional comparison findings, and a hash-bound domain-validation handoff | None |
 | Handoff or archive | Approved plan and verified state | Multi-axis readiness, scoped residual risks, Neat-Freak maintenance ownership, and a compact continuation document produced by Handoff outside the project by default | None |
 
@@ -37,14 +37,19 @@ and recovery details belong to the stage result rather than a second lifecycle.
 - `bootstrap-agents --apply` requires the reviewed SHA-256 and a matching current
   fingerprint, exact Governance sections, and matching path plus SHA-256 for the
   bound Generator and inventory components, then delegates to the Generator.
+- `bootstrap-only --apply` requires an external reviewed preview and matching
+  preview SHA-256, an unchanged Generator binding, and an unchanged current
+  Bootstrap manifest. It creates missing managed files only and stops on any
+  differing existing target.
 - The Pipeline contains no independent `.agents` templates and never passes
   `--force`.
 - The Pipeline invokes Neat-Freak only with `audit` or `bootstrap-audit`.
   Neat-Freak's separately authorized standalone maintenance modes remain outside
   this Pipeline contract.
-- Existing `.agents` or `.agent` context is preserved; both together are an
-  ambiguity.
-- Existing context is never refreshed by this Pipeline. Report
+- Existing `.agents` or `.agent` context is preserved; both together are a
+  blocking ambiguity. Missing Bootstrap may be completed without changing that
+  context.
+- Existing knowledge context is never refreshed by this Pipeline. Report
   `maintenance_owner: neat-freak` and route later project-information updates to
   Neat-Freak's separately authorized maintenance workflow.
 - Canonical `.agents/governance/` and legacy root `governance/` are independently
@@ -55,8 +60,20 @@ and recovery details belong to the stage result rather than a second lifecycle.
 - A truncated or materially unreadable inventory blocks apply.
 - Method Profile IDs are passed through as opaque values. Pipeline status never
   claims method validity.
-- Onboarding, Agent context, governance, domain validation, execution
-  authorization, and claim support are separate scoped states.
+- Knowledge state, Bootstrap state, aggregate Agent-context state, governance
+  assets, project-contract state, governance verification, onboarding, domain
+  validation, execution authorization, and claim support are separate scoped
+  states. Agent context is ready only when knowledge and Bootstrap are both ready.
+- The default CLI result is a bounded summary. Complete component snapshots are
+  emitted only with `--full` or written as an explicit review artifact.
+- Exit `0` means verification passed; exit `1` means verification completed but
+  did not pass; exit `2` is reserved for tool execution or invalid-input errors.
+- Unknown governance-local domain records are untrusted evidence candidates;
+  their presence never changes authorization or claim state automatically.
+- A project-declared `research-domain-adapter-map/v1` is data, not executable
+  code. Pipeline verifies its source/output binding when present but never runs
+  the adapter; `declared`, `produced`, `failed`, and `invalid` all have no direct
+  authorization effect.
 - Domain-validation findings are scoped blockers for experiment execution and
   claim support; they do not silently become blockers for onboarding or initial
   Agent-context creation.

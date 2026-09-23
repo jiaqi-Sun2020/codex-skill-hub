@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -154,6 +155,7 @@ MAINTENANCE_RULES_CONTENT = """# Project knowledge maintenance
 """
 
 BOOTSTRAP_SCHEMA = "project-agent-bootstrap/v1"
+BOOTSTRAP_MANIFEST_SCHEMA = "project-agent-bootstrap-manifest/v1"
 CODEX_CONFIG = Path(".codex/config.toml")
 CODEX_HOOKS = Path(".codex/hooks.json")
 CODEX_LOADER = Path(".codex/hooks/load_project_agents.py")
@@ -1593,6 +1595,127 @@ def codex_bootstrap_changes(
     return desired
 
 
+def bootstrap_manifest_hash(manifest: dict[str, object]) -> str:
+    payload = {key: value for key, value in manifest.items() if key != "manifest_sha256"}
+    encoded = json.dumps(
+        payload,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def bootstrap_only_manifest(root: Path, out_dir: Path) -> tuple[dict[str, object], dict[Path, str]]:
+    """Plan the bootstrap delta without changing the existing Agent bundle."""
+    if not out_dir.is_dir() or is_link_like(out_dir):
+        raise ValueError("bootstrap-only requires an existing safe Agent bundle directory")
+    entrypoint = out_dir / "AGENTS.md"
+    if not entrypoint.is_file() or is_link_like(entrypoint):
+        raise ValueError("bootstrap-only requires an existing safe bundle AGENTS.md")
+    if entrypoint.stat().st_size == 0:
+        raise ValueError("bootstrap-only refuses an empty bundle AGENTS.md")
+    desired = codex_bootstrap_changes(
+        root,
+        out_dir,
+        force=True,
+        require_memory=(out_dir / "memory" / MEMORY_INDEX).is_file(),
+    )
+    rows: list[dict[str, object]] = []
+    for path in sorted(desired, key=lambda item: item.relative_to(root).as_posix().casefold()):
+        if not is_relative_to(path.resolve(strict=False), root):
+            raise ValueError(f"bootstrap target escapes project root: {path}")
+        if first_link_component(path.absolute()) is not None:
+            raise ValueError(f"bootstrap target traverses a link or junction: {path}")
+        desired_bytes = desired[path].encode("utf-8")
+        current_sha256: str | None = None
+        action = "create"
+        if path.exists() or path.is_symlink():
+            if not path.is_file() or is_link_like(path):
+                raise ValueError(f"bootstrap target is not a safe regular file: {path}")
+            current = path.read_bytes()
+            current_sha256 = hashlib.sha256(current).hexdigest()
+            action = "unchanged" if current == desired_bytes else "conflict"
+        rows.append({
+            "path": path.relative_to(root).as_posix(),
+            "action": action,
+            "current_sha256": current_sha256,
+            "desired_sha256": hashlib.sha256(desired_bytes).hexdigest(),
+        })
+    manifest: dict[str, object] = {
+        "schema_version": BOOTSTRAP_MANIFEST_SCHEMA,
+        "project_root": str(root),
+        "agent_bundle": out_dir.relative_to(root).as_posix(),
+        "files": rows,
+        "conflict_count": sum(row["action"] == "conflict" for row in rows),
+        "mutation_scope": "bootstrap-files-only",
+        "preserves_agent_bundle": True,
+        "manifest_sha256": "",
+    }
+    manifest["manifest_sha256"] = bootstrap_manifest_hash(manifest)
+    return manifest, desired
+
+
+def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[Path, str]) -> list[Path]:
+    """Create only missing bootstrap files; never replace an existing path."""
+    if int(manifest.get("conflict_count", 0)):
+        raise FileExistsError("bootstrap-only stopped because existing bootstrap files differ")
+    rows = manifest.get("files")
+    if not isinstance(rows, list):
+        raise ValueError("bootstrap-only manifest has no file list")
+    actions = {
+        str(row.get("path")): str(row.get("action"))
+        for row in rows
+        if isinstance(row, dict)
+    }
+    planned = [path for path in desired if actions.get(path.relative_to(root).as_posix()) == "create"]
+    temp_paths: dict[Path, Path] = {}
+    committed: list[Path] = []
+    created_directories: list[Path] = []
+    succeeded = False
+    try:
+        for path in planned:
+            if path.exists() or path.is_symlink():
+                raise FileExistsError(f"bootstrap target changed after preview: {path}")
+            missing_parents: list[Path] = []
+            current = path.parent
+            while current != root and not current.exists():
+                missing_parents.append(current)
+                current = current.parent
+            for directory in reversed(missing_parents):
+                directory.mkdir()
+                created_directories.append(directory)
+            if first_link_component(path.absolute()) is not None:
+                raise ValueError(f"bootstrap target became linked during commit: {path}")
+            temp_paths[path] = write_synced_temp(path, desired[path].encode("utf-8"))
+        for path in planned:
+            if path.exists() or path.is_symlink():
+                raise FileExistsError(f"bootstrap target changed during commit: {path}")
+            os.replace(temp_paths[path], path)
+            committed.append(path)
+        succeeded = True
+    except Exception:
+        for path in reversed(committed):
+            try:
+                path.unlink(missing_ok=True)
+            except OSError:
+                pass
+        raise
+    finally:
+        for temp_path in temp_paths.values():
+            try:
+                temp_path.unlink(missing_ok=True)
+            except OSError:
+                pass
+        if not succeeded:
+            for directory in reversed(created_directories):
+                try:
+                    directory.rmdir()
+                except OSError:
+                    pass
+    return committed
+
+
 def write_synced_temp(path: Path, content: bytes, label: str = "tmp") -> Path:
     """Write one same-directory temporary file without tempfile's retry loop."""
     temp_path = path.parent / f"{path.name}.{uuid.uuid4().hex}.{label}"
@@ -1789,9 +1912,18 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         help="Inspect the project and emit sanitized JSON without planning or writing outputs",
     )
     parser.add_argument(
+        "--bootstrap-only",
+        action="store_true",
+        help="Preserve an existing Agent bundle and create only missing Codex bootstrap files",
+    )
+    parser.add_argument(
+        "--confirm-bootstrap-sha256",
+        help="Required for bootstrap-only apply; must match the current preview manifest",
+    )
+    parser.add_argument(
         "--json",
         action="store_true",
-        help="Emit machine-readable JSON; supported with --dry-run or --inspect-only",
+        help="Emit machine-readable JSON; supported with --dry-run, --inspect-only, or --bootstrap-only",
     )
     knowledge_group = parser.add_mutually_exclusive_group()
     knowledge_group.add_argument(
@@ -1863,10 +1995,31 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     args = parser.parse_args(argv)
     if args.inspect_only and args.dry_run:
         parser.error("--inspect-only and --dry-run are mutually exclusive")
-    if args.json and not (args.inspect_only or args.dry_run):
-        parser.error("--json requires --inspect-only or --dry-run")
+    if args.inspect_only and args.bootstrap_only:
+        parser.error("--inspect-only and --bootstrap-only are mutually exclusive")
+    if args.json and not (args.inspect_only or args.dry_run or args.bootstrap_only):
+        parser.error("--json requires --inspect-only, --dry-run, or --bootstrap-only")
     if args.inspect_only and (args.force or args.gitignore_memory):
         parser.error("--inspect-only does not accept mutation controls")
+    if args.bootstrap_only and (
+        args.force
+        or args.gitignore_memory
+        or args.allow_outside_project
+        or args.allow_project_root
+        or args.allow_link_targets
+        or not args.install_codex_bootstrap
+    ):
+        parser.error("--bootstrap-only rejects force, alternate targets, and disabled bootstrap")
+    if args.bootstrap_only and (
+        args.memory_dir is not None
+        or not args.with_project_knowledge
+        or args.install_memory_entrypoint is not None
+    ):
+        parser.error("--bootstrap-only does not accept project-knowledge controls")
+    if args.bootstrap_only and not args.dry_run and not args.confirm_bootstrap_sha256:
+        parser.error("bootstrap-only apply requires --confirm-bootstrap-sha256")
+    if args.confirm_bootstrap_sha256 and (not args.bootstrap_only or args.dry_run):
+        parser.error("--confirm-bootstrap-sha256 is only valid for bootstrap-only apply")
     if args.install_memory_entrypoint is None:
         args.install_memory_entrypoint = args.with_project_knowledge
     return args
@@ -1877,7 +2030,7 @@ def main(argv: list[str]) -> int:
     root = Path(args.project).expanduser().resolve()
     if not root.exists() or not root.is_dir():
         message = f"project root does not exist or is not a directory: {root}"
-        if args.inspect_only or args.json:
+        if args.inspect_only or args.bootstrap_only or args.json:
             print(json.dumps({
                 "schema_version": "project-agent-generator/v1",
                 "status": "error",
@@ -1894,6 +2047,36 @@ def main(argv: list[str]) -> int:
             allow_project_root=args.allow_project_root,
             allow_link_targets=args.allow_link_targets,
         )
+        if args.bootstrap_only:
+            manifest, desired = bootstrap_only_manifest(root, out_dir)
+            if args.dry_run:
+                payload = {
+                    "schema_version": "project-agent-generator/v1",
+                    "status": "planned",
+                    "mode": "bootstrap-only-preview",
+                    "project_root": str(root),
+                    "manifest": manifest,
+                }
+            else:
+                expected = str(manifest["manifest_sha256"])
+                if args.confirm_bootstrap_sha256.casefold() != expected.casefold():
+                    raise ValueError(
+                        "bootstrap preview changed or confirmation hash is incorrect; rerun preview"
+                    )
+                changed = apply_bootstrap_only(root, manifest, desired)
+                payload = {
+                    "schema_version": "project-agent-generator/v1",
+                    "status": "applied" if changed else "no_changes",
+                    "mode": "bootstrap-only-apply",
+                    "project_root": str(root),
+                    "manifest": manifest,
+                    "changed_paths": [path.relative_to(root).as_posix() for path in changed],
+                }
+            if args.json:
+                print(json.dumps(payload, ensure_ascii=False))
+            else:
+                print(json.dumps(payload, ensure_ascii=False, indent=2))
+            return 0
         if (args.install_memory_entrypoint or args.gitignore_memory) and not args.with_project_knowledge:
             raise ValueError(
                 "--install-memory-entrypoint and --gitignore-memory require "
@@ -1987,7 +2170,7 @@ def main(argv: list[str]) -> int:
                 ),
             )
     except (FileExistsError, OSError, RuntimeError, ValueError) as exc:
-        if args.inspect_only or args.json:
+        if args.inspect_only or args.bootstrap_only or args.json:
             print(json.dumps({
                 "schema_version": "project-agent-generator/v1",
                 "status": "error",

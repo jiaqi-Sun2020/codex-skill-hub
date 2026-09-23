@@ -1,0 +1,5 @@
+{
+  "schema_version": "example-scientific-audit/v1",
+  "status": "reviewed",
+  "note": "Unrecognized domain evidence must be reported as a candidate, not trusted automatically."
+}

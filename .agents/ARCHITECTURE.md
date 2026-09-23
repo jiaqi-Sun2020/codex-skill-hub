@@ -138,9 +138,11 @@ My_skills/
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison
   record boundaries. `research-project-pipeline` coordinates those components only
-  during one-time onboarding; it delegates missing Agent-framework generation to
-  the Generator and content-level loading audits to Neat-Freak. It boundary-checks
-  a supplied loading manifest but does not infer policy content or scientific claims.
+  during one-time onboarding; it delegates missing Agent-framework generation, or
+  create-only completion of missing Bootstrap around one preserved Agent bundle,
+  to the Generator and content-level loading audits to Neat-Freak. It
+  boundary-checks a supplied loading manifest but does not infer policy content or
+  scientific claims.
 - `neat-freak` owns later project-information maintenance and may repair only
   existing marked Bootstrap wiring with explicit authorization.
 - `experiment-protocol-audit` validates declared protocol, manifest, and runtime

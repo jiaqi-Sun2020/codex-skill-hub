@@ -1,18 +1,20 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "research-project-pipeline-plan-v4",
+  "$id": "research-project-pipeline-plan-v5",
   "title": "Research Project Pipeline Plan",
   "type": "object",
   "required": [
-    "schema_version", "document_type", "pipeline_id", "plan_sha256", "status", "generated_at", "project_root",
+    "schema_version", "document_type", "detail_level", "pipeline_id", "plan_sha256", "status", "generated_at", "project_root",
     "workspace_fingerprint_sha256", "profile", "context_action", "context_locations", "component_interfaces",
     "component_bindings", "governance_layout", "project_contract", "relocation_maps", "governance_state",
-    "agent_loading_audit_handoff", "comparison_contracts", "domain_validation_handoff", "readiness",
+    "agent_loading_audit_handoff", "comparison_contracts", "domain_validation_handoff", "domain_adapter_handoff", "domain_evidence_candidates",
+    "project_facts", "inventory_summary", "bootstrap_inspection", "readiness",
     "role_hints_for_semantic_review", "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants"
   ],
   "properties": {
-    "schema_version": {"const": "research-project-pipeline-plan/v4"},
+    "schema_version": {"const": "research-project-pipeline-plan/v5"},
     "document_type": {"const": "pipeline-plan"},
+    "detail_level": {"const": "full"},
     "pipeline_id": {"type": "string", "minLength": 12},
     "plan_sha256": {"$ref": "#/$defs/sha256"},
     "status": {"const": "review_required"},
@@ -24,8 +26,8 @@
     "context_locations": {"type": "array", "items": {"enum": [".agents", ".agent"]}, "uniqueItems": true},
     "component_interfaces": {
       "type": "object",
-      "required": ["project_agent_generator", "research_workspace_inventory", "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator", "domain_validator_available", "domain_validation_handoff"],
-      "properties": {"agent_loading_auditor": {"const": "neat-freak"}, "domain_validator_available": {"type": "boolean"}, "domain_validation_handoff": {"const": "research-domain-validation-handoff/v1"}},
+      "required": ["project_agent_generator", "research_workspace_inventory", "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator", "domain_validator_available", "domain_validation_handoff", "domain_adapter_map"],
+      "properties": {"agent_loading_auditor": {"const": "neat-freak"}, "domain_validator_available": {"type": "boolean"}, "domain_validation_handoff": {"const": "research-domain-validation-handoff/v1"}, "domain_adapter_map": {"const": "research-domain-adapter-map/v1"}},
       "additionalProperties": true
     },
     "component_bindings": {
@@ -45,12 +47,22 @@
     "agent_loading_audit_handoff": {"type": "object", "required": ["schema_version", "status", "owner", "manifest_path"], "properties": {"schema_version": {"const": "agent-loading-audit-handoff/v1"}, "status": {"enum": ["not_declared", "pending_neat_freak_audit"]}, "owner": {"const": "neat-freak"}, "manifest_path": {"type": ["string", "null"]}}, "additionalProperties": false},
     "comparison_contracts": {"type": "object", "required": ["schema_version", "status", "records", "findings", "summary"], "properties": {"schema_version": {"const": "research-comparison-record/v2"}, "status": {"enum": ["not_declared", "verified", "unverified", "invalid"]}}, "additionalProperties": true},
     "domain_validation_handoff": {"$ref": "domain-validation-handoff.schema.json"},
+    "domain_adapter_handoff": {"type": "object", "required": ["schema_version", "status", "authorization_effect", "executed_by_pipeline", "content_treated_as_data", "findings"], "properties": {"schema_version": {"const": "research-domain-adapter-map/v1"}, "status": {"enum": ["not_declared", "declared", "produced", "failed", "invalid"]}, "authorization_effect": {"const": "none"}, "executed_by_pipeline": {"const": false}, "content_treated_as_data": {"const": true}, "findings": {"type": "array"}}, "additionalProperties": true},
+    "domain_evidence_candidates": {"type": "array"},
+    "project_facts": {"type": "object"},
+    "inventory_summary": {"type": "object"},
+    "bootstrap_inspection": {"type": "object", "required": ["state", "present", "missing"]},
     "readiness": {
       "type": "object",
-      "required": ["onboarding_state", "agent_context_state", "governance_state", "domain_validation_state", "execution_state", "claim_state"],
+      "required": ["onboarding_state", "agent_context_state", "knowledge_state", "bootstrap_state", "governance_assets_state", "project_contract_state", "governance_verification_state", "governance_state", "domain_validation_state", "execution_state", "claim_state"],
       "properties": {
         "onboarding_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
-        "agent_context_state": {"enum": ["pending_generation", "preserved", "ready", "blocked"]},
+        "agent_context_state": {"enum": ["pending_generation", "conditional", "ready", "blocked"]},
+        "knowledge_state": {"enum": ["absent", "present_unverified", "incomplete", "ready", "conditional", "blocked", "ambiguous", "unsafe"]},
+        "bootstrap_state": {"enum": ["absent", "missing", "partial", "ready", "ambiguous", "unsafe"]},
+        "governance_assets_state": {"enum": ["absent", "present", "unsafe"]},
+        "project_contract_state": {"enum": ["valid", "legacy", "invalid", "absent", "not_checked"]},
+        "governance_verification_state": {"enum": ["review_required", "ready", "blocked"]},
         "governance_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
         "domain_validation_state": {"enum": ["not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"]},
         "execution_state": {"enum": ["not_authorized", "ready_for_authorization", "blocked"]},

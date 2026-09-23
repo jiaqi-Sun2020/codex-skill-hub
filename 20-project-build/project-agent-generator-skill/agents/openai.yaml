@@ -1,4 +1,4 @@
 interface:
   display_name: "Project Agent Generator"
-  short_description: "Generate initial .agents context and startup loading"
-  default_prompt: "Use $project-agent-generator-skill once to generate this project's initial .agents context, nested memory baseline, and project-local Codex startup bootstrap."
+  short_description: "Generate initial context or complete missing startup loading"
+  default_prompt: "Use $project-agent-generator-skill once to generate this project's initial Agent context and startup bootstrap, or use its restricted bootstrap-only mode to create only missing startup files around one preserved legacy bundle."

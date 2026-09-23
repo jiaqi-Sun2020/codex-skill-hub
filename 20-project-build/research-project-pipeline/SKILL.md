@@ -10,8 +10,9 @@ Sequence independent components without absorbing their ownership:
 - `research-workspace-governance` owns research assets, governance location,
   status, provenance, migration, retention, and deletion boundaries.
 - Within this one-time Pipeline, `project-agent-generator-skill` is invoked only
-  to create a missing `.agents` framework, memory baseline, entrypoint, and
-  project-scoped Codex Bootstrap.
+  to create a missing Agent framework or to complete only the missing Codex
+  Bootstrap around one preserved legacy bundle. It remains the sole owner of
+  Bootstrap templates and writes.
 - Within this Pipeline, `neat-freak` is invoked only for independent audits of
   knowledge, documentation topology, and Agent instruction loading. After
   handoff, Neat-Freak is the routine project-information
@@ -42,9 +43,12 @@ area, impose a method, or turn a completed workflow into a scientific claim.
    fingerprint, rollback, and a plain-language summary in the user's current
    language. No approval means no mutation.
 4. **Controlled change.** For the one-time initialization, delegate creation of a
-   missing `.agents` framework and Hook only to the Generator and governance-record
-   writes only to Governance. Do not use the Generator to refresh existing context
-   or invoke Neat-Freak write modes from this Pipeline. Rerun discovery after each
+   missing `.agents` framework and Hook only to the Generator. When a legacy bundle
+   already exists but Bootstrap is incomplete, use the Generator's create-only,
+   hash-bound `bootstrap-only` mode; preserve every existing Agent knowledge file
+   byte-for-byte and stop on any differing Bootstrap target. Governance-record
+   writes still belong only to Governance. Do not refresh existing context or
+   invoke Neat-Freak write modes from this Pipeline. Rerun discovery after each
    approved change.
 5. **Verify.** Delegate Agent knowledge and loading audit only to Neat-Freak. Bind
    an optional `experiment-protocol-audit` record by validator, profile, protocol,
@@ -78,6 +82,10 @@ Create a read-only plan:
 ```powershell
 python -X utf8 -B .\scripts\research_pipeline.py plan D:\path\to\project --profile minimal
 ```
+
+The default is a bounded decision summary. Add `--full` only when a complete
+component snapshot is needed for inspection. A saved `--output` plan is always
+full and hash-bound.
 
 Optional declarations must be project-contained. Policy topology concerns Agent
 instruction reachability and is passed unchanged to Neat-Freak, its sole auditor.
@@ -121,11 +129,35 @@ Apply only with the exact reviewed plan hash:
 python -X utf8 -B .\scripts\research_pipeline.py bootstrap-agents D:\path\to\project --apply --plan D:\safe\research-pipeline-plan.json --confirm-plan-sha256 PLAN_SHA256
 ```
 
+For one existing `.agents` or `.agent` bundle whose Codex startup files are
+missing, preview a bootstrap-only change and save it outside the project:
+
+```powershell
+python -X utf8 -B .\scripts\research_pipeline.py bootstrap-only D:\path\to\project --output D:\safe\bootstrap-preview.json
+```
+
+Apply only the unchanged reviewed preview:
+
+```powershell
+python -X utf8 -B .\scripts\research_pipeline.py bootstrap-only D:\path\to\project --apply --manifest D:\safe\bootstrap-preview.json --confirm-manifest-sha256 PREVIEW_SHA256
+```
+
+This mode can create only `.codex/config.toml`, `.codex/hooks.json`,
+`.codex/hooks/load_project_agents.py`, and the selected bundle's
+`scripts/start-codex.ps1`. If any target already exists with different content,
+it stops instead of merging or overwriting it. After apply, Pipeline delegates
+the loading check to Neat-Freak.
+
 Verify without writing:
 
 ```powershell
 python -X utf8 -B .\scripts\research_pipeline.py verify D:\path\to\project
 ```
+
+`verify` also emits a bounded summary by default; add `--full` for complete
+Generator, Governance, and Neat-Freak payloads. Exit `0` means passed, exit `1`
+means verification completed but did not pass, and exit `2` means the command or
+one of its inputs could not be evaluated.
 
 The deterministic `verify` command covers onboarding structure and the component
 records it knows how to validate. It does not silently run the model-level
@@ -140,16 +172,31 @@ fields in
 using the user's current language. A marker that a summary is required is not a
 substitute for the rendered summary.
 
-Saved plans use `research-project-pipeline-plan/v4`; command results use the
-separate `research-project-pipeline-result/v2` envelope with `command_status`
+Saved plans use `research-project-pipeline-plan/v5`; command results use the
+separate `research-project-pipeline-result/v3` envelope with `command_status`
 and `outcome`. Apply rejects legacy plans, structurally incomplete plans even when their embedded hash is
 self-consistent, and plans whose bound Generator or Governance inventory path or
 SHA-256 no longer matches the selected component.
 
-Read `readiness` as six separate axes: onboarding, Agent context, governance,
-domain validation, execution authorization, and claim support. Never collapse
-them into a naked `pass`. A missing or failed domain audit can block experiment
-execution and claim support without blocking initial `.agents` creation.
+Read `readiness` as separate axes. In particular, knowledge health and Codex
+Bootstrap health are independent; `agent_context_state` becomes `ready` only
+when both are ready. Governance assets, project-contract state, and governance
+verification are also independent, so the mere presence of governance files is
+never reported as verified. Domain validation, execution authorization, and
+claim support remain separate from onboarding.
+
+The plan and verification summary report evidence-backed CI, decision,
+dependency, source/documentation, and test-command candidates. Multiple detected
+test frameworks remain candidates instead of being guessed into one command.
+Unknown project-local domain records are listed as untrusted candidates and do
+not authorize execution or claims. A project may declare an adapter map with
+`--domain-adapter-map`; the declaration is validated as project-contained data,
+never executed by Pipeline, and has `authorization_effect: none`. A produced
+adapter output must still be bound and independently validated through
+`--domain-validation-record`. Adapter failure or absence therefore cannot be
+mistaken for approval. Generated/cache paths are counted separately
+and excluded from the bounded source-content fingerprint; the Governance
+inventory's metadata fingerprint remains the full-workspace drift signal.
 
 The script does not invent objectives, interpret a project contract as
 instructions, apply migrations, delete assets, refresh existing Agent context,

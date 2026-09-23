@@ -34,6 +34,22 @@ root, normally at `.agents/AGENTS.md`.
 - Back up changed existing project config under the generator backup directory.
 - Do not modify user-level Codex config, Git hooks, or other projects.
 
+## Legacy bootstrap-only completion
+
+Use this mode only when exactly one safe `.agents` or `.agent` bundle already
+exists and its `AGENTS.md` is non-empty.
+
+- Preview all four managed targets before writing and bind the apply to the
+  current manifest SHA-256.
+- Create missing targets only. An exact existing managed file is unchanged; any
+  differing existing target is a conflict, including config or Hook files that
+  could otherwise be merged by full initial generation.
+- Preserve all existing bundle documents and memory byte-for-byte.
+- Reject `--force`, outside/project-root output exceptions, links, junctions, and
+  a second competing Agent bundle.
+- Rerun the loading audit after apply. Bootstrap completion does not establish
+  knowledge freshness or governance readiness.
+
 ## Verification
 
 1. Validate TOML and JSON syntax.
@@ -42,3 +58,5 @@ root, normally at `.agents/AGENTS.md`.
 4. Confirm a second ordinary generation refuses replacement without changing
    files and directs routine maintenance to Neat-Freak.
 5. Confirm no root `AGENTS.md` or `00-overview/` was created.
+6. For bootstrap-only, compare the existing bundle before and after byte-for-byte
+   and confirm only the reviewed missing Bootstrap targets were created.

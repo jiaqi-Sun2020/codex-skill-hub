@@ -1,6 +1,6 @@
 ---
 name: project-agent-generator-skill
-description: Generate the initial project-local .agents or .agent context bundle, nested Markdown memory baseline, and project-scoped Codex startup bootstrap that explicitly loads the bundle AGENTS.md. Use once when onboarding a project that does not yet have an Agent context bundle. Use Neat-Freak for routine maintenance after initialization.
+description: Generate the initial project-local .agents or .agent context bundle, nested Markdown memory baseline, and project-scoped Codex startup bootstrap that explicitly loads the bundle AGENTS.md. Use once when onboarding a project, or use its restricted bootstrap-only mode when a preserved legacy bundle lacks startup files. Use Neat-Freak for routine maintenance after initialization.
 ---
 
 # Project Agent Generator
@@ -103,6 +103,10 @@ Project knowledge is independent of Codex Memories, Claude Auto Memory,
      only after separate, explicit authorization for whole-bundle replacement,
      and keep its timestamped backup until review and verification finish.
 
+   A narrow exception exists for a legacy bundle that already contains its
+   owner-authored Agent knowledge but lacks Codex startup files. In that case,
+   use `--bootstrap-only`; it never regenerates or edits the bundle documents.
+
 5. Control the default project-knowledge behavior.
    - Read [references/project-knowledge-contract.md](references/project-knowledge-contract.md).
    - The ordinary command initializes or preserves `<out-dir>/memory/`—normally
@@ -143,6 +147,24 @@ Project knowledge is independent of Codex Memories, Claude Auto Memory,
    - Require project trust and first-run Hook review; never edit global Codex
      configuration.
 
+   For an existing bundle, preview the create-only Bootstrap manifest:
+
+   ```powershell
+   python -X utf8 -B .\scripts\generate_project_agents.py D:\path\to\project --bootstrap-only --dry-run --json
+   ```
+
+   Apply only the same current manifest hash:
+
+   ```powershell
+   python -X utf8 -B .\scripts\generate_project_agents.py D:\path\to\project --bootstrap-only --json --confirm-bootstrap-sha256 MANIFEST_SHA256
+   ```
+
+   Bootstrap-only accepts exactly one existing safe bundle, creates only missing
+   managed Bootstrap files, and stops if any target already exists with different
+   content. It rejects `--force`, alternate/outside targets, links, and disabled
+   Bootstrap. Prefer the Pipeline wrapper when a human-reviewed external preview
+   artifact and post-apply Neat-Freak audit are required.
+
 7. Resolve exceptional legacy layouts explicitly.
    - Permit an absolute `--out-dir` when it still resolves inside the project.
    - Use `--allow-outside-project`, `--allow-project-root`, or `--allow-link-targets` only after the user confirms the exact resolved target and overwrite impact.
@@ -176,10 +198,11 @@ Preview the exact write set as JSON without changing the project:
 python -X utf8 .\scripts\generate_project_agents.py D:\path\to\project --dry-run --json
 ```
 
-Both commands emit schema `project-agent-generator/v1`. `--json` is deliberately
-limited to read-only modes; normal generation keeps its existing text interface,
-backup behavior, refusal semantics, and exit codes. Do not parse the legacy text
-output in a pipeline.
+Both commands emit schema `project-agent-generator/v1`. Normal generation keeps
+its existing text interface, backup behavior, refusal semantics, and exit codes.
+Bootstrap-only additionally permits JSON on apply so the Pipeline can verify the
+exact changed paths; this does not make ordinary generation JSON-driven. Do not
+parse the legacy text output in a pipeline.
 
 ## Compatibility Contract
 
@@ -188,6 +211,9 @@ output in a pipeline.
 - Never silently merge or discard manual edits. Default to refusal and route
   routine updates to Neat-Freak. `--force` remains only for explicitly authorized,
   backed-up legacy recovery outside the normal workflow.
+- Bootstrap-only is create-only: exact managed files may be left unchanged,
+  missing files may be created, and every differing existing target is a hard
+  conflict. It never edits `.agents` knowledge or replaces an owner file.
 - Do not force `CLAUDE.md` and `AGENTS.md` to be symlinks or copies. Preserve the repository's established platform-specific layout.
 - Do not create or modify a root `AGENTS.md`. This project architecture requires
   the project bootstrap or caller to load `<out-dir>/AGENTS.md` explicitly.

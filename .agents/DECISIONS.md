@@ -105,6 +105,13 @@
   compact continuation document outside the repository by default. Pipeline may
   route to both after its owned verification, but neither replaces governance,
   Neat-Freak maintenance, domain validation, or explicit authority to publish.
+- 2026-09-23: Generator may use restricted `--bootstrap-only` completion for one
+  safe, existing Agent bundle: it creates only missing managed Bootstrap files and
+  rejects conflicts, links, alternate paths, and Agent-knowledge changes. Pipeline
+  binds this path to an external reviewed preview plus Generator hash, then reports
+  knowledge, Bootstrap, governance assets, project-contract, governance
+  verification, domain validation, execution authorization, and claim support as
+  separate states.
 
 ## Open Questions
 

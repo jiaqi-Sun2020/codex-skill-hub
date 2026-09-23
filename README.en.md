@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eleven active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-20, this repository contains:
+As of 2026-09-23, this repository contains:
 
 - eleven directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
@@ -51,7 +51,7 @@ codex-skill-hub/
 | Goal | Skill |
 |---|---|
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
-| Generate the initial `.agents/`, durable-knowledge baseline, and Codex bootstrap loading once | `project-agent-generator-skill` |
+| Generate initial `.agents/`, a durable-knowledge baseline, and Codex startup loading, or complete only missing startup files around one preserved bundle | `project-agent-generator-skill` |
 | Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
 | Independently audit an experimental design or run manifest against an explicit domain profile, protocol, and evidence | `experiment-protocol-audit` |
 | Audit the actual change surface before a commit, PR, release, delivery, or handoff | `project-submission-audit` |
@@ -107,7 +107,7 @@ Generate repository-local Agent context once for a project that has not yet init
 
 - Generate the initial `.agents/` documentation bundle once.
 - Initialize the `.agents/memory/` durable-knowledge index.
-- Install a project-local `.codex/` hook that loads `.agents/AGENTS.md` on startup and resume.
+- Install a project-local `.codex/` hook that loads `.agents/AGENTS.md` on startup and resume; or use strict bootstrap-only completion for one existing Agent bundle, creating missing files only.
 - Hand routine updates to `neat-freak`; retain forced replacement only as explicitly authorized legacy recovery.
 - Reject paths outside the project, link targets, and suspected credential content.
 
@@ -134,8 +134,9 @@ Initialize a new research project, or onboard a legacy project that has not comp
 - Begin with read-only discovery and separate facts, risks, and unresolved choices.
 - Use research-workspace rules to design the target structure.
 - Produce a reviewable and reversible migration plan.
-- Delegate project Agent-context generation to the Generator, or preserve existing context.
+- Delegate project Agent-context generation to the Generator; when an existing bundle has complete knowledge but missing startup files, delegate only create-only bootstrap completion and preserve every knowledge file.
 - Run knowledge, bootstrap, and adversarial acceptance checks.
+- Report knowledge, Bootstrap, governance assets, project-contract, and governance-verification states separately. The default CLI result is a bounded summary; request a full snapshot explicitly.
 - Accept an optional Agent-loading manifest path and delegate its content audit to `neat-freak`; Pipeline performs only project-boundary path checks.
 - Invoke a domain-neutral comparison-record validator that checks structure, evidence, review, and declared boundaries without prescribing relation types.
 - Bind an independent `experiment-protocol-audit` record when applicable, reporting onboarding, governance, domain validation, execution authorization, and claim support on separate axes.
@@ -377,8 +378,8 @@ The central `reader-learner 1.0.0` is retained as a traceable historical release
 ```text
 Initial research-project onboarding
 research-project-pipeline
-  → project-agent-generator-skill (one-time generation)
-  → research-workspace-governance (governance design and checks)
+  → research-workspace-governance (discovery and design, then human review)
+  → project-agent-generator-skill (one-time generation, or completion of only missing Bootstrap around an existing bundle)
   → neat-freak (initial acceptance)
   → project-submission-audit (pre-submission or pre-delivery audit)
   → handoff (continue in another session or agent)
@@ -399,6 +400,121 @@ Ordinary project submission
 final change surface → project-submission-audit → PASS / BLOCKED / INCOMPLETE
   → handoff (when work continues elsewhere)
 ```
+
+## Pipeline usage guide
+
+`research-project-pipeline` is this repository's formal onboarding orchestrator. Routine maintenance, submission auditing, handoff, figure work, and learning remain separate Skill workflows; **one command does not run every workflow automatically**. This guide applies only to the workflows maintained here. PaperTrace readers, digests, and teaching pipelines remain governed by their own README files.
+
+### Choose the entry point first
+
+| Situation | Entry and sequence | Expected deliverable |
+|---|---|---|
+| New project, or legacy project without completed Agent onboarding | Pipeline discovery → Governance design → human review → Generator → verification → handoff | Reviewable plan, approved framework creation, and separate acceptance states |
+| Existing `.agents/` or `.agent/` bundle, but startup loading is missing | Pipeline `bootstrap-only` preview → human review → create only missing Bootstrap → verification | Startup loading completed without changing the original knowledge files |
+| Already initialized project with code, directory, or decision changes | Neat-Freak audit → update authorized docs/knowledge → re-audit | Project information aligned with current code, without regenerating the framework |
+| Domain protocol or task-manifest review | Explicit Profile/Protocol → Experiment Protocol Audit → optionally bind to Pipeline | Evidence-fingerprinted domain-validation record; no experiment execution |
+| Submission, delivery, or transfer | Project Submission Audit → repair and re-audit → Handoff if needed | `PASS / BLOCKED / INCOMPLETE` and a traceable handoff |
+
+### A. Initial onboarding: plan, then approve writes
+
+Inputs are an existing project directory, the intended onboarding scope, protected paths, and any current project rules. Keep the central Skill source in this hub; do not copy the full Skill package into the target project.
+
+In the target project conversation, ask:
+
+> Use `research-project-pipeline` to onboard `D:\Research\my-project`. Read existing rules and perform read-only discovery first. Give the governance design, exact write list, risks, and rollback method; produce a plan only and wait for my review. Do not run research tasks or rewrite existing Agent knowledge files.
+
+The supplied script can also be used directly. **Run every PowerShell command below from the hub repository root.** Replace the generic checkout path below with your own; the following code blocks assume the same PowerShell session:
+
+```powershell
+Set-Location 'C:\path\to\codex-skill-hub'
+$projectRoot = 'D:\Research\my-project' # Replace with the actual existing project
+$pipelineScript = '.\20-project-build\research-project-pipeline\scripts\research_pipeline.py'
+$knowledgeScript = '.\50-core-utils\neat-freak\scripts\manage_project_knowledge.py'
+
+# Read-only discovery and a bounded plan summary
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
+
+# Write a complete plan outside the target project without overwriting an existing one
+$planPath = Join-Path $env:TEMP ('research-onboarding-' + [guid]::NewGuid().ToString('N') + '.json')
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal --output $planPath
+```
+
+`minimal`, `lightweight`, `collaborative`, and `controlled` are governance presets, not scientific-method profiles. Start with the smallest suitable preset; declare domain validation separately.
+
+Review the plan's write locations, component actions, blockers, rollback, and `plan_sha256`. **Only if the project has no Agent framework and you approve this exact plan** should you run the next commands. Replace the placeholder hash with the reviewed value; never auto-approve every discovery result:
+
+```powershell
+# Optional preview of Generator output
+python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot
+
+# This writes only after human review
+python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot --apply --plan $planPath --confirm-plan-sha256 'REVIEWED_PLAN_SHA256'
+
+# Rediscover after creation, then verify without writing
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
+python -X utf8 -B $pipelineScript verify $projectRoot
+```
+
+`bootstrap-agents` delegates only missing framework creation to Generator; it does not execute the entire governance migration. Other approved governance work remains owned by the appropriate Skill. Regenerate and review a plan whenever files, components, or fingerprints change; do not force an old approval through.
+
+### B. Legacy project: preserve knowledge and complete only startup files
+
+Use this path when exactly one existing `.agents/` or `.agent/` bundle has valid knowledge but incomplete startup files. Keep the hub root as the working directory and reuse the variables above:
+
+```powershell
+$bootstrapPreview = Join-Path $env:TEMP ('bootstrap-preview-' + [guid]::NewGuid().ToString('N') + '.json')
+python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --output $bootstrapPreview
+
+# This writes only after reviewing the preview. Replace the placeholder with manifest_sha256.
+python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --apply --manifest $bootstrapPreview --confirm-manifest-sha256 'REVIEWED_MANIFEST_SHA256'
+python -X utf8 -B $pipelineScript verify $projectRoot
+```
+
+This branch creates only missing managed startup files. Existing Agent knowledge remains byte-for-byte unchanged. It stops on a differing startup file, dual bundles, linked/unsafe paths, or drift; it is not an overwrite or merge mechanism.
+
+### C. Later updates: call Neat-Freak again
+
+After onboarding, do not rerun Pipeline or Generator to refresh the framework. In the target project conversation, ask:
+
+> Use `neat-freak` to update this project. Based on current code and verification results, synchronize only the README, relevant `.agents` documents, and durable knowledge that need updating. Preserve my changes; do not modify application code or governance records, and do not regenerate the framework. Audit before and after, and list every actual change.
+
+For read-only checks, still from the hub root:
+
+```powershell
+python -X utf8 -B $knowledgeScript $projectRoot audit
+python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
+```
+
+Neither `audit` nor `bootstrap-audit` updates documentation. Documentation synchronization requires explicit authorization. Durable-knowledge topic writes use Neat-Freak's hash-bound `plan → apply` flow. Generator owns missing framework creation; Neat-Freak can repair only existing marked wiring under its separately authorized maintenance workflow.
+
+### D. Submission audit and handoff: invoke them separately
+
+In the target project conversation, first specify the exact surface intended for submission:
+
+> Use `project-submission-audit` to read-only audit the changes I intend to submit. Inspect staged, unstaged, and untracked files; distinguish this scope from existing changes; report issue priority, file evidence, and verification gaps. Do not commit, push, or publish.
+
+Repair and re-audit the same change surface. If the work needs another session or agent, then ask:
+
+> Use `handoff` to create a handoff document in the system temporary directory. Record the absolute project path, goal, completed work, open items, verification commands and results, residual risks, and one concrete next step; link to existing material, do not copy sensitive data, and do not expand the next agent's authority.
+
+Pipeline `verify` **does not automatically invoke** either conversation-level Skill. A handoff can be created while blocked or awaiting review, but it must state that status and never present a generated document as completed work.
+
+### E. Other common workflows
+
+The following are independent Skill requests, not extra Pipeline CLI subcommands:
+
+- **Domain protocol audit:** “Use `experiment-protocol-audit` to audit requested/generated/approved manifests against this project's explicit Domain Profile, Project Protocol, and normalized JSON. Do not run experiments or adapters.” Bind the resulting record with Pipeline's `--domain-validation-record` only when needed.
+- **Training-code organization:** “Use `training-code-architecture` to analyze existing training code and first propose a behavior-preserving interface and configuration refactor. Implement only after confirmation and provide regression verification.” Do not impose this structure on projects without ML work.
+- **Paper figures:** “Use `academic-figure-workflow` with my claim, data, code, and target dimensions. Confirm the figure plan first, then create editable sources, exports, a caption, and rendered QA.”
+- **Concept learning:** “Use `logic-chain-tutor` to explain this concept from the exact step where I am stuck, using the smallest complete example, derivation, or counterexample. Do not update an external learning profile by default.”
+
+### How to tell whether the workflow is actually complete
+
+- `verify` exit `0` means passed; `1` means verification completed but did not pass; `2` means the command or inputs could not be evaluated. Inspect the reported evidence, not merely the existence of generated folders.
+- Evaluate Agent knowledge, Bootstrap, governance assets, governance verification, domain validation, execution authorization, and claim support independently. Onboarding does not authorize experiments or establish a scientific conclusion.
+- The default summary is enough to choose a next step; add `--full` to `plan` or `verify` only for diagnosis.
+- Stop and rediscover/review when a fingerprint drifts, source authority is ambiguous, a path escapes, a link is encountered, or an existing target conflicts. Do not use force to bypass these checks.
+- The complete interface is defined by the [Pipeline Skill](20-project-build/research-project-pipeline/SKILL.md) and its [stage contracts](20-project-build/research-project-pipeline/references/stage-contracts.md); routine updates are defined by [Neat-Freak](50-core-utils/neat-freak/SKILL.md).
 
 ## External Skill projects at a glance
 
@@ -440,6 +556,7 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" regis
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
+python -X utf8 -B ".\20-project-build\project-agent-generator-skill\tests\test_generate_project_agents.py"
 python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
 python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
 

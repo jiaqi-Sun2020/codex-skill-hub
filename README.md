@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 11 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-20，本仓库包含：
+截至 2026-09-23，本仓库包含：
 
 - 11 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
@@ -107,7 +107,7 @@ codex-skill-hub/
 
 - 一次性生成 `.agents/` 文档包；
 - 初始化 `.agents/memory/` 长期知识索引；
-- 安装项目级 `.codex/` Hook，让 `.agents/AGENTS.md` 在启动和恢复时被加载；
+- 安装项目级 `.codex/` Hook，让 `.agents/AGENTS.md` 在启动和恢复时被加载；也可为唯一的既有 Agent 文档包执行严格、只新增缺失文件的 bootstrap-only 补齐；
 - 已初始化项目的日常信息更新交给 `neat-freak`；保留的强制替换能力仅用于明确授权的遗留恢复；
 - 拒绝项目外路径、链接目标和疑似凭据内容。
 
@@ -135,7 +135,9 @@ codex-skill-hub/
 - 调用研究工作区治理规则设计目标结构；
 - 生成可审核、可回滚的迁移方案；
 - 委托 Generator 创建项目 Agent 上下文，或保留现有上下文；
+- 当既有 Agent 文档完整但启动文件缺失时，通过外部预览与哈希确认委托 Generator 只补齐 Bootstrap，不改写知识文件；
 - 执行知识、启动加载和对抗性验收；
+- 分开报告知识、Bootstrap、治理资产、项目合同与治理核验状态；默认输出简明摘要，完整快照需显式请求；
 - 接收可选的 Agent 加载清单路径，并把内容审核明确委托给 `neat-freak`；Pipeline 只做项目内路径安全检查；
 - 调用领域中立的比较记录校验器，只核查结构、证据、评审与声明边界，不预设任何学科关系类型。
 - 可绑定独立的 `experiment-protocol-audit` 记录，把接入、治理、领域验证、执行授权和主张支持分轴报告，而不把任一轴的通过误解为其他轴的通过。
@@ -378,8 +380,8 @@ Registry 支持两种项目关系：
 ```text
 科研项目首次接入
 research-project-pipeline
-  → project-agent-generator-skill（一次性生成）
-  → research-workspace-governance（治理设计与检查）
+  → research-workspace-governance（先发现、设计，再人工审核）
+  → project-agent-generator-skill（一次性生成，或对既有文档包只补齐缺失 Bootstrap）
   → neat-freak（初次验收）
   → project-submission-audit（提交或交付前审计）
   → handoff（交给后续会话或 Agent）
@@ -400,6 +402,121 @@ research-project-pipeline
 最终变更面 → project-submission-audit → PASS / BLOCKED / INCOMPLETE
   → handoff（需要继续或转交时）
 ```
+
+## Pipeline 使用指南
+
+本仓库的正式接入编排器是 `research-project-pipeline`；日常维护、提交审计、交接、作图和学习是由独立 Skill 组成的工作流，**不是一个命令会自动执行的全部步骤**。以下说明仅针对本仓库维护的流程；PaperTrace 的阅读器、日报和教学 Pipeline 仍以其自己的 README 为准。
+
+### 先选择入口
+
+| 当前情况 | 入口与顺序 | 预期交付 |
+|---|---|---|
+| 新项目，或尚未完成 Agent 接入的旧项目 | Pipeline 发现 → Governance 设计 → 人工审核 → Generator → 验证 → 交接 | 可审阅计划、获准创建的框架、分轴验收结果 |
+| 已有 `.agents/` 或 `.agent/`，只是缺少启动加载 | Pipeline `bootstrap-only` 预览 → 人工审核 → 只新增缺失 Bootstrap → 验证 | 保留原知识文件的启动加载补齐 |
+| 已初始化，代码、目录或决策有变化 | Neat-Freak 审计 → 更新获准文档／知识 → 再审计 | 与当前代码一致的项目信息，不重新生成框架 |
+| 需要审核领域协议或任务清单 | 显式 Profile／Protocol → Experiment Protocol Audit → 可选绑定到 Pipeline | 带证据指纹的领域验证记录，不运行实验 |
+| 准备提交、交付或交接 | Project Submission Audit → 修复后重审 → 按需 Handoff | `PASS / BLOCKED / INCOMPLETE` 与可追溯交接 |
+
+### A. 项目首次接入：先计划，再批准写入
+
+**准备输入：**一个已存在的项目目录、希望接入的范围、需要保护的路径，以及已有项目规则。中央 Skill 源码留在本仓库，不复制整套 Skill 到目标项目。
+
+在目标项目的对话中，可以直接使用下面的请求。将示例路径替换为实际路径；如果没有安装该 Skill，先让 Agent 读取中央源码中的对应 `SKILL.md`：
+
+> 使用 `research-project-pipeline` 接入 `D:\Research\my-project`。先读取现有规则并只读发现，给出治理设计、具体写入清单、风险和回退方法；本轮只做计划，等待我审核。不要运行研究任务，不要改写已有 Agent 知识文件。
+
+也可以直接调用已提供的脚本。**下面所有 PowerShell 命令均在本仓库根目录执行**；将下面的通用检出路径替换为自己的实际目录。后续代码块沿用同一个 PowerShell 会话中的变量：
+
+```powershell
+Set-Location 'C:\path\to\codex-skill-hub'
+$projectRoot = 'D:\Research\my-project' # 替换为实际存在的目标项目
+$pipelineScript = '.\20-project-build\research-project-pipeline\scripts\research_pipeline.py'
+$knowledgeScript = '.\50-core-utils\neat-freak\scripts\manage_project_knowledge.py'
+
+# 只读发现与计划摘要，不修改目标项目
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
+
+# 将完整计划保存到目标项目以外的新文件；不覆盖已有计划
+$planPath = Join-Path $env:TEMP ('research-onboarding-' + [guid]::NewGuid().ToString('N') + '.json')
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal --output $planPath
+```
+
+`--profile` 的 `minimal / lightweight / collaborative / controlled` 是治理预设，不是学科方法 Profile。先选满足需要的最小预设；领域验证仍单独声明。
+
+审核计划中的写入位置、组件动作、阻塞项、回退方式与 `plan_sha256`。**只有项目尚无 Agent 框架，且你批准了这份具体计划时**，才运行下一段；把占位哈希替换为已审核计划中的值，不要自动批准所有发现：
+
+```powershell
+# 可先查看 Generator 将要创建什么
+python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot
+
+# 有写入：仅在人工审核通过后执行
+python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot --apply --plan $planPath --confirm-plan-sha256 'REVIEWED_PLAN_SHA256'
+
+# 创建后重新发现，再进行只读验证
+python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
+python -X utf8 -B $pipelineScript verify $projectRoot
+```
+
+`bootstrap-agents` 只委托 Generator 创建缺失框架，不会自动执行整个治理迁移方案。其他获准治理变更仍由对应 Skill 处理。文件、组件或指纹变化后，应重新生成并审核计划，不能沿用旧批准强行继续。
+
+### B. 遗留项目：已有知识，只补启动文件
+
+适用于唯一的 `.agents/` 或 `.agent/` 文档包已存在、但启动文件不完整的情况。工作目录仍为本仓库根目录，沿用上面的变量：
+
+```powershell
+$bootstrapPreview = Join-Path $env:TEMP ('bootstrap-preview-' + [guid]::NewGuid().ToString('N') + '.json')
+python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --output $bootstrapPreview
+
+# 有写入：审核预览后，将占位值替换为其中的 manifest_sha256
+python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --apply --manifest $bootstrapPreview --confirm-manifest-sha256 'REVIEWED_MANIFEST_SHA256'
+python -X utf8 -B $pipelineScript verify $projectRoot
+```
+
+这个分支只新增缺失的受管启动文件，已有 Agent 知识文件保持不变。发现内容不同的启动文件、双文档包或不安全路径时会停止，不能把它当作覆盖修复工具。
+
+### C. 后续项目更新：重复调用 Neat-Freak
+
+首次接入完成后，不要反复调用 Pipeline 或 Generator 刷新框架。在目标项目对话中使用：
+
+> 使用 `neat-freak` 更新这个项目。根据当前代码和验证结果，只同步 README、相关 `.agents` 文档和需要更新的长期知识；保留我的已有改动，不改业务代码和治理记录，不重新生成框架。先审计，更新后再审计，并列出实际改动。
+
+只想检查、不想修改时，工作目录仍为本仓库根目录：
+
+```powershell
+python -X utf8 -B $knowledgeScript $projectRoot audit
+python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
+```
+
+`audit` 与 `bootstrap-audit` 都不会更新文档。文档同步需要明确授权；长期知识主题的写入使用 Neat-Freak 的哈希绑定 `plan → apply` 流程。首次缺失框架交给 Generator，已有受管接线的修复才交给 Neat-Freak。
+
+### D. 提交前审计与交接：分别调用，不自动提交
+
+在目标项目对话中，先指定真正准备提交的范围：
+
+> 使用 `project-submission-audit` 只读审核本次准备提交的改动。检查 staged、unstaged 和 untracked，区分本次范围与已有改动；给出问题等级、文件证据和验证缺口。不要提交、推送或发布。
+
+修复后重新审计同一变更面。需要换会话或交给另一位 Agent 时，再调用：
+
+> 使用 `handoff` 生成交接文档，放在系统临时目录。记录项目绝对路径、目标、已完成内容、未完成项、验证命令和结果、剩余风险及唯一下一步；引用已有材料，不复制敏感信息，不扩张后续授权。
+
+Pipeline 的 `verify` **不会自动运行**这两个对话级 Skill。交接也可以发生在受阻或等待审核时，但必须明确状态，不能将“已生成交接文件”报告为“任务已完成”。
+
+### E. 其他常用工作流
+
+以下是独立 Skill 调用示例，不是额外的 Pipeline CLI 子命令：
+
+- **领域协议审核：**“使用 `experiment-protocol-audit`，依据本项目明确提供的 Domain Profile、Project Protocol 和规范化 JSON 审核 requested/generated/approved 清单；不要运行实验或 Adapter。”输出记录需要接入 Pipeline 时，使用其 `--domain-validation-record` 参数绑定项目内路径。
+- **训练工程整理：**“使用 `training-code-architecture` 分析现有训练代码，先提出保留行为的接口与配置改造方案；确认后实现，并给出回归验证。”没有机器学习任务时，不应强加这套结构。
+- **论文图件：**“使用 `academic-figure-workflow`，根据我提供的论点、数据、代码和目标尺寸，先确认图件方案，再输出可编辑源文件、导出、图注及渲染 QA。”
+- **概念学习：**“使用 `logic-chain-tutor` 解释这个知识点，从我当前卡住的步骤开始，用最小完整例子、推导或反例帮助理解，不默认更新外部学习画像。”
+
+### 如何判断流程真的完成
+
+- `verify` 退出码 `0` 表示通过，`1` 表示检查完成但未通过，`2` 表示命令或输入无法评估；查看具体证据，不只看是否生成目录。
+- Agent 知识、Bootstrap、治理资产、治理核验、领域验证、执行授权与主张支持分别判断；接入通过不等于可以运行实验，更不等于科学结论成立。
+- 默认摘要已足够选择下一步；需要排查时才给 `plan` 或 `verify` 增加 `--full`。
+- 遇到指纹漂移、来源歧义、路径越界、链接目标或现有文件冲突时，停止相关写入并重新发现／审核，不使用强制覆盖绕过。
+- 完整接口以 [Pipeline Skill](20-project-build/research-project-pipeline/SKILL.md) 和 [阶段契约](20-project-build/research-project-pipeline/references/stage-contracts.md) 为准；日常更新以 [Neat-Freak](50-core-utils/neat-freak/SKILL.md) 为准。
 
 ## 外部 Skill 项目概览
 
@@ -441,6 +558,7 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" regis
 
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
+python -X utf8 -B ".\20-project-build\project-agent-generator-skill\tests\test_generate_project_agents.py"
 python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
 python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
 

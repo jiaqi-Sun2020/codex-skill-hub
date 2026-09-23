@@ -1,4 +1,4 @@
 interface:
   display_name: "Research Project Pipeline"
-  short_description: "Orchestrate one-time setup with separate readiness axes"
-  default_prompt: "Use $research-project-pipeline once to plan, initialize, and verify a research project workspace; keep readiness axes separate, audit the final submission surface when applicable, then prepare a compact handoff and give ongoing information maintenance to Neat-Freak."
+  short_description: "Orchestrate one-time setup and safe legacy bootstrap completion"
+  default_prompt: "Use $research-project-pipeline once to discover, plan, initialize or safely complete a legacy project's missing startup bootstrap, and verify the workspace; keep knowledge, bootstrap, governance, execution, and claim readiness separate, then hand ongoing information maintenance to Neat-Freak."

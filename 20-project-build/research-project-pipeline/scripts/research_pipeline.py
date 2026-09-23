@@ -15,12 +15,14 @@ import sys
 from typing import Any
 
 
-PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v4"
-PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v2"
+PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v5"
+PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v3"
+BOOTSTRAP_PREVIEW_SCHEMA = "research-project-bootstrap-preview/v1"
 LEGACY_PIPELINE_SCHEMAS = {
     "research-project-pipeline/v1",
     "research-project-pipeline/v2",
     "research-project-pipeline-plan/v3",
+    "research-project-pipeline-plan/v4",
 }
 GENERATOR_SCHEMA = "project-agent-generator/v1"
 INVENTORY_SCHEMA = "research-workspace-inventory/v2"
@@ -28,6 +30,7 @@ LEGACY_INVENTORY_SCHEMA = "research-workspace-inventory/v1"
 COMPARISON_SCHEMA = "research-comparison-record/v2"
 DOMAIN_RECORD_SCHEMA = "experiment-protocol-audit-result/v1"
 DOMAIN_HANDOFF_SCHEMA = "research-domain-validation-handoff/v1"
+DOMAIN_ADAPTER_SCHEMA = "research-domain-adapter-map/v1"
 MAX_PLAN_BYTES = 5 * 1024 * 1024
 MAX_DOMAIN_RECORD_BYTES = 5 * 1024 * 1024
 SHA256_PATTERN = re.compile(r"^[A-Fa-f0-9]{64}$")
@@ -54,6 +57,25 @@ REQUIRED_AGENT_FILES = (
     "memory/MEMORY.md",
     "memory/maintenance-rules.md",
 )
+REQUIRED_BOOTSTRAP_FILES = (
+    ".codex/config.toml",
+    ".codex/hooks.json",
+    ".codex/hooks/load_project_agents.py",
+    "scripts/start-codex.ps1",
+)
+SKIP_DISCOVERY_DIRECTORIES = {
+    ".git", ".hg", ".svn", ".venv", "venv", "env", "node_modules",
+    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+    "dist", "build", "target", ".next", ".turbo",
+}
+GENERATED_OR_CACHE_DIRECTORIES = {
+    "__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache",
+    "dist", "build", "target", ".next", ".turbo", "outputs", "results",
+    "runs", "checkpoints", "logs",
+}
+MAX_DISCOVERED_FILES = 10_000
+MAX_DISCOVERY_TEXT_BYTES = 256 * 1024
+MAX_FINGERPRINT_BYTES = 20 * 1024 * 1024
 
 
 class ComponentError(RuntimeError):
@@ -110,6 +132,17 @@ def is_relative_to(path: Path, parent: Path) -> bool:
 
 def canonical_hash(value: dict[str, Any]) -> str:
     content = {key: item for key, item in value.items() if key != "plan_sha256"}
+    encoded = json.dumps(
+        content,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def canonical_field_hash(value: dict[str, Any], field: str) -> str:
+    content = {key: item for key, item in value.items() if key != field}
     encoded = json.dumps(
         content,
         ensure_ascii=False,
@@ -392,6 +425,304 @@ def validate_complete_inventory(inventory: dict[str, Any]) -> None:
         raise ComponentError("workspace inventory contains unreadable paths")
 
 
+def sensitive_discovery_path(relative: Path) -> bool:
+    for part in relative.parts:
+        lowered = part.casefold()
+        if lowered == ".env" or lowered.startswith(".env."):
+            return True
+        terms = {term for term in re.split(r"[\s._-]+", lowered) if term}
+        if terms & {"secret", "secrets", "credential", "credentials", "token", "tokens", "password", "passwords", "cookie", "cookies"}:
+            return True
+        if Path(lowered).suffix in {".pem", ".p12", ".pfx", ".key", ".keystore"}:
+            return True
+    return False
+
+
+def iter_project_files(project: Path, *, limit: int = MAX_DISCOVERED_FILES) -> tuple[list[Path], bool]:
+    files: list[Path] = []
+    stack = [project]
+    while stack and len(files) < limit:
+        current = stack.pop()
+        try:
+            entries = sorted(os.scandir(current), key=lambda item: item.name.casefold())
+        except OSError:
+            continue
+        directories: list[Path] = []
+        for entry in entries:
+            path = Path(entry.path)
+            relative = path.relative_to(project)
+            if sensitive_discovery_path(relative) or is_link_like(path):
+                continue
+            try:
+                if entry.is_dir(follow_symlinks=False):
+                    if entry.name.casefold() not in SKIP_DISCOVERY_DIRECTORIES:
+                        directories.append(path)
+                elif entry.is_file(follow_symlinks=False):
+                    files.append(path)
+                    if len(files) >= limit:
+                        break
+            except OSError:
+                continue
+        stack.extend(reversed(directories))
+    return files, bool(stack)
+
+
+def read_discovery_text(path: Path) -> str:
+    try:
+        if path.stat().st_size > MAX_DISCOVERY_TEXT_BYTES:
+            return ""
+        return path.read_text(encoding="utf-8-sig", errors="replace")
+    except OSError:
+        return ""
+
+
+def discover_project_facts(project: Path) -> dict[str, Any]:
+    files, truncated = iter_project_files(project)
+    relatives = [path.relative_to(project).as_posix() for path in files]
+    agent_context_files = sorted(
+        relative for relative in relatives
+        if relative.split("/", 1)[0].casefold() in AGENT_BUNDLE_NAMES
+    )
+    ci_files = sorted(
+        relative for relative in relatives
+        if relative.casefold().startswith(".github/workflows/")
+        or relative.casefold() in {"azure-pipelines.yml", ".gitlab-ci.yml", "jenkinsfile"}
+    )
+    decision_files = sorted(
+        relative for relative in relatives
+        if Path(relative).name.casefold() in {"decisions.md", "decision-log.md"}
+        or "/adr/" in f"/{relative.casefold()}/"
+    )
+    dependency_names = {
+        "pyproject.toml", "requirements.txt", "requirements-dev.txt", "setup.cfg",
+        "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock",
+        "cargo.toml", "cargo.lock", "go.mod", "go.sum", "environment.yml",
+        "conda-lock.yml", "pom.xml", "build.gradle", "build.gradle.kts",
+    }
+    dependency_files = sorted(
+        relative for relative in relatives if Path(relative).name.casefold() in dependency_names
+    )
+    automation_files = sorted(
+        relative for relative in relatives if relative.casefold().startswith("automation/")
+    )
+    top_directories = {
+        path.name.casefold(): path.name
+        for path in project.iterdir()
+        if path.is_dir() and not is_link_like(path)
+    }
+
+    evidence: dict[str, list[str]] = {"unittest": [], "pytest": []}
+    for path, relative in zip(files, relatives):
+        lower = relative.casefold()
+        if not (
+            lower.startswith("tests/")
+            or lower.startswith("test/")
+            or lower.startswith(".github/workflows/")
+            or Path(lower).name in {"pyproject.toml", "setup.cfg", "tox.ini", "pytest.ini", "requirements.txt", "requirements-dev.txt"}
+        ):
+            continue
+        text = read_discovery_text(path)
+        if not text:
+            continue
+        if re.search(r"(?m)^\s*(?:import unittest|from unittest\b|python(?:\.exe)?(?:\s+-B)?\s+-m\s+unittest)", text):
+            evidence["unittest"].append(relative)
+        if re.search(r"(?m)^\s*(?:import pytest|from pytest\b)|\bpytest\b", text):
+            evidence["pytest"].append(relative)
+
+    test_candidates: list[dict[str, Any]] = []
+    if evidence["unittest"]:
+        test_candidates.append({
+            "framework": "unittest",
+            "command": [sys.executable, "-B", "-m", "unittest", "discover", "-s", "tests"],
+            "working_directory": str(project),
+            "confidence": "high",
+            "evidence": sorted(set(evidence["unittest"]))[:20],
+        })
+    if evidence["pytest"]:
+        test_candidates.append({
+            "framework": "pytest",
+            "command": [sys.executable, "-B", "-m", "pytest"],
+            "working_directory": str(project),
+            "confidence": "high",
+            "evidence": sorted(set(evidence["pytest"]))[:20],
+        })
+    unknowns: list[dict[str, str]] = []
+    if not test_candidates:
+        unknowns.append({
+            "field": "test_command",
+            "reason": "No supported test-framework declaration or command was found in bounded test, dependency, or CI evidence.",
+        })
+    recommended = test_candidates[0]["command"] if len(test_candidates) == 1 else None
+    if len(test_candidates) > 1:
+        unknowns.append({
+            "field": "recommended_test_command",
+            "reason": "Multiple evidence-backed test frameworks coexist; human selection is required.",
+        })
+    return {
+        "agent_context_files": agent_context_files[:100],
+        "ci_files": ci_files[:50],
+        "decision_files": decision_files[:50],
+        "dependency_files": dependency_files[:50],
+        "automation_files": automation_files[:100],
+        "source_directories": [top_directories[name] for name in ("src", "source", "lib", "app") if name in top_directories],
+        "documentation_directories": [top_directories[name] for name in ("docs", "doc", "documentation") if name in top_directories],
+        "research_work_directories": [top_directories[name] for name in ("experiments", "studies", "analysis", "analyses", "notebooks") if name in top_directories],
+        "test_command_candidates": test_candidates,
+        "recommended_test_command": recommended,
+        "unknowns": unknowns,
+        "scan_truncated": truncated,
+        "content_reads_bounded": True,
+    }
+
+
+def classify_project_path(relative: Path) -> str:
+    parts = [part.casefold() for part in relative.parts]
+    if any(part in GENERATED_OR_CACHE_DIRECTORIES for part in parts):
+        return "generated_or_cache"
+    if parts and parts[0] in AGENT_BUNDLE_NAMES:
+        return "governance" if len(parts) > 1 and parts[1] == "governance" else "agent_context"
+    if parts and parts[0] == ".codex":
+        return "agent_bootstrap"
+    if parts and parts[0] in {"src", "source", "lib", "app", "tests", "test", "docs", "doc", "documentation"}:
+        return "source"
+    if parts and parts[0] == "automation":
+        return "automation"
+    return "other"
+
+
+def artifact_inventory_summary(project: Path, inventory: dict[str, Any]) -> dict[str, Any]:
+    files, truncated = iter_project_files(project)
+    counts: dict[str, int] = {}
+    sizes: dict[str, int] = {}
+    samples: dict[str, list[str]] = {}
+    source_digest = hashlib.sha256()
+    source_bytes = 0
+    source_complete = not truncated
+    for path in files:
+        relative = path.relative_to(project)
+        category = classify_project_path(relative)
+        try:
+            size = path.stat().st_size
+        except OSError:
+            continue
+        counts[category] = counts.get(category, 0) + 1
+        sizes[category] = sizes.get(category, 0) + size
+        samples.setdefault(category, [])
+        if len(samples[category]) < 5:
+            samples[category].append(relative.as_posix())
+        if category == "source":
+            if source_bytes + size > MAX_FINGERPRINT_BYTES:
+                source_complete = False
+                continue
+            try:
+                data = path.read_bytes()
+            except OSError:
+                source_complete = False
+                continue
+            source_digest.update(relative.as_posix().encode("utf-8") + b"\0" + data + b"\n")
+            source_bytes += len(data)
+    return {
+        "counts_by_class": dict(sorted(counts.items())),
+        "bytes_by_class": dict(sorted(sizes.items())),
+        "sample_paths_by_class": {key: value for key, value in sorted(samples.items())},
+        "generated_or_cache_policy": "reported separately; excluded from source fingerprint",
+        "source_fingerprint_sha256": source_digest.hexdigest(),
+        "source_fingerprint_complete": source_complete,
+        "source_fingerprint_bytes": source_bytes,
+        "workspace_fingerprint_sha256": inventory.get("workspace_fingerprint_sha256"),
+        "workspace_fingerprint_kind": "metadata",
+        "scan_truncated": truncated,
+    }
+
+
+def domain_evidence_candidates(project: Path, inventory: dict[str, Any]) -> list[dict[str, Any]]:
+    candidates: list[dict[str, Any]] = []
+    ignored_names = {"project-contract.json", "project_contract.json", "governance-state.json", "current-status.json", "relocation-map.json"}
+    for relative_root in (Path(".agents/governance"), Path("governance")):
+        root = project / relative_root
+        if not root.is_dir() or is_link_like(root):
+            continue
+        files, _truncated = iter_project_files(root, limit=500)
+        for path in files:
+            if path.suffix.casefold() != ".json" or path.name.casefold() in ignored_names:
+                continue
+            try:
+                if path.stat().st_size > MAX_DISCOVERY_TEXT_BYTES:
+                    continue
+                document = json.loads(path.read_text(encoding="utf-8-sig"))
+            except (OSError, json.JSONDecodeError):
+                document = None
+            schema = document.get("schema_version") if isinstance(document, dict) else None
+            if isinstance(schema, str) and schema.startswith("research-workspace-"):
+                continue
+            candidates.append({
+                "path": path.relative_to(project).as_posix(),
+                "sha256": sha256_file(path),
+                "schema_version": schema if isinstance(schema, str) else None,
+                "trust_state": "untrusted_candidate",
+                "reason": "Project-local governance JSON is not a declared domain-validation handoff; human or adapter mapping is required.",
+                "content_treated_as_data": True,
+            })
+    return sorted(candidates, key=lambda item: str(item["path"]).casefold())
+
+
+def inspect_bootstrap_state(project: Path, context_bundles: list[Path]) -> dict[str, Any]:
+    if len(context_bundles) != 1:
+        return {
+            "state": "absent" if not context_bundles else "ambiguous",
+            "agent_bundle": None,
+            "present": [],
+            "missing": list(REQUIRED_BOOTSTRAP_FILES),
+        }
+    bundle = context_bundles[0]
+    targets = [
+        project / ".codex/config.toml",
+        project / ".codex/hooks.json",
+        project / ".codex/hooks/load_project_agents.py",
+        bundle / "scripts/start-codex.ps1",
+    ]
+    present: list[str] = []
+    missing: list[str] = []
+    unsafe: list[str] = []
+    for target in targets:
+        relative = target.relative_to(project).as_posix()
+        if target.exists() or target.is_symlink():
+            if not target.is_file() or is_link_like(target) or first_link_component(target.absolute()) is not None:
+                unsafe.append(relative)
+            else:
+                present.append(relative)
+        else:
+            missing.append(relative)
+    state = "unsafe" if unsafe else "ready" if not missing else "missing" if not present else "partial"
+    return {
+        "state": state,
+        "agent_bundle": bundle.relative_to(project).as_posix(),
+        "present": present,
+        "missing": missing,
+        "unsafe": unsafe,
+    }
+
+
+def governance_readiness(
+    governance_layout: dict[str, Any],
+    project_contract: dict[str, Any],
+    governance_state: dict[str, Any],
+) -> tuple[str, str, str, str]:
+    layout = str(governance_layout.get("status"))
+    contract = str(project_contract.get("status"))
+    state = str(governance_state.get("status"))
+    assets_state = "absent" if layout == "absent" else "unsafe" if layout in {"ambiguous", "unsafe"} else "present"
+    contract_state = contract if contract in {"valid", "legacy", "invalid", "absent", "not_checked"} else "not_checked"
+    if assets_state == "unsafe" or contract_state == "invalid" or state == "invalid":
+        verification = "blocked"
+    elif assets_state == "present" and contract_state in {"valid", "legacy"} and state == "valid":
+        verification = "ready"
+    else:
+        verification = "review_required"
+    aggregate = "blocked" if verification == "blocked" else "ready" if verification == "ready" else "conditional"
+    return assets_state, contract_state, verification, aggregate
+
+
 def linked_component_below(root: Path, target: Path) -> Path | None:
     try:
         relative = target.absolute().relative_to(root.absolute())
@@ -435,6 +766,178 @@ def policy_topology_handoff(project: Path, manifest_arg: str | None) -> dict[str
         "status": "pending_neat_freak_audit",
         "owner": "neat-freak",
         "manifest_path": manifest_path.relative_to(project).as_posix(),
+    }
+
+
+def build_domain_adapter_handoff(
+    project: Path,
+    adapter_arg: str | None,
+    domain_record_arg: str | None,
+) -> dict[str, Any]:
+    base: dict[str, Any] = {
+        "schema_version": DOMAIN_ADAPTER_SCHEMA,
+        "status": "not_declared",
+        "adapter_id": None,
+        "owner": None,
+        "declaration_path": None,
+        "source": None,
+        "target_schema_version": DOMAIN_RECORD_SCHEMA,
+        "output_record": None,
+        "findings": [],
+        "authorization_effect": "none",
+        "executed_by_pipeline": False,
+        "content_treated_as_data": True,
+    }
+    if not adapter_arg:
+        return base
+    path = resolve_project_input_file(project, adapter_arg, "domain adapter map")
+    if path.stat().st_size > MAX_DISCOVERY_TEXT_BYTES:
+        return {
+            **base,
+            "status": "invalid",
+            "declaration_path": path.relative_to(project).as_posix(),
+            "findings": [{
+                "code": "domain-adapter-map-too-large",
+                "severity": "non_blocker",
+                "risk": "The adapter declaration cannot be reviewed within the bounded data contract.",
+            }],
+        }
+    try:
+        document = json.loads(path.read_text(encoding="utf-8-sig"))
+    except json.JSONDecodeError:
+        document = None
+    findings: list[dict[str, Any]] = []
+    if not isinstance(document, dict):
+        findings.append({
+            "code": "invalid-domain-adapter-map",
+            "severity": "non_blocker",
+            "risk": "The adapter declaration is not a JSON object.",
+        })
+        document = {}
+    if document.get("schema_version") != DOMAIN_ADAPTER_SCHEMA:
+        findings.append({
+            "code": "unsupported-domain-adapter-schema",
+            "severity": "non_blocker",
+            "risk": "The adapter declaration schema is not supported.",
+        })
+    adapter_id = document.get("adapter_id")
+    if not isinstance(adapter_id, str) or not STABLE_ID_PATTERN.fullmatch(adapter_id):
+        findings.append({
+            "code": "invalid-domain-adapter-id",
+            "severity": "non_blocker",
+            "risk": "The adapter cannot be identified or audited consistently.",
+        })
+        adapter_id = None
+    owner = document.get("owner")
+    if not isinstance(owner, str) or not owner.strip():
+        findings.append({
+            "code": "missing-domain-adapter-owner",
+            "severity": "non_blocker",
+            "risk": "No person or domain component owns the declared mapping.",
+        })
+        owner = None
+    declared_status = document.get("status")
+    if declared_status not in {"declared", "produced", "failed"}:
+        findings.append({
+            "code": "invalid-domain-adapter-status",
+            "severity": "non_blocker",
+            "risk": "The mapping state cannot be distinguished from successful production.",
+        })
+        declared_status = "invalid"
+    target_schema = document.get("target_schema_version")
+    if target_schema != DOMAIN_RECORD_SCHEMA:
+        findings.append({
+            "code": "unsupported-domain-adapter-target",
+            "severity": "non_blocker",
+            "risk": "The declared output cannot be consumed by the current domain-validation handoff.",
+        })
+    source_report: dict[str, Any] | None = None
+    source_raw = document.get("source_path")
+    if not isinstance(source_raw, str):
+        findings.append({
+            "code": "missing-domain-adapter-source",
+            "severity": "non_blocker",
+            "risk": "The mapping has no uniquely identified source record.",
+        })
+    else:
+        try:
+            source = resolve_project_input_file(project, source_raw, "domain adapter source")
+            if source.stat().st_size > MAX_DISCOVERY_TEXT_BYTES:
+                raise ValueError("domain adapter source is too large for bounded inspection")
+            source_document = json.loads(source.read_text(encoding="utf-8-sig"))
+            source_schema = source_document.get("schema_version") if isinstance(source_document, dict) else None
+            declared_source_schema = document.get("source_schema_version")
+            source_report = {
+                "path": source.relative_to(project).as_posix(),
+                "sha256": sha256_file(source),
+                "schema_version": source_schema,
+            }
+            if source_schema != declared_source_schema:
+                findings.append({
+                    "code": "domain-adapter-source-schema-mismatch",
+                    "severity": "non_blocker",
+                    "risk": "The declared mapping does not match the current source record schema.",
+                })
+        except (OSError, ValueError, json.JSONDecodeError) as exc:
+            findings.append({
+                "code": "invalid-domain-adapter-source",
+                "severity": "non_blocker",
+                "risk": str(exc),
+            })
+    output_report: dict[str, Any] | None = None
+    output_raw = document.get("output_record_path")
+    if declared_status == "produced":
+        if not isinstance(output_raw, str):
+            findings.append({
+                "code": "missing-domain-adapter-output",
+                "severity": "non_blocker",
+                "risk": "A produced mapping must name its output record.",
+            })
+        else:
+            try:
+                output = resolve_project_input_file(project, output_raw, "domain adapter output")
+                if output.stat().st_size > MAX_DOMAIN_RECORD_BYTES:
+                    raise ValueError("domain adapter output is too large")
+                output_document = json.loads(output.read_text(encoding="utf-8-sig"))
+                output_schema = output_document.get("schema_version") if isinstance(output_document, dict) else None
+                output_report = {
+                    "path": output.relative_to(project).as_posix(),
+                    "sha256": sha256_file(output),
+                    "schema_version": output_schema,
+                }
+                if output_schema != DOMAIN_RECORD_SCHEMA:
+                    findings.append({
+                        "code": "domain-adapter-output-schema-mismatch",
+                        "severity": "non_blocker",
+                        "risk": "The produced record does not implement the supported validation handoff schema.",
+                    })
+                if domain_record_arg:
+                    bound = resolve_project_input_file(project, domain_record_arg, "domain validation record")
+                    if output != bound:
+                        findings.append({
+                            "code": "domain-adapter-output-not-bound",
+                            "severity": "non_blocker",
+                            "risk": "The produced output differs from the explicitly bound domain-validation record.",
+                        })
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                findings.append({
+                    "code": "invalid-domain-adapter-output",
+                    "severity": "non_blocker",
+                    "risk": str(exc),
+                })
+    effective = "invalid" if findings else str(declared_status)
+    if declared_status == "failed" and not findings:
+        effective = "failed"
+    return {
+        **base,
+        "status": effective,
+        "adapter_id": adapter_id,
+        "owner": owner,
+        "declaration_path": path.relative_to(project).as_posix(),
+        "source": source_report,
+        "target_schema_version": target_schema,
+        "output_record": output_report,
+        "findings": findings,
     }
 
 
@@ -838,7 +1341,11 @@ def build_domain_validation_handoff(
 def readiness_axes(
     *,
     onboarding_state: str,
-    agent_context_state: str,
+    knowledge_state: str,
+    bootstrap_state: str,
+    governance_assets_state: str,
+    project_contract_state: str,
+    governance_verification_state: str,
     governance_state: str,
     domain_handoff: dict[str, Any],
     execution_ready: bool = False,
@@ -852,9 +1359,22 @@ def readiness_axes(
         if domain_state in {"failed", "stale", "invalid"}
         else "not_authorized"
     )
+    if knowledge_state == "absent":
+        agent_context_state = "pending_generation"
+    elif knowledge_state in {"blocked", "ambiguous", "unsafe"} or bootstrap_state in {"ambiguous", "unsafe"}:
+        agent_context_state = "blocked"
+    elif knowledge_state == "ready" and bootstrap_state == "ready":
+        agent_context_state = "ready"
+    else:
+        agent_context_state = "conditional"
     return {
         "onboarding_state": onboarding_state,
         "agent_context_state": agent_context_state,
+        "knowledge_state": knowledge_state,
+        "bootstrap_state": bootstrap_state,
+        "governance_assets_state": governance_assets_state,
+        "project_contract_state": project_contract_state,
+        "governance_verification_state": governance_verification_state,
         "governance_state": governance_state,
         "domain_validation_state": domain_state,
         "execution_state": execution_state,
@@ -872,6 +1392,7 @@ def build_plan(
     domain_validation_record: str | None = None,
     domain_validation_requirement: str = "review-required",
     domain_validation_owner: str | None = None,
+    domain_adapter_map: str | None = None,
 ) -> dict[str, Any]:
     generator = inspect_generator(project, components["generator"])  # type: ignore[arg-type]
     inventory = inspect_workspace(project, components["inventory"])  # type: ignore[arg-type]
@@ -887,6 +1408,21 @@ def build_plan(
     relocation_status = relocation_maps.get("status") if isinstance(relocation_maps, dict) else None
     context_bundles = existing_context_bundles(project)
     context_exists = bool(context_bundles)
+    project_facts = discover_project_facts(project)
+    inventory_summary = artifact_inventory_summary(project, inventory)
+    candidates = domain_evidence_candidates(project, inventory)
+    bootstrap = inspect_bootstrap_state(project, context_bundles)
+    if not context_bundles:
+        knowledge_state = "absent"
+    elif len(context_bundles) > 1:
+        knowledge_state = "ambiguous"
+    elif is_link_like(context_bundles[0]):
+        knowledge_state = "unsafe"
+    else:
+        missing_knowledge = [
+            name for name in REQUIRED_AGENT_FILES if not (context_bundles[0] / name).is_file()
+        ]
+        knowledge_state = "present_unverified" if not missing_knowledge else "incomplete"
     loading_handoff = policy_topology_handoff(project, policy_topology)
     comparison = run_comparison_validation(
         project,
@@ -900,6 +1436,11 @@ def build_plan(
         domain_validation_requirement,
         domain_validation_owner,
     )
+    domain_adapter = build_domain_adapter_handoff(
+        project,
+        domain_adapter_map,
+        domain_validation_record,
+    )
     blockers, non_blockers = findings_from(
         governance_layout,
         project_contract,
@@ -907,6 +1448,7 @@ def build_plan(
         governance_state,
         comparison,
         domain_handoff,
+        domain_adapter,
     )
     governance_blocked = (
         governance_status in {"ambiguous", "unsafe"}
@@ -922,15 +1464,25 @@ def build_plan(
             f"{domain_handoff['requirement']}|{domain_handoff['record_sha256']}|{domain_handoff['owner']}"
         ).encode("utf-8")
     ).hexdigest()[:16]
+    assets_state, contract_state, governance_verification, governance_aggregate = governance_readiness(
+        governance_layout,
+        project_contract,
+        governance_state,
+    )
     readiness = readiness_axes(
         onboarding_state="blocked" if governance_blocked else "review_required",
-        agent_context_state="preserved" if context_exists else "pending_generation",
-        governance_state="blocked" if governance_blocked else "review_required",
+        knowledge_state=knowledge_state,
+        bootstrap_state=str(bootstrap["state"]),
+        governance_assets_state=assets_state,
+        project_contract_state=contract_state,
+        governance_verification_state=governance_verification,
+        governance_state="blocked" if governance_blocked else governance_aggregate,
         domain_handoff=domain_handoff,
     )
     plan: dict[str, Any] = {
         "schema_version": PIPELINE_PLAN_SCHEMA,
         "document_type": "pipeline-plan",
+        "detail_level": "full",
         "pipeline_id": pipeline_id,
         "plan_sha256": "",
         "status": "review_required",
@@ -948,6 +1500,7 @@ def build_plan(
             "comparison_validator": comparison["schema_version"],
             "domain_validator_available": components["domain_validator"] is not None,
             "domain_validation_handoff": DOMAIN_HANDOFF_SCHEMA,
+            "domain_adapter_map": DOMAIN_ADAPTER_SCHEMA,
         },
         "component_bindings": component_bindings(components),
         "governance_layout": governance_layout,
@@ -957,6 +1510,11 @@ def build_plan(
         "agent_loading_audit_handoff": loading_handoff,
         "comparison_contracts": comparison,
         "domain_validation_handoff": domain_handoff,
+        "domain_adapter_handoff": domain_adapter,
+        "domain_evidence_candidates": candidates,
+        "project_facts": project_facts,
+        "inventory_summary": inventory_summary,
+        "bootstrap_inspection": bootstrap,
         "readiness": readiness,
         "role_hints_for_semantic_review": roles,
         "review_gate_inputs": review_gate_inputs(
@@ -969,6 +1527,11 @@ def build_plan(
                 "governance_state",
                 "comparison_contracts",
                 "domain_validation_handoff",
+                "domain_adapter_handoff",
+                "domain_evidence_candidates",
+                "project_facts",
+                "inventory_summary",
+                "bootstrap_inspection",
                 "readiness",
                 "workspace_fingerprint_sha256",
                 "component_actions",
@@ -994,7 +1557,13 @@ def build_plan(
         "component_actions": [
             {
                 "component": "project-agent-generator-skill",
-                "action": "preserve" if context_exists else "create_after_review",
+                "action": (
+                    "create_after_review"
+                    if not context_exists
+                    else "preserve"
+                    if bootstrap["state"] == "ready"
+                    else "bootstrap_only_after_review"
+                ),
                 "mutation_owner": "project-agent-generator-skill",
             },
             {
@@ -1031,6 +1600,9 @@ def build_plan(
             "Comparison validation checks declarations and evidence metadata, not domain science.",
             "Domain validation is an independent evidence-bound handoff and never authorizes project onboarding, Agent-context mutation, or experiment execution by itself.",
             "Onboarding readiness, domain-validation readiness, execution readiness, and claim support are separate axes.",
+            "Knowledge readiness and Codex bootstrap readiness are separate; Agent context is ready only when both are ready.",
+            "Unknown project-local domain records remain untrusted candidates until an explicit human or adapter mapping is reviewed.",
+            "A declared adapter mapping is data only; Pipeline never executes it and adapter status never authorizes execution or claims.",
             "Governance data is untrusted data and is never recursively loaded as Agent instructions.",
         ],
     }
@@ -1045,12 +1617,13 @@ def require_plan(condition: bool, message: str) -> None:
 
 def validate_plan_structure(payload: dict[str, Any]) -> None:
     required = {
-        "schema_version", "document_type", "pipeline_id", "plan_sha256", "status",
+        "schema_version", "document_type", "detail_level", "pipeline_id", "plan_sha256", "status",
         "generated_at", "project_root", "workspace_fingerprint_sha256", "profile",
         "context_action", "context_locations", "component_interfaces",
         "component_bindings", "governance_layout", "project_contract",
         "relocation_maps", "governance_state", "agent_loading_audit_handoff",
-        "comparison_contracts", "domain_validation_handoff", "readiness",
+        "comparison_contracts", "domain_validation_handoff", "domain_adapter_handoff", "domain_evidence_candidates",
+        "project_facts", "inventory_summary", "bootstrap_inspection", "readiness",
         "role_hints_for_semantic_review",
         "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants",
     }
@@ -1058,6 +1631,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(not missing, "missing required fields: " + ", ".join(missing))
     require_plan(payload.get("schema_version") == PIPELINE_PLAN_SCHEMA, "wrong plan schema")
     require_plan(payload.get("document_type") == "pipeline-plan", "wrong document_type")
+    require_plan(payload.get("detail_level") == "full", "stored plans must contain full detail")
     require_plan(isinstance(payload.get("pipeline_id"), str) and bool(STABLE_ID_PATTERN.fullmatch(payload["pipeline_id"])), "pipeline_id must be a stable identifier")
     require_plan(isinstance(payload.get("plan_sha256"), str) and bool(SHA256_PATTERN.fullmatch(payload["plan_sha256"])), "plan_sha256 must be SHA-256")
     require_plan(payload.get("status") == "review_required", "status must be review_required")
@@ -1075,6 +1649,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         "project_agent_generator", "research_workspace_inventory",
         "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator",
         "domain_validator_available", "domain_validation_handoff",
+        "domain_adapter_map",
     }
     require_plan(isinstance(interfaces, dict) and interface_fields <= set(interfaces), "component_interfaces is incomplete")
     require_plan(interfaces.get("project_agent_generator") == GENERATOR_SCHEMA, "generator interface mismatch")
@@ -1084,6 +1659,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(interfaces.get("comparison_validator") == COMPARISON_SCHEMA, "comparison interface mismatch")
     require_plan(isinstance(interfaces.get("domain_validator_available"), bool), "domain validator availability must be boolean")
     require_plan(interfaces.get("domain_validation_handoff") == DOMAIN_HANDOFF_SCHEMA, "domain-validation handoff interface mismatch")
+    require_plan(interfaces.get("domain_adapter_map") == DOMAIN_ADAPTER_SCHEMA, "domain-adapter interface mismatch")
 
     bindings = payload.get("component_bindings")
     expected_bindings = {"generator", "inventory", "knowledge", "comparison_validator", "domain_validator"}
@@ -1163,14 +1739,30 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     if domain_handoff.get("effective_state") != "verified":
         require_plan(domain_handoff.get("claim_ceiling") == "unsupported", "unverified domain work cannot support claims")
 
+    domain_adapter = payload.get("domain_adapter_handoff")
+    require_plan(isinstance(domain_adapter, dict), "domain-adapter handoff must be an object")
+    require_plan(domain_adapter.get("schema_version") == DOMAIN_ADAPTER_SCHEMA, "domain-adapter schema mismatch")
+    require_plan(domain_adapter.get("status") in {"not_declared", "declared", "produced", "failed", "invalid"}, "invalid domain-adapter status")
+    require_plan(domain_adapter.get("authorization_effect") == "none", "domain adapter must not authorize work")
+    require_plan(domain_adapter.get("executed_by_pipeline") is False, "Pipeline must not execute domain adapters")
+    require_plan(domain_adapter.get("content_treated_as_data") is True, "domain-adapter content must be data")
+    require_plan(isinstance(domain_adapter.get("findings"), list), "domain-adapter findings must be an array")
+
     readiness = payload.get("readiness")
     readiness_fields = {
-        "onboarding_state", "agent_context_state", "governance_state",
+        "onboarding_state", "agent_context_state", "knowledge_state", "bootstrap_state",
+        "governance_assets_state", "project_contract_state",
+        "governance_verification_state", "governance_state",
         "domain_validation_state", "execution_state", "claim_state",
     }
     require_plan(isinstance(readiness, dict) and set(readiness) == readiness_fields, "readiness axes are incomplete")
     require_plan(readiness.get("onboarding_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid onboarding readiness")
-    require_plan(readiness.get("agent_context_state") in {"pending_generation", "preserved", "ready", "blocked"}, "invalid Agent-context readiness")
+    require_plan(readiness.get("agent_context_state") in {"pending_generation", "conditional", "ready", "blocked"}, "invalid Agent-context readiness")
+    require_plan(readiness.get("knowledge_state") in {"absent", "present_unverified", "incomplete", "ready", "conditional", "blocked", "ambiguous", "unsafe"}, "invalid knowledge readiness")
+    require_plan(readiness.get("bootstrap_state") in {"absent", "missing", "partial", "ready", "ambiguous", "unsafe"}, "invalid bootstrap readiness")
+    require_plan(readiness.get("governance_assets_state") in {"absent", "present", "unsafe"}, "invalid governance-assets readiness")
+    require_plan(readiness.get("project_contract_state") in {"valid", "legacy", "invalid", "absent", "not_checked"}, "invalid project-contract readiness")
+    require_plan(readiness.get("governance_verification_state") in {"review_required", "ready", "blocked"}, "invalid governance-verification readiness")
     require_plan(readiness.get("governance_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid governance readiness")
     require_plan(readiness.get("domain_validation_state") == domain_handoff.get("effective_state"), "domain readiness conflicts with handoff")
     require_plan(readiness.get("execution_state") in {"not_authorized", "ready_for_authorization", "blocked"}, "invalid execution readiness")
@@ -1195,6 +1787,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         payload["governance_state"],
         comparison,
         domain_handoff,
+        domain_adapter,
     )
     require_plan(gate["blockers"] == expected_blockers, "review gate blockers do not match component findings")
     require_plan(gate["non_blockers"] == expected_non_blockers, "review gate non-blockers do not match component findings")
@@ -1233,7 +1826,13 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         require_plan(action.get("mutation_owner") == expected_owners[component], f"component {component} has an ownership conflict")
         require_plan(isinstance(action.get("action"), str) and bool(action["action"].strip()), f"component {component} needs an action")
         expected_action = {
-            "project-agent-generator-skill": "preserve" if payload["context_action"] == "preserve_and_audit" else "create_after_review",
+            "project-agent-generator-skill": (
+                "create_after_review"
+                if payload["context_action"] == "create_after_framework"
+                else "preserve"
+                if payload["bootstrap_inspection"]["state"] == "ready"
+                else "bootstrap_only_after_review"
+            ),
             "research-workspace-governance": "resolve_or_initialize_governance_records",
             "neat-freak": "audit_agent_knowledge_and_loading",
             "experiment-protocol-audit": (
@@ -1254,6 +1853,10 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         "governance_layout", "project_contract", "relocation_maps", "governance_state",
     ):
         require_plan(inventory_snapshot.get(section_name) == payload[section_name], f"inventory snapshot {section_name} conflicts with the plan")
+    require_plan(isinstance(payload.get("project_facts"), dict), "project facts must be an object")
+    require_plan(isinstance(payload.get("inventory_summary"), dict), "inventory summary must be an object")
+    require_plan(isinstance(payload.get("bootstrap_inspection"), dict), "bootstrap inspection must be an object")
+    require_plan(isinstance(payload.get("domain_evidence_candidates"), list), "domain evidence candidates must be an array")
     invariants = payload.get("invariants")
     require_plan(isinstance(invariants, list) and bool(invariants) and all(isinstance(item, str) and item.strip() for item in invariants), "invariants must be a non-empty string array")
 
@@ -1284,7 +1887,7 @@ def load_and_validate_plan(path: Path, project: Path, confirmed_hash: str) -> di
     if not isinstance(payload, dict):
         raise ValueError("unsupported pipeline plan")
     if payload.get("schema_version") in LEGACY_PIPELINE_SCHEMAS:
-        raise ValueError("legacy pipeline plan is recognized but cannot authorize mutation; rerun plan to create v4")
+        raise ValueError("legacy pipeline plan is recognized but cannot authorize mutation; rerun plan to create v5")
     if payload.get("schema_version") != PIPELINE_PLAN_SCHEMA:
         raise ValueError("unsupported pipeline plan")
     validate_plan_structure(payload)
@@ -1299,6 +1902,152 @@ def load_and_validate_plan(path: Path, project: Path, confirmed_hash: str) -> di
     return payload
 
 
+def next_action_record(
+    *,
+    owner: str,
+    action: str,
+    inputs: list[str],
+    expected_output: str,
+    verification: str,
+    stop_condition: str,
+) -> dict[str, Any]:
+    return {
+        "owner": owner,
+        "action": action,
+        "inputs": inputs,
+        "expected_output": expected_output,
+        "verification": verification,
+        "stop_condition": stop_condition,
+    }
+
+
+def build_next_actions(
+    readiness: dict[str, Any],
+    bootstrap: dict[str, Any],
+    domain_candidates: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    actions: list[dict[str, Any]] = []
+    if readiness.get("knowledge_state") == "absent":
+        actions.append(next_action_record(
+            owner="project-agent-generator-skill",
+            action="Create the initial project Agent bundle after plan approval.",
+            inputs=["reviewed pipeline plan", "project root"],
+            expected_output="A complete project-contained .agents or .agent bundle and Codex bootstrap.",
+            verification="Rerun pipeline verify and Neat-Freak bootstrap-audit.",
+            stop_condition="Stop if an Agent bundle appears, the project fingerprint changes, or any target conflicts.",
+        ))
+    elif bootstrap.get("state") != "ready":
+        actions.append(next_action_record(
+            owner="project-agent-generator-skill",
+            action="Preview bootstrap-only completion without modifying the existing Agent knowledge bundle.",
+            inputs=["existing Agent bundle", "bootstrap-only preview manifest"],
+            expected_output="A hash-bound preview covering only missing Codex Hook, loader, config, and launcher files.",
+            verification="Confirm no .agents knowledge file changes and run Neat-Freak bootstrap-audit after apply.",
+            stop_condition="Stop on any existing target difference, unsafe path, ambiguous bundle, or preview hash drift.",
+        ))
+    if readiness.get("governance_verification_state") != "ready":
+        actions.append(next_action_record(
+            owner="research-workspace-governance",
+            action="Review the governance authority, optional project contract, and current scoped status.",
+            inputs=["governance layout", "project contract state", "governance status records"],
+            expected_output="An explicit ready, review-required, or blocked governance decision.",
+            verification="Rerun read-only inventory and confirm the same authority resolves uniquely.",
+            stop_condition="Stop on ambiguous locations, unsafe paths, invalid schema, or multiple current states in one scope.",
+        ))
+    if domain_candidates:
+        actions.append(next_action_record(
+            owner="project owner or declared domain Skill",
+            action="Review untrusted domain-evidence candidates and explicitly map or reject them.",
+            inputs=[item["path"] for item in domain_candidates[:10]],
+            expected_output="A declared, evidence-bound domain-validation handoff or an explicit rejection.",
+            verification="Confirm no candidate alone changes execution authorization or claim support.",
+            stop_condition="Stop if schema meaning, provenance, owner, or evidence binding is ambiguous.",
+        ))
+    if not actions:
+        actions.append(next_action_record(
+            owner="project owner",
+            action="Review the verification evidence and decide whether to authorize the next project-specific step.",
+            inputs=["readiness axes", "review gate", "evidence summary"],
+            expected_output="An explicit approval or rejection scoped to one next action.",
+            verification="Record the decision and rerun verification after any change.",
+            stop_condition="Stop if evidence changes or the requested action exceeds the reviewed scope.",
+        ))
+    return actions
+
+
+def bounded_items(items: list[Any], limit: int = 10) -> dict[str, Any]:
+    return {
+        "items": items[:limit],
+        "total_count": len(items),
+        "omitted_count": max(0, len(items) - limit),
+    }
+
+
+def summarize_project_facts(facts: dict[str, Any]) -> dict[str, Any]:
+    summary: dict[str, Any] = {}
+    for key, value in facts.items():
+        if isinstance(value, list):
+            if key == "recommended_test_command":
+                summary[key] = value
+            elif key == "test_command_candidates":
+                candidates: list[dict[str, Any]] = []
+                for item in value[:5]:
+                    if not isinstance(item, dict):
+                        continue
+                    copied = dict(item)
+                    evidence = copied.get("evidence")
+                    if isinstance(evidence, list):
+                        copied["evidence"] = bounded_items(evidence, 5)
+                    candidates.append(copied)
+                summary[key] = {
+                    "items": candidates,
+                    "total_count": len(value),
+                    "omitted_count": max(0, len(value) - len(candidates)),
+                }
+            else:
+                summary[key] = bounded_items(value)
+        else:
+            summary[key] = value
+    return summary
+
+
+def summarize_review_gate(gate: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "result": gate.get("result"),
+        "blockers": bounded_items(gate.get("blockers", []) if isinstance(gate.get("blockers"), list) else []),
+        "non_blockers": bounded_items(gate.get("non_blockers", []) if isinstance(gate.get("non_blockers"), list) else []),
+        "evidence": bounded_items(gate.get("evidence", []) if isinstance(gate.get("evidence"), list) else []),
+        "human_summary_required": gate.get("human_summary_required"),
+    }
+
+
+def summarize_plan(plan: dict[str, Any]) -> dict[str, Any]:
+    gate = plan["review_gate_inputs"]
+    return result_document(
+        "plan_ready",
+        detail_level="summary",
+        verification_result="review_required",
+        project_root=plan["project_root"],
+        pipeline_id=plan["pipeline_id"],
+        plan_schema_version=plan["schema_version"],
+        plan_sha256=plan["plan_sha256"],
+        status=plan["status"],
+        readiness=plan["readiness"],
+        project_facts=summarize_project_facts(plan["project_facts"]),
+        inventory_summary=plan["inventory_summary"],
+        bootstrap_inspection=plan["bootstrap_inspection"],
+        domain_adapter_handoff=plan["domain_adapter_handoff"],
+        domain_evidence_candidates=bounded_items(plan["domain_evidence_candidates"]),
+        review_gate=summarize_review_gate(gate),
+        next_actions=build_next_actions(
+            plan["readiness"],
+            plan["bootstrap_inspection"],
+            plan["domain_evidence_candidates"],
+        ),
+        note="Use --full for the complete read-only plan or --output for a hash-bound review artifact.",
+    )
+
+
 def command_plan(args: argparse.Namespace, components: dict[str, Path | None]) -> int:
     project = resolve_project_root(args.project)
     profile = "minimal" if args.profile == "lightweight" else args.profile
@@ -1311,6 +2060,7 @@ def command_plan(args: argparse.Namespace, components: dict[str, Path | None]) -
         domain_validation_record=args.domain_validation_record,
         domain_validation_requirement=args.domain_validation,
         domain_validation_owner=args.domain_validation_owner,
+        domain_adapter_map=args.domain_adapter_map,
     )
     if args.output:
         output = Path(args.output).expanduser().resolve(strict=False)
@@ -1324,7 +2074,7 @@ def command_plan(args: argparse.Namespace, components: dict[str, Path | None]) -
             pipeline_id=plan["pipeline_id"],
         ), compact=args.compact)
     else:
-        emit(plan, compact=args.compact)
+        emit(plan if args.full else summarize_plan(plan), compact=args.compact)
     return 0
 
 
@@ -1340,7 +2090,8 @@ def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | Non
             maintenance_owner="neat-freak",
             message=(
                 "Initial Agent context already exists. Use Neat-Freak for reviewed "
-                "project-information maintenance."
+                "project-information maintenance. If only project-local Codex startup "
+                "files are missing, use the Pipeline bootstrap-only preview/apply path."
             ),
         ), compact=args.compact)
         return 0 if not args.apply else 1
@@ -1429,6 +2180,189 @@ def command_bootstrap(args: argparse.Namespace, components: dict[str, Path | Non
     return 0
 
 
+def generator_bootstrap_preview(project: Path, bundle: Path, generator: Path) -> dict[str, Any]:
+    process = run_process([
+        sys.executable,
+        "-B",
+        "-X",
+        "utf8",
+        str(generator),
+        str(project),
+        "--out-dir",
+        bundle.relative_to(project).as_posix(),
+        "--bootstrap-only",
+        "--dry-run",
+        "--json",
+    ])
+    payload = parse_component_json(process, "project-agent bootstrap-only preview")
+    manifest = payload.get("manifest")
+    if payload.get("status") != "planned" or not isinstance(manifest, dict):
+        raise ComponentError("project-agent bootstrap-only preview was incomplete")
+    return manifest
+
+
+def build_bootstrap_preview(project: Path, bundle: Path, generator: Path) -> dict[str, Any]:
+    manifest = generator_bootstrap_preview(project, bundle, generator)
+    preview: dict[str, Any] = {
+        "schema_version": BOOTSTRAP_PREVIEW_SCHEMA,
+        "document_type": "bootstrap-only-preview",
+        "project_root": str(project),
+        "agent_bundle": bundle.relative_to(project).as_posix(),
+        "generator_binding": {
+            "path": str(generator.resolve(strict=True)),
+            "sha256": sha256_file(generator),
+        },
+        "manifest": manifest,
+        "safety_contract": {
+            "preserve_agent_bundle": True,
+            "create_only": True,
+            "stop_on_existing_difference": True,
+            "post_apply_owner": "neat-freak",
+        },
+        "preview_sha256": "",
+    }
+    preview["preview_sha256"] = canonical_field_hash(preview, "preview_sha256")
+    return preview
+
+
+def load_bootstrap_preview(path: Path, project: Path, confirmed_hash: str) -> dict[str, Any]:
+    requested = path.expanduser().absolute()
+    if first_link_component(requested) is not None or is_link_like(requested):
+        raise ValueError("bootstrap preview must be a regular non-linked file")
+    resolved = requested.resolve(strict=True)
+    if is_relative_to(resolved, project):
+        raise ValueError("bootstrap preview must be outside the target project")
+    if not resolved.is_file() or resolved.stat().st_size > MAX_PLAN_BYTES:
+        raise ValueError("bootstrap preview must be a regular JSON file no larger than 5 MiB")
+    payload = json.loads(resolved.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or payload.get("schema_version") != BOOTSTRAP_PREVIEW_SCHEMA:
+        raise ValueError("unsupported bootstrap preview")
+    embedded = str(payload.get("preview_sha256", "")).casefold()
+    if not SHA256_PATTERN.fullmatch(embedded):
+        raise ValueError("bootstrap preview has no valid hash")
+    if canonical_field_hash(payload, "preview_sha256").casefold() != embedded:
+        raise ValueError("bootstrap preview content does not match its embedded hash")
+    if confirmed_hash.casefold() != embedded:
+        raise ValueError("confirmation hash does not match the reviewed bootstrap preview")
+    raw_project_root = payload.get("project_root")
+    if not isinstance(raw_project_root, str) or not raw_project_root.strip():
+        raise ValueError("bootstrap preview has no valid project root")
+    if os.path.normcase(str(Path(raw_project_root).resolve())) != os.path.normcase(str(project)):
+        raise ValueError("bootstrap preview targets a different project root")
+    return payload
+
+
+def command_bootstrap_only(args: argparse.Namespace, components: dict[str, Path | None]) -> int:
+    project = resolve_project_root(args.project)
+    bundles = existing_context_bundles(project)
+    if len(bundles) != 1:
+        raise ValueError("bootstrap-only requires exactly one existing .agents or .agent bundle")
+    bundle = bundles[0]
+    if is_link_like(bundle):
+        raise ValueError("bootstrap-only refuses a linked or junction-based Agent bundle")
+    generator = components["generator"]
+    assert isinstance(generator, Path)
+
+    if not args.apply:
+        preview = build_bootstrap_preview(project, bundle, generator)
+        manifest = preview["manifest"]
+        if args.output:
+            output = Path(args.output).expanduser().resolve(strict=False)
+            if is_relative_to(output, project):
+                raise ValueError("bootstrap preview output must be outside the target project")
+            write_json_new(output, preview, compact=args.compact)
+            emit(result_document(
+                "bootstrap_only_preview_written",
+                detail_level="summary",
+                project_root=str(project),
+                path=str(output),
+                preview_sha256=preview["preview_sha256"],
+                manifest_sha256=manifest["manifest_sha256"],
+                conflict_count=manifest["conflict_count"],
+            ), compact=args.compact)
+        else:
+            emit(result_document(
+                "bootstrap_only_preview",
+                detail_level="summary",
+                project_root=str(project),
+                preview_sha256=preview["preview_sha256"],
+                generator_binding=preview["generator_binding"],
+                safety_contract=preview["safety_contract"],
+                manifest=manifest,
+            ), compact=args.compact)
+        return 0
+
+    if not args.manifest or not args.confirm_manifest_sha256:
+        raise ValueError("bootstrap-only --apply requires --manifest and --confirm-manifest-sha256")
+    reviewed = load_bootstrap_preview(
+        Path(args.manifest),
+        project,
+        args.confirm_manifest_sha256,
+    )
+    binding = reviewed.get("generator_binding", {})
+    if not isinstance(binding, dict):
+        raise ValueError("bootstrap preview has no generator binding")
+    if os.path.normcase(str(generator.resolve(strict=True))) != os.path.normcase(str(binding.get("path"))):
+        raise ValueError("Generator differs from the reviewed bootstrap preview")
+    if sha256_file(generator).casefold() != str(binding.get("sha256", "")).casefold():
+        raise ValueError("Generator changed since bootstrap preview; rerun preview")
+    current = build_bootstrap_preview(project, bundle, generator)
+    if current.get("manifest") != reviewed.get("manifest"):
+        raise ValueError("bootstrap targets changed since preview; rerun preview")
+    manifest = current["manifest"]
+    if int(manifest.get("conflict_count", 0)):
+        raise ValueError("bootstrap-only preview contains existing-file conflicts")
+    process = run_process([
+        sys.executable,
+        "-B",
+        "-X",
+        "utf8",
+        str(generator),
+        str(project),
+        "--out-dir",
+        bundle.relative_to(project).as_posix(),
+        "--bootstrap-only",
+        "--json",
+        "--confirm-bootstrap-sha256",
+        str(manifest["manifest_sha256"]),
+    ])
+    applied = parse_component_json(process, "project-agent bootstrap-only apply")
+    bootstrap = inspect_bootstrap_state(project, bundles)
+    if bootstrap["state"] != "ready":
+        raise ComponentError("bootstrap-only apply did not create a complete bootstrap")
+    audit: dict[str, Any] = {"status": "unavailable"}
+    exit_code = 1
+    knowledge = components["knowledge"]
+    if isinstance(knowledge, Path):
+        audit = run_knowledge_audit(
+            project,
+            knowledge,
+            "bootstrap-audit",
+            f"{bundle.name}/memory",
+        )
+        exit_code = int(audit["exit_code"])
+    verification_result = "pass" if exit_code == 0 else "conditional" if exit_code == 1 else "fail"
+    emit(result_document(
+        "bootstrap_only_applied",
+        detail_level="summary",
+        verification_result=verification_result,
+        project_root=str(project),
+        preview_sha256=reviewed["preview_sha256"],
+        changed_paths=applied.get("changed_paths", []),
+        bootstrap_inspection=bootstrap,
+        neat_freak_bootstrap_audit=audit,
+        next_actions=[next_action_record(
+            owner="neat-freak",
+            action="Maintain project knowledge and re-audit Agent loading after future project changes.",
+            inputs=[bundle.relative_to(project).as_posix(), ".codex/hooks.json"],
+            expected_output="Updated project knowledge with a passing or explicitly conditional loading audit.",
+            verification="Run pipeline verify and inspect knowledge_state and bootstrap_state independently.",
+            stop_condition="Stop on ownership conflict, recursive governance loading, or an unsafe bootstrap path.",
+        )],
+    ), compact=args.compact)
+    return exit_code
+
+
 def run_knowledge_audit(
     project: Path,
     script: Path,
@@ -1463,6 +2397,9 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     assert isinstance(inventory_path, Path)
     generator = inspect_generator(project, generator_path)
     inventory = inspect_workspace(project, inventory_path)
+    project_facts = discover_project_facts(project)
+    inventory_summary = artifact_inventory_summary(project, inventory)
+    candidates = domain_evidence_candidates(project, inventory)
     loading_handoff = policy_topology_handoff(project, args.policy_topology)
     comparison = run_comparison_validation(
         project,
@@ -1476,6 +2413,11 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         args.domain_validation,
         args.domain_validation_owner,
     )
+    domain_adapter = build_domain_adapter_handoff(
+        project,
+        args.domain_adapter_map,
+        args.domain_validation_record,
+    )
     comparison_code = int(comparison["summary"]["exit_code"])
     governance_layout = inventory.get("governance_layout", {})
     project_contract = inventory.get("project_contract", {})
@@ -1485,9 +2427,14 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     contract_status = project_contract.get("status") if isinstance(project_contract, dict) else None
     state_status = governance_state.get("status") if isinstance(governance_state, dict) else None
     relocation_status = relocation_maps.get("status") if isinstance(relocation_maps, dict) else None
+    assets_state, contract_state, governance_verification, governance_aggregate = governance_readiness(
+        governance_layout,
+        project_contract,
+        governance_state,
+    )
     if governance_status in {"ambiguous", "unsafe"} or contract_status == "invalid" or relocation_status == "invalid" or state_status == "invalid":
         governance_code = 2
-    elif governance_status == "absent":
+    elif governance_verification != "ready":
         governance_code = 1
     else:
         governance_code = 0
@@ -1495,17 +2442,25 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     context_ambiguity = len(context_bundles) > 1
     agents_dir = context_bundles[0] if context_bundles else project / ".agents"
     context_link_detected = bool(context_bundles and is_link_like(agents_dir))
+    bootstrap_inspection = inspect_bootstrap_state(project, context_bundles)
     missing = [
         f"{agents_dir.name}/{name}"
         for name in REQUIRED_AGENT_FILES
         if context_link_detected or not (agents_dir / name).is_file()
     ]
     knowledge_results: dict[str, Any] = {"status": "unavailable"}
-    worst_code = 0
+    knowledge_code = 1
+    bootstrap_audit_code = 1
     knowledge_script = components["knowledge"]
     if context_ambiguity:
         knowledge_results = {"status": "skipped_context_ambiguity"}
-    elif isinstance(knowledge_script, Path) and not context_link_detected:
+        knowledge_code = 2
+        bootstrap_audit_code = 2
+    elif context_link_detected:
+        knowledge_results = {"status": "skipped_unsafe_context"}
+        knowledge_code = 2
+        bootstrap_audit_code = 2
+    elif isinstance(knowledge_script, Path) and context_bundles:
         memory_directory = f"{agents_dir.name}/memory"
         audit: dict[str, Any] = {"status": "skipped_missing_context"}
         if (agents_dir / "memory").is_dir():
@@ -1528,29 +2483,34 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
                 )
             ),
         }
-        worst_code = int(bootstrap["exit_code"])
-        if "exit_code" in audit:
-            worst_code = max(int(audit["exit_code"]), worst_code)
+        bootstrap_audit_code = int(bootstrap["exit_code"])
+        knowledge_code = int(audit["exit_code"]) if "exit_code" in audit else 2
+    elif not context_bundles:
+        knowledge_results = {"status": "skipped_missing_context"}
+        knowledge_code = 2
+        bootstrap_audit_code = 1
 
     scan = inventory.get("scan", {})
-    loading_code = worst_code
+    if missing:
+        knowledge_code = 2
+    physical_bootstrap_state = str(bootstrap_inspection["state"])
+    if physical_bootstrap_state in {"unsafe", "ambiguous"}:
+        bootstrap_code = 2
+    elif physical_bootstrap_state != "ready":
+        bootstrap_code = 1
+    else:
+        bootstrap_code = bootstrap_audit_code
+    loading_code = max(knowledge_code, bootstrap_code)
     if args.policy_topology and knowledge_results["status"] != "executed":
         loading_code = 2
-    if missing or loading_code == 2 or context_link_detected or comparison_code == 2 or governance_code == 2:
+    if missing or loading_code == 2 or context_link_detected or context_ambiguity or comparison_code == 2 or governance_code == 2:
         onboarding_state = "blocked"
-        exit_code = 2
-    elif context_ambiguity:
-        onboarding_state = "conditional"
-        exit_code = 1
     elif scan.get("scan_truncated") or int(scan.get("unreadable_count", 0)) > 0:
         onboarding_state = "conditional"
-        exit_code = 1
     elif knowledge_results["status"] == "unavailable" or loading_code == 1 or comparison_code == 1 or governance_code == 1:
         onboarding_state = "conditional"
-        exit_code = 1
     else:
         onboarding_state = "ready"
-        exit_code = 0
     blockers, non_blockers = findings_from(
         governance_layout,
         project_contract,
@@ -1558,6 +2518,7 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         governance_state,
         comparison,
         domain_handoff,
+        domain_adapter,
     )
     if missing:
         blockers.append({"code": "missing-agent-files", "severity": "blocker", "paths": missing})
@@ -1565,6 +2526,25 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         blockers.append({"code": "context-ambiguity", "severity": "blocker", "candidate_interpretations": [path.name for path in context_bundles]})
     if args.policy_topology and knowledge_results["status"] != "executed":
         blockers.append({"code": "agent-loading-audit-not-executed", "severity": "blocker", "owner": "neat-freak"})
+    if bootstrap_inspection["state"] in {"missing", "partial", "absent"}:
+        non_blockers.append({
+            "code": "bootstrap-incomplete",
+            "severity": "non_blocker",
+            "missing_paths": bootstrap_inspection["missing"],
+            "owner": "project-agent-generator-skill",
+        })
+    if bootstrap_inspection["state"] == "unsafe":
+        blockers.append({
+            "code": "unsafe-bootstrap-path",
+            "severity": "blocker",
+            "paths": bootstrap_inspection.get("unsafe", []),
+        })
+    if knowledge_code == 1:
+        non_blockers.append({
+            "code": "knowledge-audit-conditional",
+            "severity": "non_blocker",
+            "owner": "neat-freak",
+        })
     gate = review_gate_inputs(
         blockers=blockers,
         non_blockers=non_blockers,
@@ -1575,6 +2555,11 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
             "knowledge_and_bootstrap",
             "comparison_contracts",
             "domain_validation_handoff",
+            "domain_adapter_handoff",
+            "domain_evidence_candidates",
+            "project_facts",
+            "inventory_summary",
+            "bootstrap_inspection",
             "readiness",
         ],
         unvalidated=(
@@ -1588,26 +2573,38 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         ),
     )
     domain_state = str(domain_handoff["effective_state"])
-    if exit_code < 2 and domain_state in {"failed", "stale", "invalid"}:
-        exit_code = 1
-    elif exit_code == 0 and domain_state == "not_declared" and domain_handoff["requirement"] != "optional":
-        exit_code = 1
-    elif exit_code == 0 and domain_state == "pending":
-        exit_code = 1
+    if missing or context_ambiguity or context_link_detected or knowledge_code == 2:
+        knowledge_state = "blocked"
+    elif knowledge_code == 0:
+        knowledge_state = "ready"
+    else:
+        knowledge_state = "conditional"
     readiness = readiness_axes(
         onboarding_state=onboarding_state,
-        agent_context_state=(
-            "blocked"
-            if missing or context_ambiguity or context_link_detected
-            else "ready"
-        ),
-        governance_state=(
-            "blocked" if governance_code == 2 else "conditional" if governance_code == 1 else "ready"
-        ),
+        knowledge_state=knowledge_state,
+        bootstrap_state=physical_bootstrap_state,
+        governance_assets_state=assets_state,
+        project_contract_state=contract_state,
+        governance_verification_state=governance_verification,
+        governance_state=governance_aggregate,
         domain_handoff=domain_handoff,
     )
-    emit(result_document(
+    conditional = (
+        onboarding_state != "ready"
+        or domain_state in {"not_declared", "pending", "failed", "stale", "invalid"}
+        and domain_handoff["requirement"] != "optional"
+    )
+    verification_result = "fail" if blockers else "conditional" if conditional else "pass"
+    exit_code = 0 if verification_result == "pass" else 1
+    full_result = result_document(
         "verification_complete",
+        detail_level="full",
+        verification_result=verification_result,
+        exit_code_contract={
+            "0": "verification passed",
+            "1": "verification completed but did not pass",
+            "2": "tool execution or input error",
+        },
         mode="read-only-verification",
         project_root=str(project),
         context_locations=[path.name for path in context_bundles],
@@ -1616,18 +2613,33 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
         missing_agent_files=missing,
         project_agent_inspection=generator,
         workspace_inventory=inventory,
+        project_facts=project_facts,
+        inventory_summary=inventory_summary,
+        bootstrap_inspection=bootstrap_inspection,
         agent_loading_audit_handoff=loading_handoff,
         comparison_contracts=comparison,
         domain_validation_handoff=domain_handoff,
+        domain_adapter_handoff=domain_adapter,
+        domain_evidence_candidates=candidates,
         readiness=readiness,
         knowledge_and_bootstrap=knowledge_results,
         review_gate_inputs=gate,
-        next_action=(
-            "Run research-workspace-governance adversarial review against the approved architecture plan."
-            if onboarding_state != "blocked"
-            else "Resolve blocking context or audit failures before continuing."
-        ),
-    ), compact=args.compact)
+        next_actions=build_next_actions(readiness, bootstrap_inspection, candidates),
+    )
+    if args.full:
+        emitted = full_result
+    else:
+        emitted = {
+            key: value
+            for key, value in full_result.items()
+            if key not in {"project_agent_inspection", "workspace_inventory", "knowledge_and_bootstrap"}
+        }
+        emitted["detail_level"] = "summary"
+        emitted["project_facts"] = summarize_project_facts(project_facts)
+        emitted["domain_evidence_candidates"] = bounded_items(candidates)
+        emitted["review_gate_inputs"] = summarize_review_gate(gate)
+        emitted["note"] = "Use --full for component snapshots and complete audit payloads."
+    emit(emitted, compact=args.compact)
     return exit_code
 
 
@@ -1692,6 +2704,11 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--domain-validation-owner",
         help="Named human owner required for a record-free not-applicable decision",
     )
+    plan.add_argument(
+        "--domain-adapter-map",
+        help="Project-contained declarative adapter map; treated as data and never executed",
+    )
+    plan.add_argument("--full", action="store_true", help="Emit the complete plan instead of the bounded summary")
     plan.add_argument("--compact", action="store_true")
 
     bootstrap = subparsers.add_parser(
@@ -1703,6 +2720,17 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     bootstrap.add_argument("--plan")
     bootstrap.add_argument("--confirm-plan-sha256")
     bootstrap.add_argument("--compact", action="store_true")
+
+    bootstrap_only = subparsers.add_parser(
+        "bootstrap-only",
+        help="Preview or apply only missing Codex bootstrap files for one existing Agent bundle",
+    )
+    bootstrap_only.add_argument("project")
+    bootstrap_only.add_argument("--apply", action="store_true")
+    bootstrap_only.add_argument("--output", help="Write a new hash-bound preview outside the project")
+    bootstrap_only.add_argument("--manifest", help="Reviewed bootstrap preview outside the project")
+    bootstrap_only.add_argument("--confirm-manifest-sha256")
+    bootstrap_only.add_argument("--compact", action="store_true")
 
     verify = subparsers.add_parser("verify", help="Verify the integrated project without writing")
     verify.add_argument("project")
@@ -1730,8 +2758,19 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
         "--domain-validation-owner",
         help="Named human owner required for a record-free not-applicable decision",
     )
+    verify.add_argument(
+        "--domain-adapter-map",
+        help="Project-contained declarative adapter map; treated as data and never executed",
+    )
+    verify.add_argument("--full", action="store_true", help="Emit complete component and audit payloads")
     verify.add_argument("--compact", action="store_true")
-    return parser.parse_args(argv)
+    args = parser.parse_args(argv)
+    if args.command == "bootstrap-only":
+        if args.apply and args.output:
+            parser.error("bootstrap-only --apply does not accept --output")
+        if not args.apply and (args.manifest or args.confirm_manifest_sha256):
+            parser.error("bootstrap-only preview does not accept apply-only manifest arguments")
+    return args
 
 
 def main(argv: list[str]) -> int:
@@ -1742,6 +2781,8 @@ def main(argv: list[str]) -> int:
             return command_plan(args, components)
         if args.command == "bootstrap-agents":
             return command_bootstrap(args, components)
+        if args.command == "bootstrap-only":
+            return command_bootstrap_only(args, components)
         if args.command == "verify":
             return command_verify(args, components)
         raise ValueError(f"unsupported command: {args.command}")

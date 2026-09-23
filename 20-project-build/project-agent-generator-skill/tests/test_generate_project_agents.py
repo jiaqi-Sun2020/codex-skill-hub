@@ -381,6 +381,88 @@ class GeneratorSafetyTests(unittest.TestCase):
                 (project / ".agents" / "scripts" / "start-codex.ps1").exists()
             )
 
+    def test_bootstrap_only_preview_and_apply_preserve_existing_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            bundle = project / ".agents"
+            bundle.mkdir()
+            original = "# Owner-authored instructions\n"
+            (bundle / "AGENTS.md").write_text(original, encoding="utf-8")
+
+            preview_stream = io.StringIO()
+            with redirect_stdout(preview_stream):
+                result = generator.main([
+                    str(project), "--bootstrap-only", "--dry-run", "--json",
+                ])
+            self.assertEqual(result, 0)
+            preview = json.loads(preview_stream.getvalue())
+            manifest = preview["manifest"]
+            self.assertEqual(manifest["conflict_count"], 0)
+            self.assertFalse((project / ".codex").exists())
+            self.assertEqual((bundle / "AGENTS.md").read_text(encoding="utf-8"), original)
+
+            apply_stream = io.StringIO()
+            with redirect_stdout(apply_stream):
+                result = generator.main([
+                    str(project), "--bootstrap-only", "--json",
+                    "--confirm-bootstrap-sha256", manifest["manifest_sha256"],
+                ])
+            self.assertEqual(result, 0)
+            applied = json.loads(apply_stream.getvalue())
+            self.assertEqual(applied["status"], "applied")
+            self.assertEqual(len(applied["changed_paths"]), 4)
+            self.assertEqual((bundle / "AGENTS.md").read_text(encoding="utf-8"), original)
+
+    def test_bootstrap_only_refuses_existing_different_target(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            bundle = project / ".agents"
+            bundle.mkdir()
+            (bundle / "AGENTS.md").write_text("# Existing\n", encoding="utf-8")
+            codex = project / ".codex"
+            codex.mkdir()
+            (codex / "config.toml").write_text("owner_setting = true\n", encoding="utf-8")
+
+            stream = io.StringIO()
+            with redirect_stdout(stream):
+                result = generator.main([
+                    str(project), "--bootstrap-only", "--dry-run", "--json",
+                ])
+            self.assertEqual(result, 0)
+            manifest = json.loads(stream.getvalue())["manifest"]
+            conflicts = [row for row in manifest["files"] if row["action"] == "conflict"]
+            self.assertEqual([row["path"] for row in conflicts], [".codex/config.toml"])
+            self.assertEqual((codex / "config.toml").read_text(encoding="utf-8"), "owner_setting = true\n")
+
+    def test_bootstrap_only_failed_prepare_removes_empty_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            bundle = project / ".agents"
+            bundle.mkdir()
+            (bundle / "AGENTS.md").write_text("# Existing\n", encoding="utf-8")
+            preview, _desired = generator.bootstrap_only_manifest(project, bundle)
+            original = generator.write_synced_temp
+            calls = 0
+
+            def fail_second(path: Path, content: bytes, label: str = "tmp") -> Path:
+                nonlocal calls
+                calls += 1
+                if calls == 2:
+                    raise OSError("synthetic prepare failure")
+                return original(path, content, label)
+
+            stream = io.StringIO()
+            with mock.patch.object(generator, "write_synced_temp", side_effect=fail_second):
+                with redirect_stdout(stream):
+                    result = generator.main([
+                        str(project), "--bootstrap-only", "--json",
+                        "--confirm-bootstrap-sha256", preview["manifest_sha256"],
+                    ])
+            self.assertEqual(result, 3)
+            self.assertFalse((project / ".codex").exists())
+            self.assertFalse((bundle / "scripts").exists())
+            self.assertEqual((bundle / "AGENTS.md").read_text(encoding="utf-8"), "# Existing\n")
+
     def test_project_knowledge_can_be_explicitly_disabled(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
