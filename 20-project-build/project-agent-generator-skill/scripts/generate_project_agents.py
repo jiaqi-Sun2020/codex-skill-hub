@@ -1608,6 +1608,7 @@ def bootstrap_manifest_hash(manifest: dict[str, object]) -> str:
 
 def bootstrap_only_manifest(root: Path, out_dir: Path) -> tuple[dict[str, object], dict[Path, str]]:
     """Plan the bootstrap delta without changing the existing Agent bundle."""
+    resolved_root = root.resolve(strict=True)
     if not out_dir.is_dir() or is_link_like(out_dir):
         raise ValueError("bootstrap-only requires an existing safe Agent bundle directory")
     entrypoint = out_dir / "AGENTS.md"
@@ -1623,7 +1624,7 @@ def bootstrap_only_manifest(root: Path, out_dir: Path) -> tuple[dict[str, object
     )
     rows: list[dict[str, object]] = []
     for path in sorted(desired, key=lambda item: item.relative_to(root).as_posix().casefold()):
-        if not is_relative_to(path.resolve(strict=False), root):
+        if not is_relative_to(path.resolve(strict=False), resolved_root):
             raise ValueError(f"bootstrap target escapes project root: {path}")
         if first_link_component(path.absolute()) is not None:
             raise ValueError(f"bootstrap target traverses a link or junction: {path}")

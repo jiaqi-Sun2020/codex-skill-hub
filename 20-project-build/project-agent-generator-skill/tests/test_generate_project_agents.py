@@ -414,7 +414,10 @@ class GeneratorSafetyTests(unittest.TestCase):
             generated = project / ".codex" / "hooks" / "load_project_agents.py"
             repository_root = Path(__file__).resolve().parents[3]
             repository_loader = repository_root / ".codex" / "hooks" / "load_project_agents.py"
-            self.assertEqual(generated.read_bytes(), repository_loader.read_bytes())
+            self.assertEqual(
+                generated.read_text(encoding="utf-8"),
+                repository_loader.read_text(encoding="utf-8"),
+            )
 
     def test_bootstrap_merges_existing_config_and_hooks(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

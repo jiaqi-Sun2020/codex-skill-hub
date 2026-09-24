@@ -11,12 +11,12 @@
 ## 整体框架
 
 ```text
-首次项目接入与持续治理 ──→ 20-project-build
-研究成果到论文交付       ──→ 10-paper-build
-跨项目维护与质量工具     ──→ 50-core-utils
-个人学习与教学           ──→ 90-personal
-外部与兼容入口           ──→ 30-papertrace / 40-skill-registry
-待审核与历史材料         ──→ 98-inbox / 99-archive
+首次项目接入与持续治理   → 20-project-build
+研究成果到论文交付       → 10-paper-build
+跨项目维护与质量工具     → 50-core-utils
+个人学习与教学           → 90-personal
+外部与兼容入口           → 30-papertrace / 40-skill-registry
+待审核与历史材料         → 98-inbox / 99-archive
 ```
 
 三层文档各有唯一职责：

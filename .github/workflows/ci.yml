@@ -30,6 +30,8 @@ jobs:
           python-version: "3.11"
 
       - name: Run standard-library unit suites
+        id: unit_suites
+        continue-on-error: true
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -43,30 +45,51 @@ jobs:
             '.\50-core-utils\neat-freak\tests',
             '.\50-core-utils\skill-registry\tests'
           )
+          $failedSuites = @()
           foreach ($suite in $suites) {
             python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            if ($LASTEXITCODE -ne 0) { $failedSuites += $suite }
+          }
+          if ($failedSuites.Count -gt 0) {
+            Write-Host "Failed unit suites: $($failedSuites -join ', ')"
+            exit 1
           }
 
       - name: Run Reader-Learner smoke tests
+        id: reader_smoke
+        continue-on-error: true
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
           $tests = Get-ChildItem '.\50-core-utils\skill-registry\sources\reader-learner\tests' -Filter 'test_*.py' | Sort-Object Name
+          $failedTests = @()
           foreach ($test in $tests) {
             python -X utf8 -B $test.FullName
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            if ($LASTEXITCODE -ne 0) { $failedTests += $test.Name }
+          }
+          if ($failedTests.Count -gt 0) {
+            Write-Host "Failed Reader-Learner tests: $($failedTests -join ', ')"
+            exit 1
           }
 
       - name: Validate registry and project knowledge
+        id: registry_knowledge
+        continue-on-error: true
         shell: pwsh
         run: |
+          $failedChecks = @()
           python -X utf8 -B '.\50-core-utils\skill-registry\tools\skill_registry.py' registry-check --registry '.\50-core-utils\skill-registry'
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($LASTEXITCODE -ne 0) { $failedChecks += 'skill-registry' }
           python -X utf8 -B '.\50-core-utils\neat-freak\scripts\manage_project_knowledge.py' '.' audit
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          if ($LASTEXITCODE -ne 0) { $failedChecks += 'neat-freak' }
+          if ($failedChecks.Count -gt 0) {
+            Write-Host "Failed validation checks: $($failedChecks -join ', ')"
+            exit 1
+          }
 
       - name: Check repository integrity
+        id: repository_integrity
+        continue-on-error: true
         shell: pwsh
         env:
           CI_BEFORE_SHA: ${{ github.event.before }}
@@ -136,6 +159,30 @@ jobs:
             git show --check --format= --no-ext-diff HEAD
           }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Enforce required Windows checks
+        if: ${{ always() }}
+        shell: pwsh
+        env:
+          UNIT_SUITES_OUTCOME: ${{ steps.unit_suites.outcome }}
+          READER_SMOKE_OUTCOME: ${{ steps.reader_smoke.outcome }}
+          REGISTRY_KNOWLEDGE_OUTCOME: ${{ steps.registry_knowledge.outcome }}
+          REPOSITORY_INTEGRITY_OUTCOME: ${{ steps.repository_integrity.outcome }}
+        run: |
+          $outcomes = [ordered]@{
+            'unit-suites' = $env:UNIT_SUITES_OUTCOME
+            'reader-smoke' = $env:READER_SMOKE_OUTCOME
+            'registry-knowledge' = $env:REGISTRY_KNOWLEDGE_OUTCOME
+            'repository-integrity' = $env:REPOSITORY_INTEGRITY_OUTCOME
+          }
+          $failedChecks = @($outcomes.GetEnumerator() | Where-Object { $_.Value -ne 'success' })
+          foreach ($check in $outcomes.GetEnumerator()) {
+            Write-Host "$($check.Key): $($check.Value)"
+          }
+          if ($failedChecks.Count -gt 0) {
+            Write-Host "Required Windows checks did not pass: $($failedChecks.Key -join ', ')"
+            exit 1
+          }
 
   compatibility-linux:
     name: Compatibility / Linux (informational)
