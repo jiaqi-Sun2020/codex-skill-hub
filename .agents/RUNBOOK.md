@@ -22,10 +22,13 @@
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-audit` | run from `50-core-utils/neat-freak`; add `--policy-topology .agents\policy-topology.json` for a reviewed nested-root declaration | verified |
 | `python -X utf8 -B ".\scripts\manage_project_knowledge.py" "..\.." bootstrap-repair --dry-run` | run from `50-core-utils/neat-freak`; previews only existing marked Bootstrap wiring | verified |
 | `python -X utf8 -B ".\tests\test_manage_project_knowledge.py"` and `python -X utf8 -B ".\tests\test_audit_memory_index.py"` | run from `50-core-utils/neat-freak`; 29 tests verified | verified |
-| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `20-project-build/research-project-pipeline`; 46 tests verified | verified |
-| `python -X utf8 -B ".\tests\test_audit_experiment_protocol.py"` | run from `20-project-build/experiment-protocol-audit`; 10 tests verified | verified |
-| `python -X utf8 -B ".\tests\test_inventory_workspace.py"` | run from `20-project-build/research-workspace-governance`; 22 tests verified |
-| `python -X utf8 -B ".\tests\test_equivalence_records.py"` | run from `20-project-build/research-workspace-governance`; 14 tests verified |
+| `python -X utf8 -B ".\tests\test_research_pipeline.py"` | run from `20-project-build/research-project-pipeline`; 49 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_audit_experiment_protocol.py"` | run from `20-project-build/experiment-protocol-audit`; 19 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_research_management_pipeline.py"` | run from `20-project-build/research-management-pipeline`; 2 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_inventory_workspace.py"` | run from `20-project-build/research-workspace-governance`; 22 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_equivalence_records.py"` | run from `20-project-build/research-workspace-governance`; 14 tests verified | verified |
+| `python -X utf8 -B ".\tests\test_contract_registry.py"` | run from `20-project-build/research-workspace-governance`; 15 tests verified | verified |
+| `python -X utf8 -B ".\scripts\validate_contract_registry.py" validate "<project-root>" --registry ".agents\governance\contract_registry.json"` | run from `20-project-build/research-workspace-governance`; read-only stdout validation | verified |
 | `powershell -ExecutionPolicy Bypass -File ".\.agents\scripts\start-codex.ps1"` | run from the project root; validates Bootstrap files before launching Codex | verified |
 
 ## Suggested Verification Flow
@@ -36,9 +39,10 @@
 3. For nested execution roots, validate a reviewed policy topology with both the
    pipeline and `neat-freak bootstrap-audit`; retain an owner-approved isolation
    as conditional rather than treating it as policy reachability.
-4. For comparison claims, run the governance validator. Only a selected domain
-   Profile or authorized reviewer may define relation semantics or interpret the
-   result; governance records must not promote it.
+4. For contract coverage and comparison claims, run the Governance validators.
+   Only a selected domain Profile or authorized reviewer may define scientific
+   semantics or interpret the result; `claim_ceiling`, evidence, work completion,
+   and authorization remain independent axes.
 5. Run the smallest relevant syntax or unit-test command first.
 6. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
 7. Do not open, print, copy, summarize, upload, or modify suspected credential files.

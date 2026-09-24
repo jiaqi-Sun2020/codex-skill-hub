@@ -30,6 +30,9 @@ Sequence independent components without absorbing their ownership:
 
 The Pipeline coordinates contracts and evidence. It does not define a subject
 area, impose a method, or turn a completed workflow into a scientific claim.
+After onboarding, route repeated contract, evidence, amendment, claim, and
+delivery work to `research-management-pipeline`; do not turn this bootstrap
+orchestrator into a research-lifecycle executor.
 
 ## Required order
 
@@ -109,7 +112,7 @@ Without a record, `review-required`, `required`, and an unnamed `not-applicable`
 remain explicitly unresolved. A named owner may make the latter decision with
 `--domain-validation not-applicable --domain-validation-owner "OWNER"`;
 the resulting claim ceiling remains `unsupported`. `optional` permits onboarding
-while keeping execution unauthorized and scientific claims unsupported.
+while keeping execution unauthorized and scientific claims unreviewed.
 
 Write a plan only to a new file outside the target project:
 
@@ -172,8 +175,8 @@ fields in
 using the user's current language. A marker that a summary is required is not a
 substitute for the rendered summary.
 
-Saved plans use `research-project-pipeline-plan/v5`; command results use the
-separate `research-project-pipeline-result/v3` envelope with `command_status`
+Saved plans use `research-project-pipeline-plan/v6`; command results use the
+separate `research-project-pipeline-result/v4` envelope with `command_status`
 and `outcome`. Apply rejects legacy plans, structurally incomplete plans even when their embedded hash is
 self-consistent, and plans whose bound Generator or Governance inventory path or
 SHA-256 no longer matches the selected component.
@@ -184,6 +187,14 @@ when both are ready. Governance assets, project-contract state, and governance
 verification are also independent, so the mere presence of governance files is
 never reported as verified. Domain validation, execution authorization, and
 claim support remain separate from onboarding.
+
+In v6 readiness, `domain_validation_state`, `execution_readiness_state`,
+`authorization_state`, and `claim_state` are independent. Onboarding always
+reports `authorization_state=not_requested` and `claim_state=unreviewed` unless a
+later Governance-owned workflow supplies separate current records. A current v1
+Domain Audit remains readable but is `incomplete` for contract-aware coverage; a
+verified v2 audit contributes only its checked scope, contract coverage, and
+`claim_ceiling`. Neither supplies actual claim support.
 
 The plan and verification summary report evidence-backed CI, decision,
 dependency, source/documentation, and test-command candidates. Multiple detected

@@ -15,9 +15,11 @@ import sys
 
 
 SCHEMA_VERSION = "research-workspace-inventory/v2"
-PROJECT_CONTRACT_SCHEMA = "research-project-contract/v2"
+PROJECT_CONTRACT_SCHEMA = "research-project-contract/v3"
+PREVIOUS_PROJECT_CONTRACT_SCHEMA = "research-project-contract/v2"
 LEGACY_PROJECT_CONTRACT_SCHEMA = "research-project-contract/v1"
-GOVERNANCE_STATE_SCHEMA = "research-governance-state/v1"
+GOVERNANCE_STATE_SCHEMA = "research-governance-state/v2"
+LEGACY_GOVERNANCE_STATE_SCHEMA = "research-governance-state/v1"
 RELOCATION_MAP_SCHEMA = "research-path-relocation-map/v1"
 DEFAULT_MAX_FILES = 20_000
 HARD_MAX_FILES = 100_000
@@ -141,6 +143,7 @@ CONTRACT_FIELDS = {
     "lifecycle_extensions",
     "required_deliverables",
     "governance_state_path",
+    "contract_registry_path",
     "relocation_map_paths",
     "automations",
     "deletion_policy",
@@ -191,6 +194,7 @@ STATUS_FIELDS = {
     "claim_state",
     "evidence_refs",
 }
+STATUS_FIELDS_V2 = STATUS_FIELDS | {"claim_review_ref"}
 
 TEMPORARY_FILE_PATTERNS = (
     re.compile(r"(?i)(^|[.])(tmp|temp)([.]|$)"),
@@ -536,18 +540,19 @@ def inspect_project_contract(root: Path, layout: dict[str, object]) -> dict[str,
 
     schema_version = document.get("schema_version")
     is_legacy_schema = schema_version == LEGACY_PROJECT_CONTRACT_SCHEMA
-    if schema_version not in {PROJECT_CONTRACT_SCHEMA, LEGACY_PROJECT_CONTRACT_SCHEMA}:
+    is_previous_schema = schema_version == PREVIOUS_PROJECT_CONTRACT_SCHEMA
+    if schema_version not in {PROJECT_CONTRACT_SCHEMA, PREVIOUS_PROJECT_CONTRACT_SCHEMA, LEGACY_PROJECT_CONTRACT_SCHEMA}:
         findings.append(governance_finding("unsupported-project-contract-schema", f"unsupported schema_version: {schema_version!r}"))
     if legacy_format and not is_legacy_schema:
-        findings.append(governance_finding("invalid-project-contract-format", "project contract v2 must use project_contract.json"))
-    if is_legacy_schema:
+        findings.append(governance_finding("invalid-project-contract-format", "project contract v2 and later must use project_contract.json"))
+    if is_legacy_schema or is_previous_schema:
         findings.append(governance_finding(
             "legacy-project-contract",
-            "project contract v1 is readable but should be migrated to project_contract.json v2",
+            f"{schema_version} is readable but new behavior requires {PROJECT_CONTRACT_SCHEMA}",
             severity="non_blocker",
         ))
 
-    allowed_fields = LEGACY_CONTRACT_FIELDS if is_legacy_schema else CONTRACT_FIELDS
+    allowed_fields = LEGACY_CONTRACT_FIELDS if is_legacy_schema else CONTRACT_FIELDS - ({"contract_registry_path"} if is_previous_schema else set())
     unknown = sorted(set(document) - allowed_fields)
     if unknown:
         findings.append(governance_finding("unknown-project-contract-fields", ", ".join(unknown)))
@@ -609,6 +614,17 @@ def inspect_project_contract(root: Path, layout: dict[str, object]) -> dict[str,
             elif not is_relative_to((root / governance_state_path).resolve(strict=False), governance_root.resolve(strict=False)):
                 findings.append(governance_finding("governance-state-outside-authority", "governance_state_path must stay inside the active governance root"))
 
+    contract_registry_path = document.get("contract_registry_path")
+    if contract_registry_path is not None:
+        if not isinstance(contract_registry_path, str):
+            findings.append(governance_finding("invalid-contract-registry-path", "contract_registry_path must be project-relative"))
+        else:
+            error = validate_contract_path(root, contract_registry_path)
+            if error:
+                findings.append(governance_finding("unsafe-contract-registry-path", f"contract_registry_path {contract_registry_path!r}: {error}"))
+            elif not is_relative_to((root / contract_registry_path).resolve(strict=False), governance_root.resolve(strict=False)):
+                findings.append(governance_finding("contract-registry-outside-authority", "contract_registry_path must stay inside the active governance root"))
+
     relocation_map_paths = document.get("relocation_map_paths", [])
     if relocation_map_paths and not valid_string_list(relocation_map_paths):
         findings.append(governance_finding("invalid-relocation-map-paths", "relocation_map_paths must be a unique string array"))
@@ -640,7 +656,7 @@ def inspect_project_contract(root: Path, layout: dict[str, object]) -> dict[str,
         findings.append(governance_finding("unsafe-deletion-policy", "deletion_policy cannot weaken exact-target approval"))
     blockers = [item for item in findings if item.get("severity") == "blocker"]
     return {
-        "status": "invalid" if blockers else "legacy" if is_legacy_schema else "valid",
+        "status": "invalid" if blockers else "legacy" if is_legacy_schema or is_previous_schema else "valid",
         "path": relative,
         "schema_version": schema_version,
         "contract_format": "legacy-json-in-yaml" if legacy_format else "json",
@@ -651,6 +667,7 @@ def inspect_project_contract(root: Path, layout: dict[str, object]) -> dict[str,
         "lifecycle_extensions": document.get(lifecycle_field, []),
         "required_deliverables": document.get("required_deliverables", []),
         "governance_state_path": governance_state_path,
+        "contract_registry_path": contract_registry_path,
         "relocation_map_paths": relocation_map_paths,
         "automations": automations,
         "findings": findings,
@@ -861,9 +878,16 @@ def inspect_governance_state(root: Path, contract: dict[str, object]) -> dict[st
     except (OSError, UnicodeError, ValueError, json.JSONDecodeError) as exc:
         findings.append(governance_finding("unreadable-governance-state", str(exc)))
         return {"status": "invalid", "path": Path(raw_path).as_posix(), "findings": findings}
-    if not isinstance(document, dict) or document.get("schema_version") != GOVERNANCE_STATE_SCHEMA:
-        findings.append(governance_finding("unsupported-governance-state-schema", f"schema_version must be {GOVERNANCE_STATE_SCHEMA}"))
+    state_schema = document.get("schema_version") if isinstance(document, dict) else None
+    if not isinstance(document, dict) or state_schema not in {GOVERNANCE_STATE_SCHEMA, LEGACY_GOVERNANCE_STATE_SCHEMA}:
+        findings.append(governance_finding("unsupported-governance-state-schema", f"schema_version must be {GOVERNANCE_STATE_SCHEMA} or readable legacy {LEGACY_GOVERNANCE_STATE_SCHEMA}"))
         document = document if isinstance(document, dict) else {}
+    elif state_schema == LEGACY_GOVERNANCE_STATE_SCHEMA:
+        findings.append(governance_finding(
+            "legacy-governance-state",
+            "governance state v1 remains readable but cannot prove an independent current claim review",
+            severity="non_blocker",
+        ))
     records = document.get("current_statuses", [])
     if not isinstance(records, list):
         findings.append(governance_finding("invalid-current-statuses", "current_statuses must be an array"))
@@ -875,10 +899,11 @@ def inspect_governance_state(root: Path, contract: dict[str, object]) -> dict[st
         if not isinstance(record, dict):
             findings.append(governance_finding("invalid-current-status", f"current_statuses[{index}] must be an object"))
             continue
-        missing = sorted(STATUS_FIELDS - set(record))
+        expected_fields = STATUS_FIELDS_V2 if state_schema == GOVERNANCE_STATE_SCHEMA else STATUS_FIELDS
+        missing = sorted(expected_fields - set(record))
         if missing:
             findings.append(governance_finding("missing-current-status-fields", f"current_statuses[{index}] missing: {', '.join(missing)}"))
-        unknown = sorted(set(record) - STATUS_FIELDS)
+        unknown = sorted(set(record) - expected_fields)
         if unknown:
             findings.append(governance_finding(
                 "unknown-current-status-fields",
@@ -931,7 +956,16 @@ def inspect_governance_state(root: Path, contract: dict[str, object]) -> dict[st
             findings.append(governance_finding("invalid-work-state", f"current_statuses[{index}].work_state is invalid"))
         if record.get("claim_state") not in CLAIM_STATES:
             findings.append(governance_finding("invalid-claim-state", f"current_statuses[{index}].claim_state is invalid"))
-        normalized_records.append({field: record.get(field) for field in sorted(STATUS_FIELDS)})
+        claim_state = record.get("claim_state")
+        claim_review_ref = record.get("claim_review_ref")
+        if state_schema == GOVERNANCE_STATE_SCHEMA:
+            if claim_state == "unreviewed" and claim_review_ref is not None:
+                findings.append(governance_finding("unreviewed-claim-has-review", f"current_statuses[{index}] cannot be unreviewed and cite a claim review"))
+            elif claim_state not in {"unreviewed", "not_applicable"} and not is_stable_identifier(claim_review_ref):
+                findings.append(governance_finding("missing-claim-review", f"current_statuses[{index}] needs an independent claim_review_ref for {claim_state}"))
+            elif claim_review_ref is not None and not is_stable_identifier(claim_review_ref):
+                findings.append(governance_finding("invalid-claim-review-ref", f"current_statuses[{index}].claim_review_ref must be a stable identifier or null"))
+        normalized_records.append({field: record.get(field) for field in sorted(expected_fields)})
     return {
         "status": "invalid" if any(item.get("severity") == "blocker" for item in findings) else "valid",
         "path": Path(raw_path).as_posix(),

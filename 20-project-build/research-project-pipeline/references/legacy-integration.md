@@ -65,19 +65,27 @@ historical records, or old locks. Resolve historical paths through the map only
 for the task that needs them.
 
 New contracts use `project_contract.json` with
-`research-project-contract/v2`. A historical `project_contract.yaml` containing
-the old JSON subset is a readable legacy v1 input; real YAML is not guessed. If
-both filenames exist, contract authority is ambiguous and write-blocking.
+`research-project-contract/v3`, whose optional `contract_registry_path` points
+inside the resolved governance root. v1 and v2 contracts remain explicit
+read-only legacy inputs; a historical `project_contract.yaml` containing the old
+JSON subset is readable, but real YAML is not guessed. If both filenames exist,
+contract authority is ambiguous and write-blocking.
 
 Workspace inventory uses v2. Saved Pipeline plans use
-`research-project-pipeline-plan/v5`, while command results use
-`research-project-pipeline-result/v3`. A v1 inventory may be adapted for
+`research-project-pipeline-plan/v6`, while command results use
+`research-project-pipeline-result/v4`. A v1 inventory may be adapted for
 read-only discovery but cannot establish governance authority; refresh it with
 v2 before mutation. Hash-bound Pipeline plans using any former identifier,
 including v3, must be regenerated rather than translated and applied. Legacy
 projects do not need a domain-validation record for onboarding, but experiment
 execution and claim support remain unauthorized until the explicit requirement
 is satisfied or an owner-reviewed not-applicable decision is bound.
+
+A matching v1 Domain Profile and Protocol still produce a readable
+`experiment-protocol-audit-result/v1`, but the handoff is `incomplete` for the
+new contract-aware gate because v1 has no contract-instance coverage. Do not
+rewrite or silently upgrade that record. Produce reviewed v2 Profile and Protocol
+bindings and a new v2 result when contract coverage is required.
 
 Treat existing governance-like JSON that is not explicitly bound to a supported
 handoff as an untrusted candidate. Report its path, schema when available, and

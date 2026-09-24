@@ -34,6 +34,16 @@ ambiguity and block status-dependent writes. Do not choose by timestamp.
 `work_state=completed` means the declared procedure and its completion checks
 finished. It does not imply `claim_state=supported`.
 
+Definition, implementation, verification, evidence, and authorization are also
+independent axes. `claim_ceiling` is not one of them. A current claim other than
+`unreviewed` or `not_applicable` cites an independent `claim_review_ref`; a
+domain-validation record alone cannot supply that review.
+
+When explicit SCI/STAT/ENG/GOV coverage is needed, use the Governance-owned
+contract registry. Contracts identify which gates they affect; the registry
+validator reports coverage and gaps, while a current gate review remains the
+only source of a gate decision.
+
 ## Inception
 
 Record only what changes decisions:
@@ -160,3 +170,13 @@ recovery information. Prefer stable identifiers and links over duplicated prose.
   environment information required by the declared contract.
 - Verify integrity, access, restore procedure, ownership, and retention.
 - Distinguish superseded evidence from disposable temporary material.
+
+## Amendment and correction
+
+- Append a versioned amendment instead of rewriting the prior contract or PASS.
+- Compute the reverse dependency closure across contracts, evidence, claims,
+  gates, and deliverables; make only the affected current validation stale.
+- Preserve both supporting and contradictory evidence.
+- `superseded` describes an old definition; `stale` describes a validation that
+  no longer applies to the current object.
+- Correction, retraction, and notification remain separately authorized actions.

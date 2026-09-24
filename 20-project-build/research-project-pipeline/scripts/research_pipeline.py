@@ -15,8 +15,8 @@ import sys
 from typing import Any
 
 
-PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v5"
-PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v3"
+PIPELINE_PLAN_SCHEMA = "research-project-pipeline-plan/v6"
+PIPELINE_RESULT_SCHEMA = "research-project-pipeline-result/v4"
 BOOTSTRAP_PREVIEW_SCHEMA = "research-project-bootstrap-preview/v1"
 LEGACY_PIPELINE_SCHEMAS = {
     "research-project-pipeline/v1",
@@ -28,8 +28,9 @@ GENERATOR_SCHEMA = "project-agent-generator/v1"
 INVENTORY_SCHEMA = "research-workspace-inventory/v2"
 LEGACY_INVENTORY_SCHEMA = "research-workspace-inventory/v1"
 COMPARISON_SCHEMA = "research-comparison-record/v2"
-DOMAIN_RECORD_SCHEMA = "experiment-protocol-audit-result/v1"
-DOMAIN_HANDOFF_SCHEMA = "research-domain-validation-handoff/v1"
+DOMAIN_RECORD_SCHEMAS = {"experiment-protocol-audit-result/v1", "experiment-protocol-audit-result/v2"}
+DOMAIN_RECORD_SCHEMA = "experiment-protocol-audit-result/v2"
+DOMAIN_HANDOFF_SCHEMA = "research-domain-validation-handoff/v2"
 DOMAIN_ADAPTER_SCHEMA = "research-domain-adapter-map/v1"
 MAX_PLAN_BYTES = 5 * 1024 * 1024
 MAX_DOMAIN_RECORD_BYTES = 5 * 1024 * 1024
@@ -845,7 +846,7 @@ def build_domain_adapter_handoff(
         })
         declared_status = "invalid"
     target_schema = document.get("target_schema_version")
-    if target_schema != DOMAIN_RECORD_SCHEMA:
+    if target_schema not in DOMAIN_RECORD_SCHEMAS:
         findings.append({
             "code": "unsupported-domain-adapter-target",
             "severity": "non_blocker",
@@ -905,7 +906,7 @@ def build_domain_adapter_handoff(
                     "sha256": sha256_file(output),
                     "schema_version": output_schema,
                 }
-                if output_schema != DOMAIN_RECORD_SCHEMA:
+                if output_schema not in DOMAIN_RECORD_SCHEMAS:
                     findings.append({
                         "code": "domain-adapter-output-schema-mismatch",
                         "severity": "non_blocker",
@@ -1133,7 +1134,9 @@ def build_domain_validation_handoff(
                 "owner": {"kind": "human", "id": owner_override.strip()},
                 "validator": None,
                 "profile": None,
+                "source_record_schema": None,
                 "scope": [],
+                "contract_coverage": [],
                 "protocol_fingerprints": [],
                 "source_fingerprints": [],
                 "evidence": [],
@@ -1160,7 +1163,9 @@ def build_domain_validation_handoff(
             "owner": None,
             "validator": None,
             "profile": None,
+            "source_record_schema": None,
             "scope": [],
+            "contract_coverage": [],
             "protocol_fingerprints": [],
             "source_fingerprints": [],
             "evidence": [],
@@ -1177,13 +1182,14 @@ def build_domain_validation_handoff(
     if record_path.stat().st_size > MAX_DOMAIN_RECORD_BYTES:
         raise ValueError("domain validation record exceeds 5 MiB")
     record = json.loads(record_path.read_text(encoding="utf-8"))
-    if not isinstance(record, dict) or record.get("schema_version") != DOMAIN_RECORD_SCHEMA:
+    source_record_schema = record.get("schema_version") if isinstance(record, dict) else None
+    if not isinstance(record, dict) or source_record_schema not in DOMAIN_RECORD_SCHEMAS:
         raise ValueError("unsupported domain validation record")
     if record.get("document_type") != "domain-validation-record":
         raise ValueError("domain validation record has the wrong document_type")
 
     declared_status = record.get("status")
-    if declared_status not in {"pending", "verified", "failed", "not_applicable"}:
+    if declared_status not in {"pending", "verified", "incomplete", "failed", "not_applicable"}:
         raise ValueError("domain validation record has an invalid status")
     owner = record.get("owner")
     if not isinstance(owner, dict) or owner.get("kind") not in {"skill", "human"} or not isinstance(owner.get("id"), str) or not owner["id"].strip():
@@ -1217,6 +1223,26 @@ def build_domain_validation_handoff(
     scope = record.get("scope")
     if not isinstance(scope, list) or not scope or len(scope) != len(set(scope)) or not set(scope) <= {"design", "manifest", "runtime"}:
         raise ValueError("domain validation scope must contain unique supported scopes")
+    contract_coverage = record.get("contract_coverage", [])
+    contract_coverage_conflict = False
+    if source_record_schema == "experiment-protocol-audit-result/v2":
+        if not isinstance(contract_coverage, list) or any(
+            not isinstance(item, dict)
+            or not isinstance(item.get("instance_id"), str)
+            or item.get("applicability") not in {"required", "optional"}
+            or item.get("status") not in {"covered", "incomplete", "failed", "not_in_scope"}
+            for item in contract_coverage
+        ):
+            raise ValueError("domain validation contract_coverage is invalid")
+        contract_coverage_conflict = declared_status == "verified" and (
+            not contract_coverage
+            or any(
+                item.get("applicability") == "required" and item.get("status") != "covered"
+                for item in contract_coverage
+            )
+        )
+    elif contract_coverage:
+        raise ValueError("v1 domain validation records cannot declare contract coverage")
     protocol_fingerprints, protocol_stale = validate_fingerprint_entries(
         project, record.get("protocol_fingerprints"), "protocol_fingerprints"
     )
@@ -1281,6 +1307,26 @@ def build_domain_validation_handoff(
             "Resolve the source finding or mark the record failed; never relabel a failing record as verified.",
             "Confirm a new record has a status consistent with all structured findings.",
         ))
+    if contract_coverage_conflict:
+        effective_state = "invalid"
+        findings.append(scoped_domain_finding(
+            "domain-validation-contract-coverage-conflict",
+            "The v2 record declares verified without covered required contract bindings.",
+            "Rerun Protocol Audit with explicit rules, built-in checks, or valid expert-review references for every required binding.",
+            "Confirm the new v2 record has non-empty coverage and every required binding is covered.",
+        ))
+    if (
+        source_record_schema == "experiment-protocol-audit-result/v1"
+        and declared_status == "verified"
+        and effective_state == "verified"
+    ):
+        effective_state = "incomplete"
+        findings.append(scoped_domain_finding(
+            "domain-validation-contract-coverage-unavailable",
+            "The legacy v1 record is readable but contains no contract-instance coverage.",
+            "Create reviewed v2 Profile and Protocol bindings, then rerun Protocol Audit; do not rewrite the v1 record.",
+            "Confirm a new v2 record reports non-empty coverage for every required binding.",
+        ))
     if declared_status == "failed":
         findings.append(scoped_domain_finding(
             "domain-validation-failed",
@@ -1294,6 +1340,13 @@ def build_domain_validation_handoff(
             "The domain review has not reached a scientific decision.",
             "Complete the declared review scopes and produce evidence-bound results.",
             "Confirm the effective state becomes verified.",
+        ))
+    elif declared_status == "incomplete":
+        findings.append(scoped_domain_finding(
+            "domain-validation-incomplete",
+            "The supplied scope was checked but required contract coverage remains incomplete.",
+            "Add explicit reviewed bindings or route the missing judgment through Governance.",
+            "Rerun the audit and confirm required contract coverage is current and complete.",
         ))
     if requirement == "required" and declared_status == "not_applicable":
         effective_state = "invalid"
@@ -1327,7 +1380,9 @@ def build_domain_validation_handoff(
             "sha256": validator_hash.casefold(),
         },
         "profile": normalized_profile,
+        "source_record_schema": source_record_schema,
         "scope": list(scope),
+        "contract_coverage": contract_coverage,
         "protocol_fingerprints": protocol_fingerprints,
         "source_fingerprints": source_fingerprints,
         "evidence": evidence,
@@ -1351,8 +1406,7 @@ def readiness_axes(
     execution_ready: bool = False,
 ) -> dict[str, str]:
     domain_state = str(domain_handoff["effective_state"])
-    claim_state = str(domain_handoff["claim_ceiling"]) if domain_state == "verified" else "unsupported"
-    execution_state = (
+    execution_readiness_state = (
         "ready_for_authorization"
         if execution_ready and domain_state in {"verified", "not_applicable"}
         else "blocked"
@@ -1377,8 +1431,9 @@ def readiness_axes(
         "governance_verification_state": governance_verification_state,
         "governance_state": governance_state,
         "domain_validation_state": domain_state,
-        "execution_state": execution_state,
-        "claim_state": claim_state,
+        "execution_readiness_state": execution_readiness_state,
+        "authorization_state": "not_requested",
+        "claim_state": "unreviewed",
     }
 
 
@@ -1720,16 +1775,16 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     domain_fields = {
         "schema_version", "requirement", "record_path", "record_sha256",
         "declared_status", "effective_state", "owner", "validator", "profile",
-        "scope", "protocol_fingerprints", "source_fingerprints", "evidence",
+        "source_record_schema", "scope", "contract_coverage", "protocol_fingerprints", "source_fingerprints", "evidence",
         "claim_ceiling", "source_finding_codes", "findings", "content_treated_as_data",
     }
     require_plan(domain_fields <= set(domain_handoff), "domain-validation handoff is incomplete")
     require_plan(domain_handoff.get("schema_version") == DOMAIN_HANDOFF_SCHEMA, "domain-validation handoff schema mismatch")
     require_plan(domain_handoff.get("requirement") in {"required", "optional", "not_applicable", "review_required"}, "invalid domain-validation requirement")
-    require_plan(domain_handoff.get("effective_state") in {"not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"}, "invalid effective domain-validation state")
+    require_plan(domain_handoff.get("effective_state") in {"not_declared", "pending", "verified", "incomplete", "failed", "not_applicable", "stale", "invalid"}, "invalid effective domain-validation state")
     require_plan(domain_handoff.get("claim_ceiling") in {"unsupported", "diagnostic_only", "conditionally_supported", "supported"}, "invalid domain-validation claim ceiling")
     require_plan(domain_handoff.get("content_treated_as_data") is True, "domain-validation content must be treated as data")
-    for field in ("scope", "protocol_fingerprints", "source_fingerprints", "evidence", "source_finding_codes", "findings"):
+    for field in ("scope", "contract_coverage", "protocol_fingerprints", "source_fingerprints", "evidence", "source_finding_codes", "findings"):
         require_plan(isinstance(domain_handoff.get(field), list), f"domain-validation {field} must be an array")
     if domain_handoff.get("record_path") is None:
         require_plan(domain_handoff.get("record_sha256") is None, "missing domain record must not carry a hash")
@@ -1753,7 +1808,7 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
         "onboarding_state", "agent_context_state", "knowledge_state", "bootstrap_state",
         "governance_assets_state", "project_contract_state",
         "governance_verification_state", "governance_state",
-        "domain_validation_state", "execution_state", "claim_state",
+        "domain_validation_state", "execution_readiness_state", "authorization_state", "claim_state",
     }
     require_plan(isinstance(readiness, dict) and set(readiness) == readiness_fields, "readiness axes are incomplete")
     require_plan(readiness.get("onboarding_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid onboarding readiness")
@@ -1765,8 +1820,9 @@ def validate_plan_structure(payload: dict[str, Any]) -> None:
     require_plan(readiness.get("governance_verification_state") in {"review_required", "ready", "blocked"}, "invalid governance-verification readiness")
     require_plan(readiness.get("governance_state") in {"review_required", "ready", "conditional", "blocked"}, "invalid governance readiness")
     require_plan(readiness.get("domain_validation_state") == domain_handoff.get("effective_state"), "domain readiness conflicts with handoff")
-    require_plan(readiness.get("execution_state") in {"not_authorized", "ready_for_authorization", "blocked"}, "invalid execution readiness")
-    require_plan(readiness.get("claim_state") == domain_handoff.get("claim_ceiling"), "claim readiness conflicts with handoff")
+    require_plan(readiness.get("execution_readiness_state") in {"not_authorized", "ready_for_authorization", "blocked"}, "invalid execution readiness")
+    require_plan(readiness.get("authorization_state") == "not_requested", "onboarding cannot grant research execution authority")
+    require_plan(readiness.get("claim_state") == "unreviewed", "onboarding cannot establish scientific claim support")
     require_plan(isinstance(payload.get("role_hints_for_semantic_review"), dict), "role hints must be an object")
 
     gate = payload.get("review_gate_inputs")
@@ -2591,7 +2647,7 @@ def command_verify(args: argparse.Namespace, components: dict[str, Path | None])
     )
     conditional = (
         onboarding_state != "ready"
-        or domain_state in {"not_declared", "pending", "failed", "stale", "invalid"}
+        or domain_state in {"not_declared", "pending", "incomplete", "failed", "stale", "invalid"}
         and domain_handoff["requirement"] != "optional"
     )
     verification_result = "fail" if blockers else "conditional" if conditional else "pass"

@@ -118,6 +118,10 @@ planning work, defining gates, recording status, handing off, or archiving.
 
 - Keep one canonical current status per declared scope.
 - Keep `work_state` separate from `claim_state`.
+- Keep definition, implementation, verification, work, evidence, claim, and
+  authorization states independent. `claim_ceiling` is a protocol constraint,
+  never an achieved claim state. A non-`unreviewed` claim needs a current,
+  independent claim-review reference.
 - Every gate result must cite evidence and include a plain-language summary in
   the user's current language: what is being reviewed, why review is required,
   evidence to inspect, pass and reject conditions, allowed next action, and
@@ -144,6 +148,14 @@ results can be used interchangeably, read
 [references/equivalence-contract.md](references/equivalence-contract.md). The
 validator checks structure, traceability, review, and declared inference
 boundaries; it never determines scientific validity.
+
+When a project needs explicit research-contract coverage, read
+[references/contract-taxonomy.md](references/contract-taxonomy.md) and
+[references/contract-traceability.md](references/contract-traceability.md).
+Governance is the sole owner of `research-contract-registry/v1`, append-only
+amendments, dependency impact, and derived traceability. Instantiate only
+applicable contracts. Do not create a second hand-maintained matrix or infer a
+Domain Profile from the project name.
 
 ### 5. Change only within authority
 

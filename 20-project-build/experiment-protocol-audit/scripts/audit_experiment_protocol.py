@@ -13,20 +13,24 @@ import sys
 from typing import Any
 
 
-RESULT_SCHEMA = "experiment-protocol-audit-result/v1"
-PROFILE_SCHEMA = "experiment-domain-profile/v1"
-PROTOCOL_SCHEMA = "experiment-project-protocol/v1"
+RESULT_SCHEMA_V1 = "experiment-protocol-audit-result/v1"
+RESULT_SCHEMA_V2 = "experiment-protocol-audit-result/v2"
+PROFILE_SCHEMA_V1 = "experiment-domain-profile/v1"
+PROFILE_SCHEMA_V2 = "experiment-domain-profile/v2"
+PROTOCOL_SCHEMA_V1 = "experiment-project-protocol/v1"
+PROTOCOL_SCHEMA_V2 = "experiment-project-protocol/v2"
 OBSERVATION_SCHEMA = "experiment-runtime-observation/v1"
 MANIFEST_SCHEMA = "experiment-cell-manifest/v1"
 RUNTIME_SCHEMA = "experiment-runtime-evidence/v1"
 VALIDATOR_ID = "experiment-protocol-audit"
-VALIDATOR_VERSION = "1.0.0"
+VALIDATOR_VERSION = "2.0.0"
 MAX_INPUT_BYTES = 5 * 1024 * 1024
 CLAIM_LEVELS = {"unsupported", "diagnostic_only", "conditionally_supported", "supported"}
 RULE_TYPES = {
     "numeric-bound", "equality", "shape-equality", "set-equality",
     "cardinality", "allowed-transform",
 }
+MANUAL_REVIEW_FIELDS = {"id", "reviewer_ref", "decision", "scopes", "path", "sha256"}
 
 
 def sha256_file(path: Path) -> str:
@@ -271,11 +275,15 @@ def evaluate_rules(
     return findings
 
 
-def validate_profile_protocol(profile: dict[str, Any], protocol: dict[str, Any]) -> None:
-    if profile.get("schema_version") != PROFILE_SCHEMA:
-        raise ValueError("unsupported domain profile schema")
-    if protocol.get("schema_version") != PROTOCOL_SCHEMA:
-        raise ValueError("unsupported project protocol schema")
+def validate_profile_protocol(profile: dict[str, Any], protocol: dict[str, Any]) -> bool:
+    profile_schema = profile.get("schema_version")
+    protocol_schema = protocol.get("schema_version")
+    supported_pairs = {
+        (PROFILE_SCHEMA_V1, PROTOCOL_SCHEMA_V1),
+        (PROFILE_SCHEMA_V2, PROTOCOL_SCHEMA_V2),
+    }
+    if (profile_schema, protocol_schema) not in supported_pairs:
+        raise ValueError("profile and protocol must use one matching supported schema generation")
     for obj, fields, label in (
         (profile, ("profile_id", "version"), "profile"),
         (protocol, ("protocol_id", "version", "profile_id"), "protocol"),
@@ -293,6 +301,134 @@ def validate_profile_protocol(profile: dict[str, Any], protocol: dict[str, Any])
     sources = protocol.get("source_paths")
     if not isinstance(sources, list) or not sources or any(not isinstance(item, str) or not item for item in sources) or len(sources) != len(set(sources)):
         raise ValueError("protocol source_paths must be a non-empty unique string array")
+    contract_aware = protocol_schema == PROTOCOL_SCHEMA_V2
+    if contract_aware:
+        bindings = protocol.get("contract_bindings")
+        if not isinstance(bindings, list):
+            raise ValueError("v2 protocol contract_bindings must be an array")
+        seen: set[str] = set()
+        for index, binding in enumerate(bindings):
+            if not isinstance(binding, dict):
+                raise ValueError(f"contract_bindings[{index}] must be an object")
+            unknown_binding = set(binding) - {
+                "instance_id", "applicability", "rule_ids", "audit_checks",
+                "required_scopes", "manual_review_ref",
+            }
+            if unknown_binding:
+                raise ValueError(f"contract_bindings[{index}] has unsupported fields")
+            instance_id = binding.get("instance_id")
+            if not isinstance(instance_id, str) or not instance_id.strip() or instance_id.casefold() in seen:
+                raise ValueError("contract binding instance IDs must be unique non-empty strings")
+            seen.add(instance_id.casefold())
+            if binding.get("applicability") not in {"required", "optional"}:
+                raise ValueError(f"contract binding {instance_id} applicability must be required or optional")
+            rule_ids = binding.get("rule_ids")
+            checks = binding.get("audit_checks")
+            scopes = binding.get("required_scopes")
+            if not isinstance(rule_ids, list) or any(not isinstance(item, str) or not item for item in rule_ids) or len(rule_ids) != len(set(rule_ids)):
+                raise ValueError(f"contract binding {instance_id} rule_ids must be a unique string array")
+            if not isinstance(checks, list) or any(item not in {"manifest-identity", "runtime-completeness"} for item in checks) or len(checks) != len(set(checks)):
+                raise ValueError(f"contract binding {instance_id} audit_checks are invalid")
+            if not isinstance(scopes, list) or not scopes or any(item not in {"design", "manifest", "runtime"} for item in scopes) or len(scopes) != len(set(scopes)):
+                raise ValueError(f"contract binding {instance_id} required_scopes are invalid")
+            manual = binding.get("manual_review_ref")
+            if manual is not None:
+                if not isinstance(manual, dict) or set(manual) != MANUAL_REVIEW_FIELDS:
+                    raise ValueError(f"contract binding {instance_id} manual_review_ref is invalid")
+                if any(not isinstance(manual.get(field), str) or not manual[field].strip() for field in ("id", "reviewer_ref")):
+                    raise ValueError(f"contract binding {instance_id} manual review needs stable IDs")
+                if manual["id"].casefold() == manual["reviewer_ref"].casefold():
+                    raise ValueError(f"contract binding {instance_id} manual review must name an independent reviewer")
+                if manual.get("decision") not in {"pass", "fail"}:
+                    raise ValueError(f"contract binding {instance_id} manual review decision is invalid")
+                manual_scopes = manual.get("scopes")
+                if not isinstance(manual_scopes, list) or not manual_scopes or any(item not in {"design", "manifest", "runtime"} for item in manual_scopes) or len(manual_scopes) != len(set(manual_scopes)):
+                    raise ValueError(f"contract binding {instance_id} manual review scopes are invalid")
+                review_path = manual.get("path")
+                if not isinstance(review_path, str) or not review_path or Path(review_path).is_absolute() or ".." in Path(review_path).parts:
+                    raise ValueError(f"contract binding {instance_id} manual review path is invalid")
+                digest = manual.get("sha256")
+                if not isinstance(digest, str) or len(digest) != 64 or any(character not in "0123456789abcdefABCDEF" for character in digest):
+                    raise ValueError(f"contract binding {instance_id} manual review sha256 is invalid")
+    return contract_aware
+
+
+def evaluate_contract_coverage(
+    profile: dict[str, Any],
+    protocol: dict[str, Any],
+    scope: list[str],
+    findings: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    bindings = protocol.get("contract_bindings", [])
+    if not bindings:
+        return [], [{
+            "code": "contract-coverage-empty",
+            "severity": "incomplete",
+            "rule_id": "contract-coverage",
+            "object": "contract_bindings",
+            "risk": "A contract-aware protocol declares no auditable contract coverage.",
+            "minimum_fix": "Bind each applicable machine-auditable contract to explicit rules or built-in audit checks.",
+            "verification": "Rerun the v2 audit and confirm required bindings are covered.",
+        }]
+    rule_ids = {rule.get("id") for rule in profile.get("rules", []) if isinstance(rule, dict)}
+    failed_rule_ids = {item.get("rule_id") for item in findings if item.get("severity") == "blocker"}
+    current_scope = set(scope)
+    coverage: list[dict[str, Any]] = []
+    coverage_findings: list[dict[str, Any]] = []
+    for binding in bindings:
+        instance_id = binding["instance_id"]
+        required_scopes = set(binding["required_scopes"])
+        manual = binding.get("manual_review_ref")
+        manual_scopes = set(manual["scopes"]) if manual else set()
+        missing_rules = sorted(set(binding["rule_ids"]) - rule_ids)
+        if missing_rules:
+            status = "failed"
+            coverage_findings.append({
+                "code": "unknown-contract-rule",
+                "severity": "blocker",
+                "rule_id": "contract-coverage",
+                "object": instance_id,
+                "risk": f"The binding names unknown profile rules: {', '.join(missing_rules)}.",
+                "minimum_fix": "Correct the binding or add reviewed rules to the Domain Profile.",
+                "verification": "Rerun the audit and confirm every bound rule ID exists.",
+            })
+        elif not required_scopes <= current_scope:
+            status = "not_in_scope"
+        elif not binding["rule_ids"] and not binding["audit_checks"]:
+            if manual and manual["decision"] == "pass" and required_scopes <= manual_scopes:
+                status = "covered"
+            elif manual and manual["decision"] == "fail":
+                status = "failed"
+            else:
+                status = "incomplete"
+        else:
+            failed = bool(set(binding["rule_ids"]) & failed_rule_ids)
+            if "manifest-identity" in binding["audit_checks"]:
+                failed = failed or any(str(item.get("code", "")).startswith(("manifest-", "inactive-manifest")) for item in findings)
+            if "runtime-completeness" in binding["audit_checks"]:
+                failed = failed or any(str(item.get("code", "")).startswith("runtime-") for item in findings)
+            failed = failed or bool(manual and manual["decision"] == "fail")
+            status = "failed" if failed else "covered"
+        coverage.append({
+            "instance_id": instance_id,
+            "applicability": binding["applicability"],
+            "required_scopes": binding["required_scopes"],
+            "rule_ids": binding["rule_ids"],
+            "audit_checks": binding["audit_checks"],
+            "manual_review_ref": manual,
+            "status": status,
+        })
+        if binding["applicability"] == "required" and status == "incomplete":
+            coverage_findings.append({
+                "code": "required-contract-uncovered",
+                "severity": "incomplete",
+                "rule_id": "contract-coverage",
+                "object": instance_id,
+                "risk": "A required contract has no machine-auditable rule or built-in check.",
+                "minimum_fix": "Add explicit reviewed coverage or record the required expert review through Governance.",
+                "verification": "Rerun the audit and confirm the contract is covered or intentionally routed to Governance review.",
+            })
+    return coverage, coverage_findings
 
 
 def manifest_cells(manifest: dict[str, Any], label: str) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
@@ -430,13 +566,25 @@ def audit(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
     profile_path, profile = load_json(root, args.profile, "domain profile")
     protocol_path, protocol = load_json(root, args.protocol, "project protocol")
     observations_path, observation_document = load_json(root, args.observations, "normalized observations")
-    validate_profile_protocol(profile, protocol)
+    contract_aware = validate_profile_protocol(profile, protocol)
     if observation_document.get("schema_version") != OBSERVATION_SCHEMA or not isinstance(observation_document.get("observations"), dict):
         raise ValueError("unsupported normalized observation schema")
     source_paths = [contained_file(root, raw, "protocol source") for raw in protocol["source_paths"]]
+    manual_review_paths: list[Path] = []
+    if contract_aware:
+        for binding in protocol["contract_bindings"]:
+            manual = binding.get("manual_review_ref")
+            if not manual:
+                continue
+            review_path = contained_file(root, manual["path"], "manual review reference")
+            if sha256_file(review_path).casefold() != manual["sha256"].casefold():
+                raise ValueError(f"manual review reference hash mismatch for {binding['instance_id']}")
+            if review_path not in manual_review_paths:
+                manual_review_paths.append(review_path)
     scope = ["design"]
     phases = {"design"}
     evidence = [fingerprint(root, observations_path, kind="normalized_observations")]
+    evidence.extend(fingerprint(root, path, kind="manual_review") for path in manual_review_paths)
     findings = evaluate_rules(profile, observation_document["observations"], phases)
 
     approved_document: dict[str, Any] | None = None
@@ -459,9 +607,22 @@ def audit(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
         scope.append("runtime")
         evidence.append(fingerprint(root, runtime_path, kind="runtime_evidence"))
 
-    status = "failed" if findings else "verified"
+    contract_coverage: list[dict[str, Any]] = []
+    if contract_aware:
+        contract_coverage, coverage_findings = evaluate_contract_coverage(
+            profile, protocol, scope, findings
+        )
+        findings.extend(coverage_findings)
+    status = (
+        "failed"
+        if any(item.get("severity") == "blocker" for item in findings)
+        else "incomplete"
+        if any(item.get("severity") == "incomplete" for item in findings)
+        else "verified"
+    )
+    result_schema = RESULT_SCHEMA_V2 if contract_aware else RESULT_SCHEMA_V1
     result = {
-        "schema_version": RESULT_SCHEMA,
+        "schema_version": result_schema,
         "document_type": "domain-validation-record",
         "status": status,
         "owner": {"kind": protocol["owner"]["kind"], "id": protocol["owner"]["id"]},
@@ -487,10 +648,12 @@ def audit(args: argparse.Namespace) -> tuple[dict[str, Any], int]:
             "Project onboarding, Agent configuration, governance migration, and authorization to execute work.",
         ],
     }
+    if contract_aware:
+        result["contract_coverage"] = contract_coverage
     if args.output:
         write_output(root, args.output, result, args.compact)
     print(json.dumps(result, ensure_ascii=False, indent=None if args.compact else 2, separators=(",", ":") if args.compact else None))
-    return result, 1 if findings else 0
+    return result, 0 if status == "verified" else 1
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:
@@ -519,7 +682,7 @@ def main(argv: list[str]) -> int:
         return exit_code
     except (FileExistsError, KeyError, OSError, ValueError, json.JSONDecodeError) as exc:
         print(json.dumps({
-            "schema_version": RESULT_SCHEMA,
+            "schema_version": RESULT_SCHEMA_V2,
             "document_type": "domain-validation-record",
             "status": "invalid",
             "error": str(exc),

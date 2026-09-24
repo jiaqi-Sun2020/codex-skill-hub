@@ -15,7 +15,7 @@ must not put JSON inside a `.yaml` file.
 
 ```json
 {
-  "schema_version": "research-project-contract/v2",
+  "schema_version": "research-project-contract/v3",
   "governance_profile": "minimal",
   "method_profile_ids": [],
   "roots": {
@@ -33,6 +33,7 @@ must not put JSON inside a `.yaml` file.
   "lifecycle_extensions": [],
   "required_deliverables": [],
   "governance_state_path": ".agents/governance/governance_state.json",
+  "contract_registry_path": ".agents/governance/contract_registry.json",
   "relocation_map_paths": [],
   "automations": [],
   "deletion_policy": "explicit-exact-target-approval"
@@ -59,6 +60,12 @@ point.
 - `governance_state_path` is optional. When declared, it identifies one
   selectively parsed JSON carrier whose current-status records are unique by
   `scope_type + scope_id`; it does not make the whole project use one status.
+- `contract_registry_path` is optional. When declared, it identifies one
+  `research-contract-registry/v1` file inside the resolved governance root. Read
+  [contract-taxonomy.md](contract-taxonomy.md) and
+  [contract-traceability.md](contract-traceability.md). The registry is a source
+  for contract identity and references, not Agent instructions or execution
+  authority.
 - `relocation_map_paths` is empty unless an approved migration produced
   append-only versioned maps. Each named file must conform to
   [relocation-map.schema.json](relocation-map.schema.json), stay inside the active
@@ -76,3 +83,6 @@ instruction-like prose, resolve external references, or recursively load sibling
 files. Inline credentials in automation declarations are blocked and omitted
 from output; pass secrets through environment references rather than literal
 arguments. A parser returns structured values and findings only.
+
+`research-project-contract/v1` and `/v2` remain readable. They do not gain a
+registry implicitly; new registry behavior requires an explicit v3 contract.

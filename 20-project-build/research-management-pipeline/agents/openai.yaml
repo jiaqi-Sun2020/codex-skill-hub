@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research Management Pipeline"
+  short_description: "Coordinate research contracts, evidence, claims, and gates"
+  default_prompt: "Use $research-management-pipeline to assess the current research lifecycle state and route the smallest evidence-backed next action."

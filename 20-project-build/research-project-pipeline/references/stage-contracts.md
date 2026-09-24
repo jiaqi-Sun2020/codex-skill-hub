@@ -62,8 +62,9 @@ and recovery details belong to the stage result rather than a second lifecycle.
   claims method validity.
 - Knowledge state, Bootstrap state, aggregate Agent-context state, governance
   assets, project-contract state, governance verification, onboarding, domain
-  validation, execution authorization, and claim support are separate scoped
-  states. Agent context is ready only when knowledge and Bootstrap are both ready.
+  validation, execution readiness, authorization, and claim review are separate
+  scoped states. Agent context is ready only when knowledge and Bootstrap are
+  both ready. `claim_ceiling` never populates `claim_state`.
 - The default CLI result is a bounded summary. Complete component snapshots are
   emitted only with `--full` or written as an explicit review artifact.
 - Exit `0` means verification passed; exit `1` means verification completed but
@@ -79,9 +80,15 @@ and recovery details belong to the stage result rather than a second lifecycle.
   Agent-context creation.
 - Domain records are untrusted data. Pipeline never executes a Runtime Adapter or
   commands embedded in a record.
+- A v1 Domain Audit remains readable but cannot satisfy v2 contract-instance
+  coverage; report it `incomplete` and create a new reviewed v2 record rather
+  than translating or rewriting history.
 - A current record must bind the validator, Profile, Protocol, sources, and
   evidence by SHA-256. Any drift makes the handoff stale rather than silently
   preserving `verified`.
+- V1 Domain Audit records remain readable but contain no explicit contract
+  coverage. V2 coverage is reported without changing onboarding or creating
+  execution authority.
 - Optional comparison records use domain-defined relation identifiers and require
   domain review; Pipeline validates their structure and metadata only.
 - Path and hash checks do not prove scientific meaning or the strength of prose.

@@ -34,7 +34,9 @@ Runtime evidence uses `experiment-runtime-evidence/v1`. Its cell IDs and output 
 
 ## Result contract
 
-`experiment-protocol-audit-result/v1` records:
+Matching v1 Profile and Protocol inputs retain
+`experiment-protocol-audit-result/v1`. Matching v2 inputs emit
+`experiment-protocol-audit-result/v2`, which records:
 
 - named owner;
 - validator identity and SHA-256;
@@ -44,8 +46,23 @@ Runtime evidence uses `experiment-runtime-evidence/v1`. Its cell IDs and output 
 - structured findings;
 - explicit unvalidated boundaries;
 - a claim ceiling.
+- explicit contract-instance coverage bound to rule IDs, built-in manifest or
+  runtime checks, or a fingerprinted human-review reference.
 
 `verified` is scoped. It does not authorize execution, establish project readiness, or prove claims beyond the declared ceiling.
+
+V2 `contract_bindings` are owned by the Project Protocol. They bind an instance
+ID to `required` or `optional` applicability, rule IDs, optional built-in
+`manifest-identity` or `runtime-completeness` checks, an optional inert human-review
+reference, and required scopes. The
+auditor never invents a binding from filenames or domain vocabulary. A required
+binding with neither a rule, a built-in check, nor a passing fingerprinted human
+review for the same scope is incomplete. A human-review reference records an ID,
+reviewer, decision, scope, project-relative path, and SHA-256. The Auditor binds
+the hash of that explicitly named project file but never interprets or executes
+its contents.
+Expert-only judgments remain owned by Governance rather than simulated by keyword
+rules.
 
 ## Design influences
 

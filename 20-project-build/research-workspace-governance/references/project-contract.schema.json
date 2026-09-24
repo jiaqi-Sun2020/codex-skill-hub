@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "research-project-contract-v2",
+  "$id": "research-project-contract-v3",
   "title": "Research Project Contract",
   "type": "object",
   "required": ["schema_version"],
   "properties": {
-    "schema_version": {"const": "research-project-contract/v2"},
+    "schema_version": {"const": "research-project-contract/v3"},
     "governance_profile": {"enum": ["minimal", "collaborative", "controlled"]},
     "method_profile_ids": {
       "type": "array",
@@ -34,6 +34,7 @@
       "uniqueItems": true
     },
     "governance_state_path": {"type": "string", "minLength": 1},
+    "contract_registry_path": {"type": "string", "minLength": 1},
     "relocation_map_paths": {
       "type": "array",
       "items": {"type": "string", "minLength": 1},

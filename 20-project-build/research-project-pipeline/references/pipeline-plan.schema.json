@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "research-project-pipeline-plan-v5",
+  "$id": "research-project-pipeline-plan-v6",
   "title": "Research Project Pipeline Plan",
   "type": "object",
   "required": [
@@ -12,7 +12,7 @@
     "role_hints_for_semantic_review", "review_gate_inputs", "component_actions", "stages", "snapshots", "invariants"
   ],
   "properties": {
-    "schema_version": {"const": "research-project-pipeline-plan/v5"},
+    "schema_version": {"const": "research-project-pipeline-plan/v6"},
     "document_type": {"const": "pipeline-plan"},
     "detail_level": {"const": "full"},
     "pipeline_id": {"type": "string", "minLength": 12},
@@ -27,7 +27,7 @@
     "component_interfaces": {
       "type": "object",
       "required": ["project_agent_generator", "research_workspace_inventory", "knowledge_auditor_available", "agent_loading_auditor", "comparison_validator", "domain_validator_available", "domain_validation_handoff", "domain_adapter_map"],
-      "properties": {"agent_loading_auditor": {"const": "neat-freak"}, "domain_validator_available": {"type": "boolean"}, "domain_validation_handoff": {"const": "research-domain-validation-handoff/v1"}, "domain_adapter_map": {"const": "research-domain-adapter-map/v1"}},
+      "properties": {"agent_loading_auditor": {"const": "neat-freak"}, "domain_validator_available": {"type": "boolean"}, "domain_validation_handoff": {"const": "research-domain-validation-handoff/v2"}, "domain_adapter_map": {"const": "research-domain-adapter-map/v1"}},
       "additionalProperties": true
     },
     "component_bindings": {
@@ -54,7 +54,7 @@
     "bootstrap_inspection": {"type": "object", "required": ["state", "present", "missing"]},
     "readiness": {
       "type": "object",
-      "required": ["onboarding_state", "agent_context_state", "knowledge_state", "bootstrap_state", "governance_assets_state", "project_contract_state", "governance_verification_state", "governance_state", "domain_validation_state", "execution_state", "claim_state"],
+      "required": ["onboarding_state", "agent_context_state", "knowledge_state", "bootstrap_state", "governance_assets_state", "project_contract_state", "governance_verification_state", "governance_state", "domain_validation_state", "execution_readiness_state", "authorization_state", "claim_state"],
       "properties": {
         "onboarding_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
         "agent_context_state": {"enum": ["pending_generation", "conditional", "ready", "blocked"]},
@@ -64,9 +64,10 @@
         "project_contract_state": {"enum": ["valid", "legacy", "invalid", "absent", "not_checked"]},
         "governance_verification_state": {"enum": ["review_required", "ready", "blocked"]},
         "governance_state": {"enum": ["review_required", "ready", "conditional", "blocked"]},
-        "domain_validation_state": {"enum": ["not_declared", "pending", "verified", "failed", "not_applicable", "stale", "invalid"]},
-        "execution_state": {"enum": ["not_authorized", "ready_for_authorization", "blocked"]},
-        "claim_state": {"enum": ["unsupported", "diagnostic_only", "conditionally_supported", "supported"]}
+        "domain_validation_state": {"enum": ["not_declared", "pending", "verified", "incomplete", "failed", "not_applicable", "stale", "invalid"]},
+        "execution_readiness_state": {"enum": ["not_authorized", "ready_for_authorization", "blocked"]},
+        "authorization_state": {"const": "not_requested"},
+        "claim_state": {"const": "unreviewed"}
       },
       "additionalProperties": false
     },

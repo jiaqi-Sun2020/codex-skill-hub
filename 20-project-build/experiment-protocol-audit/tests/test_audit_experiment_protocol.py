@@ -1,4 +1,5 @@
 import importlib.util
+import hashlib
 import json
 from pathlib import Path
 import subprocess
@@ -47,6 +48,28 @@ class AuditProtocolTests(unittest.TestCase):
             "owner": {"kind": "human", "id": "reviewer@example"},
             "claim_ceiling": "diagnostic_only",
             "source_paths": ["source.txt"],
+        })
+        self.write("observations.json", {
+            "schema_version": "experiment-runtime-observation/v1",
+            "observations": observations or {"value": 1},
+        })
+
+    def base_v2(self, rules, bindings, observations=None):
+        self.write("profile.json", {
+            "schema_version": "experiment-domain-profile/v2",
+            "profile_id": "fixture-profile",
+            "version": "2.0.0",
+            "rules": rules,
+        })
+        self.write("protocol.json", {
+            "schema_version": "experiment-project-protocol/v2",
+            "protocol_id": "fixture-protocol",
+            "version": "2.0.0",
+            "profile_id": "fixture-profile",
+            "owner": {"kind": "human", "id": "reviewer@example"},
+            "claim_ceiling": "supported",
+            "source_paths": ["source.txt"],
+            "contract_bindings": bindings,
         })
         self.write("observations.json", {
             "schema_version": "experiment-runtime-observation/v1",
@@ -161,6 +184,161 @@ class AuditProtocolTests(unittest.TestCase):
                 process, payload = self.run_audit()
                 self.assertEqual(process.returncode, 0 if actual <= 344 else 1)
                 self.assertEqual(payload["status"], "verified" if actual <= 344 else "failed")
+
+    def test_v2_reports_explicit_contract_coverage(self):
+        self.base_v2(
+            [{"id": "positive", "type": "numeric-bound", "input_path": "value", "operator": ">", "expected": 0}],
+            [{
+                "instance_id": "study.SCI-05.validity",
+                "applicability": "required",
+                "rule_ids": ["positive"],
+                "audit_checks": [],
+                "required_scopes": ["design"],
+            }],
+        )
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(payload["schema_version"], "experiment-protocol-audit-result/v2")
+        self.assertEqual(payload["status"], "verified")
+        self.assertEqual(payload["contract_coverage"][0]["status"], "covered")
+        self.assertEqual(payload["claim_ceiling"], "supported")
+
+    def test_v2_empty_contract_coverage_is_incomplete(self):
+        self.base_v2([], [])
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 1)
+        self.assertEqual(payload["status"], "incomplete")
+        self.assertEqual(payload["claim_ceiling"], "unsupported")
+        self.assertIn("contract-coverage-empty", {item["code"] for item in payload["findings"]})
+
+    def test_v2_fingerprinted_human_review_can_cover_expert_only_contract(self):
+        review = self.project / "manual-review.txt"
+        review.write_text("Independent expert review: pass.\n", encoding="utf-8")
+        self.base_v2([], [{
+            "instance_id": "study.SCI-05.expert-validity",
+            "applicability": "required",
+            "rule_ids": [],
+            "audit_checks": [],
+            "required_scopes": ["design"],
+            "manual_review_ref": {
+                "id": "review:domain-expert-001",
+                "reviewer_ref": "reviewer:independent-expert",
+                "decision": "pass",
+                "scopes": ["design"],
+                "path": "manual-review.txt",
+                "sha256": hashlib.sha256(review.read_bytes()).hexdigest(),
+            },
+        }])
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(payload["status"], "verified")
+        self.assertEqual(payload["contract_coverage"][0]["status"], "covered")
+        self.assertEqual(payload["contract_coverage"][0]["manual_review_ref"]["decision"], "pass")
+
+    def test_v2_human_review_with_wrong_scope_is_incomplete(self):
+        review = self.project / "manual-review.txt"
+        review.write_text("Independent expert review: pass for runtime only.\n", encoding="utf-8")
+        self.base_v2([], [{
+            "instance_id": "study.SCI-05.expert-validity",
+            "applicability": "required",
+            "rule_ids": [],
+            "audit_checks": [],
+            "required_scopes": ["design"],
+            "manual_review_ref": {
+                "id": "review:domain-expert-002",
+                "reviewer_ref": "reviewer:independent-expert",
+                "decision": "pass",
+                "scopes": ["runtime"],
+                "path": "manual-review.txt",
+                "sha256": hashlib.sha256(review.read_bytes()).hexdigest(),
+            },
+        }])
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 1)
+        self.assertEqual(payload["status"], "incomplete")
+        self.assertEqual(payload["contract_coverage"][0]["status"], "incomplete")
+
+    def test_v2_human_review_hash_mismatch_is_invalid(self):
+        self.write("manual-review.txt", {"decision": "pass"})
+        self.base_v2([], [{
+            "instance_id": "study.SCI-05.expert-validity",
+            "applicability": "required",
+            "rule_ids": [],
+            "audit_checks": [],
+            "required_scopes": ["design"],
+            "manual_review_ref": {
+                "id": "review:domain-expert-003",
+                "reviewer_ref": "reviewer:independent-expert",
+                "decision": "pass",
+                "scopes": ["design"],
+                "path": "manual-review.txt",
+                "sha256": "c" * 64,
+            },
+        }])
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 2)
+        self.assertEqual(payload["status"], "invalid")
+        self.assertIn("hash mismatch", payload["error"])
+
+    def test_cross_disciplinary_profiles_define_cardinality_and_fixed_sets(self):
+        cases = [
+            (
+                [{"id": "declared-cells", "type": "cardinality", "input_path": "cells", "operator": "==", "expected": 8}],
+                {"cells": list(range(8))},
+            ),
+            (
+                [{"id": "biological-replicates", "type": "cardinality", "input_path": "biological_replicates", "operator": "==", "expected": 3}],
+                {"biological_replicates": ["a", "b", "c"], "technical_measurements": list(range(15))},
+            ),
+            (
+                [{"id": "fixed-review-set", "type": "set-equality", "left_path": "included_sources", "right_value": ["paper-a", "paper-b"]}],
+                {"included_sources": ["paper-b", "paper-a"]},
+            ),
+        ]
+        for rules, observations in cases:
+            with self.subTest(rule=rules[0]["id"]):
+                self.base(rules, observations)
+                process, payload = self.run_audit()
+                self.assertEqual(process.returncode, 0)
+                self.assertEqual(payload["status"], "verified")
+
+    def test_declared_missingness_policy_must_be_present(self):
+        self.base([{
+            "id": "missingness-policy",
+            "type": "equality",
+            "left_path": "missingness_policy",
+            "right_value": "retain-and-report",
+        }], {"observed_units": 12})
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 1)
+        self.assertEqual(payload["status"], "failed")
+        self.assertIn("missing-observation", {item["code"] for item in payload["findings"]})
+
+    def test_rounding_and_fixed_sets_are_not_silently_reinterpreted(self):
+        cases = [
+            (
+                [{"id": "no-silent-rounding", "type": "equality", "left_path": "reported_value", "right_path": "computed_value"}],
+                {"reported_value": 0.34, "computed_value": 0.345},
+            ),
+            (
+                [{"id": "no-extra-source", "type": "set-equality", "left_path": "included_sources", "right_value": ["paper-a", "paper-b"]}],
+                {"included_sources": ["paper-a", "paper-b", "paper-c"]},
+            ),
+        ]
+        for rules, observations in cases:
+            with self.subTest(rule=rules[0]["id"]):
+                self.base(rules, observations)
+                process, payload = self.run_audit()
+                self.assertEqual(process.returncode, 1)
+                self.assertEqual(payload["status"], "failed")
+                self.assertIn("domain-rule-violation", {item["code"] for item in payload["findings"]})
+
+    def test_v1_remains_readable_without_claiming_contract_coverage(self):
+        self.base([])
+        process, payload = self.run_audit()
+        self.assertEqual(process.returncode, 0)
+        self.assertEqual(payload["schema_version"], "experiment-protocol-audit-result/v1")
+        self.assertNotIn("contract_coverage", payload)
 
 
 if __name__ == "__main__":

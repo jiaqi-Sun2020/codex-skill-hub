@@ -72,6 +72,24 @@ Check only applicable lenses and say when one is not applicable:
 7. **Submission integrity** — reviewed content matches what will be submitted and all
    required checks are current for that content.
 
+When the change surface contains a research Project Contract, contract registry,
+Domain Profile/Protocol, amendment, governance state, validation record, claim
+review, or deliverable reference:
+
+- identify the exact schema versions and authoritative registry path;
+- run or inspect the current Governance registry validation instead of
+  reimplementing it;
+- verify that a semantic contract change has an append-only amendment and that
+  affected validations, evidence, claims, gates, and deliverables are reported;
+- reject a hand-maintained traceability matrix presented as a second authority;
+- keep `claim_ceiling`, actual claim review, evidence state, and authorization
+  separate;
+- treat a stale or missing required record as a submission gap, not as scientific
+  refutation.
+
+This check establishes submission consistency only. It does not independently
+decide whether a method or scientific conclusion is correct.
+
 Run only safe, relevant verification commands already supported by the project or
 explicitly authorized by the user. Report every command with its working directory,
 exit code, and material result. An unavailable required check is missing evidence,

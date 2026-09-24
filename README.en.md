@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **eleven active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
+`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **twelve active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
 
-As of 2026-09-23, this repository contains:
+As of 2026-09-24, this repository contains:
 
-- eleven directly maintained active Skills;
+- twelve directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
 - lightweight indexes for two external Skill projects, without duplicating their project-owned source.
 
@@ -31,9 +31,11 @@ codex-skill-hub/
 |-- 10-paper-build/
 |   `-- academic-figure-workflow/    Academic figure workflow
 |-- 20-project-build/
+|   |-- README.md / README.en.md       Project-build architecture entry points
 |   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
 |   |-- project-submission-audit/
+|   |-- research-management-pipeline/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 50-core-utils/
@@ -46,6 +48,9 @@ codex-skill-hub/
     `-- logic-chain-tutor/
 ```
 
+See the [project-build architecture](20-project-build/README.en.md) for the six
+Skills, four contract categories, independent state axes, and lifecycle routing.
+
 ## Choosing a Skill from this repository
 
 | Goal | Skill |
@@ -53,6 +58,7 @@ codex-skill-hub/
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
 | Generate initial `.agents/`, a durable-knowledge baseline, and Codex startup loading, or complete only missing startup files around one preserved bundle | `project-agent-generator-skill` |
 | Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
+| Repeatedly manage contracts, evidence, amendments, gates, and next-action routing after onboarding | `research-management-pipeline` |
 | Independently audit an experimental design or run manifest against an explicit domain profile, protocol, and evidence | `experiment-protocol-audit` |
 | Audit the actual change surface before a commit, PR, release, delivery, or handoff | `project-submission-audit` |
 | Govern research assets, locations, statuses, evidence, migration, deletion approval, and comparison-claim boundaries | `research-workspace-governance` |
@@ -157,6 +163,25 @@ Initialize a new research project, or onboard a legacy project that has not comp
 
 Source: [`20-project-build/research-project-pipeline/`](20-project-build/research-project-pipeline/)
 
+### `research-management-pipeline`
+
+**Domain**
+
+Use after initial onboarding for repeated research management. It locates the single governance root and contract registry, summarizes applicable SCI, STAT, ENG, and GOV contracts, seven independent state axes, gates, gaps, and amendment impact, then returns one smallest next action.
+
+**Core capabilities and boundary**
+
+- Calls Governance's read-only registry validator instead of duplicating deterministic validation.
+- Routes domain validation to `experiment-protocol-audit` or a human expert, Agent-information updates to `neat-freak`, and the final change surface to `project-submission-audit`.
+- Keeps definition, implementation, verification, work, evidence, claim, and authorization states independent; no single `PASS` promotes another axis.
+- Supports amendments and dependency invalidation closure, but does not run research, execute adapters, select methods, create `.agents`, or grant authorization.
+
+**Example prompt**
+
+> Use `research-management-pipeline` to inspect this onboarded project's current contract coverage, evidence gaps, and affected scope. Return one smallest next action; do not run research or create an Agent framework.
+
+Source: [`20-project-build/research-management-pipeline/`](20-project-build/research-management-pipeline/)
+
 ### `experiment-protocol-audit`
 
 **Domain**
@@ -166,6 +191,7 @@ Use this Skill to evaluate explicit domain constraints against a project-owned D
 **Core capabilities and boundary**
 
 - Support generic numeric bounds, equality, shapes, sets, cardinality, and allowed transforms.
+- A v2 protocol uses `contract_bindings` to connect applicable contracts to stable rules and audit scopes; a required contract without a rule or valid manual-review reference is `incomplete`.
 - Compare requested/generated/approved manifests exactly and record validator/profile/protocol/source/evidence hashes so a change makes the old record stale.
 - Emit an independent record for Pipeline binding; never execute Runtime Adapters, create project frameworks, choose methods, or equate completed work with a supported scientific claim.
 
@@ -187,6 +213,7 @@ Perform a read-only audit of the exact proposed change surface before a commit, 
 
 - Reconcile staged, unstaged, and untracked state so the reviewed content matches the proposed submission.
 - Map requirements to implementation, affected interfaces, and verification evidence.
+- Check contracts, protocols, schemas, amendments, and evidence references for unrecorded semantic changes, and confirm affected claims, validations, and deliverables are marked stale.
 - Apply locality, module depth, seams, and the deletion test only to architecture relevant to the change.
 - Record P0/P1/P2 findings with evidence, impact, smallest repair, and verification method.
 - Remain read-only by default; it does not commit, push, publish, or establish scientific validity.
@@ -207,6 +234,8 @@ Govern a research workspace in a domain-neutral way when sources, working assets
 
 - Define roles such as `source`, `method`, `working`, `evidence`, `deliverable`, `automation`, `archive`, and `temporary`.
 - Trace sources, methods, working assets, evidence, claims, and deliverables.
+- Maintain SCI, STAT, ENG, and GOV contract catalogs plus the single `research-contract-registry/v1`, instantiating only applicable contracts.
+- Derive the traceability matrix from the registry and use append-only amendments to compute invalidation closure across validation, evidence, claims, gates, and deliverables.
 - Resolve canonical `.agents/governance/` and legacy root `governance/` without guessing when both exist.
 - Support single-file, task-local, and custom-path automation contracts.
 - Protect immutable evidence and provide failure-safe migration and cleanup policies.
@@ -384,6 +413,13 @@ research-project-pipeline
   → project-submission-audit (pre-submission or pre-delivery audit)
   → handoff (continue in another session or agent)
 
+Post-onboarding research lifecycle
+research-management-pipeline
+  → research-workspace-governance (registry, trace matrix, amendments, invalidation)
+  → experiment-protocol-audit / domain Skill / human expert (contract-driven routing)
+  → neat-freak (when Agent information changes)
+  → project-submission-audit (final change surface)
+
 Later project-information updates
 project change → neat-freak (repeated maintenance)
 
@@ -403,7 +439,10 @@ final change surface → project-submission-audit → PASS / BLOCKED / INCOMPLET
 
 ## Pipeline usage guide
 
-`research-project-pipeline` is this repository's formal onboarding orchestrator. Routine maintenance, submission auditing, handoff, figure work, and learning remain separate Skill workflows; **one command does not run every workflow automatically**. This guide applies only to the workflows maintained here. PaperTrace readers, digests, and teaching pipelines remain governed by their own README files.
+See the [project-build architecture](20-project-build/README.en.md) for the four
+contract categories, seven independent state axes, and complete routing tree.
+
+This repository has two complementary entry points: `research-project-pipeline` handles one-time onboarding, while `research-management-pipeline` handles repeated post-onboarding research management. Routine documentation maintenance, submission auditing, handoff, figure work, and learning remain separate Skill workflows; **one command does not run every workflow automatically**. This guide applies only to workflows maintained here. PaperTrace readers, digests, and teaching pipelines remain governed by their own README files.
 
 ### Choose the entry point first
 
@@ -411,6 +450,7 @@ final change surface → project-submission-audit → PASS / BLOCKED / INCOMPLET
 |---|---|---|
 | New project, or legacy project without completed Agent onboarding | Pipeline discovery → Governance design → human review → Generator → verification → handoff | Reviewable plan, approved framework creation, and separate acceptance states |
 | Existing `.agents/` or `.agent/` bundle, but startup loading is missing | Pipeline `bootstrap-only` preview → human review → create only missing Bootstrap → verification | Startup loading completed without changing the original knowledge files |
+| Onboarded project whose contracts, evidence, methods, environment, or claim status changed | Research Management → read-only Governance validation → route by gap → revalidate | Contract coverage, seven-axis state, invalidation scope, and one smallest next action |
 | Already initialized project with code, directory, or decision changes | Neat-Freak audit → update authorized docs/knowledge → re-audit | Project information aligned with current code, without regenerating the framework |
 | Domain protocol or task-manifest review | Explicit Profile/Protocol → Experiment Protocol Audit → optionally bind to Pipeline | Evidence-fingerprinted domain-validation record; no experiment execution |
 | Submission, delivery, or transfer | Project Submission Audit → repair and re-audit → Handoff if needed | `PASS / BLOCKED / INCOMPLETE` and a traceable handoff |
@@ -472,7 +512,24 @@ python -X utf8 -B $pipelineScript verify $projectRoot
 
 This branch creates only missing managed startup files. Existing Agent knowledge remains byte-for-byte unchanged. It stops on a differing startup file, dual bundles, linked/unsafe paths, or drift; it is not an overwrite or merge mechanism.
 
-### C. Later updates: call Neat-Freak again
+### C. Repeated research management: inspect contracts, evidence, and amendment impact
+
+After onboarding, use `research-management-pipeline` as the research-lifecycle entry point. It does not run research; it reads current governance state and routes the next action:
+
+> Use `research-management-pipeline` to manage this onboarded project. Locate the unique governance root, call the Governance read-only validator, summarize SCI/STAT/ENG/GOV coverage, seven state axes, gates, and amendment impact, and return one smallest next action. Do not run experiments, adapters, Generator, or grant execution or publication permission.
+
+For deterministic checks only, run the Governance validator from **this repository root** and replace the registry path with the target project's actual path:
+
+```powershell
+$registryValidator = '.\20-project-build\research-workspace-governance\scripts\validate_contract_registry.py'
+$registryPath = '.agents/governance/contract_registry.json'
+python -X utf8 -B $registryValidator validate $projectRoot --registry $registryPath
+python -X utf8 -B $registryValidator matrix $projectRoot --registry $registryPath
+```
+
+The validator prints JSON to stdout only; it creates no directory and writes no project file. `claim_ceiling` is only the maximum scope permitted by a domain handoff. Actual `claim_state` requires an independent Claim Review, and authorization requires its own traceable record.
+
+### D. Later project-information updates: call Neat-Freak again
 
 After onboarding, do not rerun Pipeline or Generator to refresh the framework. In the target project conversation, ask:
 
@@ -487,7 +544,7 @@ python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
 
 Neither `audit` nor `bootstrap-audit` updates documentation. Documentation synchronization requires explicit authorization. Durable-knowledge topic writes use Neat-Freak's hash-bound `plan → apply` flow. Generator owns missing framework creation; Neat-Freak can repair only existing marked wiring under its separately authorized maintenance workflow.
 
-### D. Submission audit and handoff: invoke them separately
+### E. Submission audit and handoff: invoke them separately
 
 In the target project conversation, first specify the exact surface intended for submission:
 
@@ -499,7 +556,7 @@ Repair and re-audit the same change surface. If the work needs another session o
 
 Pipeline `verify` **does not automatically invoke** either conversation-level Skill. A handoff can be created while blocked or awaiting review, but it must state that status and never present a generated document as completed work.
 
-### E. Other common workflows
+### F. Other common workflows
 
 The following are independent Skill requests, not extra Pipeline CLI subcommands:
 
@@ -514,7 +571,7 @@ The following are independent Skill requests, not extra Pipeline CLI subcommands
 - Evaluate Agent knowledge, Bootstrap, governance assets, governance verification, domain validation, execution authorization, and claim support independently. Onboarding does not authorize experiments or establish a scientific conclusion.
 - The default summary is enough to choose a next step; add `--full` to `plan` or `verify` only for diagnosis.
 - Stop and rediscover/review when a fingerprint drifts, source authority is ambiguous, a path escapes, a link is encountered, or an existing target conflicts. Do not use force to bypass these checks.
-- The complete interface is defined by the [Pipeline Skill](20-project-build/research-project-pipeline/SKILL.md) and its [stage contracts](20-project-build/research-project-pipeline/references/stage-contracts.md); routine updates are defined by [Neat-Freak](50-core-utils/neat-freak/SKILL.md).
+- Initial onboarding is defined by the [Research Project Pipeline](20-project-build/research-project-pipeline/SKILL.md) and its [stage contracts](20-project-build/research-project-pipeline/references/stage-contracts.md); post-onboarding contract and gate routing is defined by the [Research Management Pipeline](20-project-build/research-management-pipeline/SKILL.md); routine Agent-information updates are defined by [Neat-Freak](50-core-utils/neat-freak/SKILL.md).
 
 ## External Skill projects at a glance
 
@@ -557,10 +614,11 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" regis
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
 python -X utf8 -B ".\20-project-build\project-agent-generator-skill\tests\test_generate_project_agents.py"
-python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
-python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
-
-python -X utf8 -B ".\20-project-build\research-workspace-governance\tests\test_equivalence_records.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-project-pipeline\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-workspace-governance\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\experiment-protocol-audit\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-management-pipeline\tests" -p "test_*.py"
+git diff --check
 ```
 
 ## Maintenance and licensing

@@ -19,7 +19,7 @@ deliverables
 
 ```text
 work: work_id | scope | objective | owner | dependencies | expected evidence | validation | work_state | next decision
-status: status_id | scope_type | scope_id | work_state | claim_state | evidence | supersedes | recorded_at | owner
+status: status_id | scope_type | scope_id | work_state | claim_state | claim_review_ref | evidence | supersedes | recorded_at | owner
 decision: decision_id | context | alternatives | evidence | rationale | owner | date | consequences
 risk: risk_id | condition | impact | likelihood/uncertainty | mitigation | owner | status
 deviation: deviation_id | method/version | change | reason | affected evidence/claims | approval | date
@@ -31,6 +31,34 @@ deviation: deviation_id | method/version | change | reason | affected evidence/c
 claim_id | claim and scope | supporting and contradictory evidence
 method/procedure and Profile identifiers | conditions | limitations
 review status | reviewer | deliverables using the claim
+```
+
+## Contract registry carrier
+
+Use the versioned `research-contract-registry/v1` schema. Instantiate only
+applicable SCI, STAT, ENG, GOV, or Profile-owned contracts; do not create empty
+files for the full catalog. Keep one registry as the editable source of truth.
+
+```text
+instance_id | catalog_id + category | scope | applicability + decision_ref
+owner_ref | definition_ref + definition_state | depends_on
+implementation_refs | verification_refs | work_refs | evidence_refs
+claim_refs | authorization_refs | deliverable_refs | required_gates
+```
+
+Derive the trace matrix with the Governance validator. Do not hand-maintain a
+second matrix. Append changes to the registry's `amendments` array and preserve
+the prior revisions and historical PASS records.
+
+## Amendment impact summary
+
+```text
+change_id | reason | old_revision -> new_revision | decision_ref
+changed assumptions or parameters | directly affected contracts
+dependency closure | stale verification scope | affected evidence
+affected claims | affected gates | affected deliverables
+reuse policy | required revalidation | next allowed action
+historical_records_modified: false
 ```
 
 ## Architecture brief

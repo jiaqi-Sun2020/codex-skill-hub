@@ -51,17 +51,20 @@ codex-skill-hub/
 - Treat `README.md` and `README.en.md` as the canonical Chinese and English
   human-facing overviews, inventories, architecture summaries, and usage guides.
 - Do not recreate `00-overview/` or another document that duplicates the root
+- Treat `20-project-build/README.md` and `README.en.md` as the bilingual
+  module-level technical architecture map; they do not replace the root overview.
   README's overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
-- Maintain the five project-build core Skill sources under `20-project-build/` and the four reusable core Skill sources under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
+- Maintain the six project-build core Skill sources under `20-project-build/` and the four reusable core Skill sources under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
 - Treat `50-core-utils/skill-registry/releases/` as immutable published snapshots.
 - Preserve registry history and user changes; inspect the root Git worktree before editing or committing.
 - Shortcut targets are external projects or collections. Do not modify those targets merely because their `.lnk` files are present here.
 - Keep durable project decisions in `.agents/memory/`; keep `.agents/memory/MEMORY.md` as a compact pointer index.
 - `project-agent-generator-skill` creates a missing Agent framework once; routine context maintenance belongs to `neat-freak`, while `--force` is legacy recovery only.
 - `research-project-pipeline` coordinates one-time onboarding and may boundary-check a project-contained loading manifest, but only `neat-freak` audits its policy content.
-- `research-workspace-governance` owns domain-neutral assets, locations, statuses, evidence, migration, deletion boundaries, and comparison-record structure; it does not perform domain science.
+- `research-management-pipeline` is the repeated post-onboarding lifecycle router. It reads Governance results and selects the smallest next action; it does not execute research, create Agent scaffolding, choose methods, or grant authorization.
+- `research-workspace-governance` owns domain-neutral assets, locations, contracts, statuses, evidence, amendments, invalidation, migration, deletion boundaries, and traceability records; it does not perform domain science.
 - `neat-freak` owns routine project-information maintenance, independently audits declared policy reachability, and may repair only existing marked Bootstrap wiring with explicit authorization.
 - `project-submission-audit` performs the final read-only audit of the exact change surface before a commit, PR, release, delivery, or handoff; its decision never establishes scientific validity.
 - `handoff` writes a compact evidence-linked continuation document outside the project by default; it does not create authority for the receiving agent.

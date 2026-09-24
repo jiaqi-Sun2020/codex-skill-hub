@@ -112,6 +112,17 @@
   knowledge, Bootstrap, governance assets, project-contract, governance
   verification, domain validation, execution authorization, and claim support as
   separate states.
+- 2026-09-23: `research-management-pipeline` becomes the sixth canonical
+  project-build Skill and the repeated post-onboarding lifecycle entry. Governance
+  owns the SCI/STAT/ENG/GOV registry, derived trace matrix, amendments, invalidation,
+  and seven independent state axes; Management only routes the smallest next action.
+  `research-project-pipeline` remains one-time onboarding and
+  `project-agent-generator-skill` remains frozen as the one-time framework creator.
+
+- 2026-09-24: `20-project-build/README.md` and `README.en.md` are the bilingual
+  technical architecture entrypoints for the six project-build Skills. They explain
+  ownership, SCI/STAT/ENG/GOV contracts, independent state axes, and lifecycle
+  routing; the root README pair remains the repository-wide human overview.
 
 ## Open Questions
 

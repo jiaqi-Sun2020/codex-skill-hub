@@ -30,8 +30,10 @@ My_skills/
 |   `-- academic-figure-workflow/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
+|   |-- README.md / README.en.md
 |   |-- project-agent-generator-skill/
 |   |-- project-submission-audit/
+|   |-- research-management-pipeline/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 30-papertrace/
@@ -77,12 +79,15 @@ My_skills/
 
 - `README.md`
 - `README.en.md`
+- `20-project-build/README.md`
+- `20-project-build/README.en.md`
 - `.agents/AGENTS.md`
 - `.agents/memory/MEMORY.md`
 - `.codex/hooks/load_project_agents.py`
 - `20-project-build/experiment-protocol-audit/SKILL.md`
 - `20-project-build/project-agent-generator-skill/SKILL.md`
 - `20-project-build/project-submission-audit/SKILL.md`
+- `20-project-build/research-management-pipeline/SKILL.md`
 - `20-project-build/research-project-pipeline/SKILL.md`
 - `20-project-build/research-workspace-governance/SKILL.md`
 - `50-core-utils/handoff/SKILL.md`
@@ -99,7 +104,9 @@ My_skills/
 - `50-core-utils/neat-freak/tests/test_manage_project_knowledge.py`
 - `20-project-build/experiment-protocol-audit/tests/test_audit_experiment_protocol.py`
 - `20-project-build/project-agent-generator-skill/tests/test_generate_project_agents.py`
+- `20-project-build/research-management-pipeline/tests/test_research_management_pipeline.py`
 - `20-project-build/research-project-pipeline/tests/test_research_pipeline.py`
+- `20-project-build/research-workspace-governance/tests/test_contract_registry.py`
 - `20-project-build/research-workspace-governance/tests/test_inventory_workspace.py`
 - `20-project-build/research-workspace-governance/tests/test_equivalence_records.py`
 - `50-core-utils/skill-registry/releases/reader-learner/1.0.0/tests/test_feedback_visible_wiki_pipeline.py`
@@ -123,17 +130,21 @@ My_skills/
 
 ## Boundary Notes
 
-- `20-project-build/` owns the five direct project-build Skill sources: Protocol
-  Audit, Generator, Submission Audit, Pipeline, and Workspace Governance.
+- `20-project-build/` owns the six direct project-build Skill sources: Protocol
+  Audit, Generator, Submission Audit, Management Pipeline, Onboarding Pipeline,
+  and Workspace Governance.
+  Its bilingual README pair is a local technical map of those components, their
+  four contract categories, independent state axes, and lifecycle routing; the
+  root README pair remains the repository-wide overview.
   `50-core-utils/` owns the four reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
 - Project-owned skills remain behind their shortcut targets. The shortcuts do not
   transfer ownership to this folder.
 - `10-paper-build/academic-figure-workflow/` is a centrally stored paper-building
-  Skill; it is not a shortcut target and is not one of the nine core Skills.
+  Skill; it is not a shortcut target and is not one of the ten core Skills.
 - `90-personal/logic-chain-tutor/` is the centrally stored personal teaching
   Skill; its former external source and personal shortcut are retired.
-- The nine direct core Skills are used from their designated central category
+- The ten direct core Skills are used from their designated central category
   directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison

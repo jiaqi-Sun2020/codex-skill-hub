@@ -158,22 +158,31 @@ class ResearchPipelineTests(unittest.TestCase):
         )
         return records
 
-    def make_domain_record(self, project: Path) -> Path:
+    def make_domain_record(self, project: Path, *, claim_ceiling: str = "diagnostic_only", schema_generation: int = 1) -> Path:
         (project / "domain-profile.json").write_text(json.dumps({
-            "schema_version": "experiment-domain-profile/v1",
+            "schema_version": f"experiment-domain-profile/v{schema_generation}",
             "profile_id": "example-domain",
             "version": "1.0.0",
             "rules": [{"id": "positive", "type": "numeric-bound", "input_path": "value", "operator": ">", "expected": 0}],
         }), encoding="utf-8")
-        (project / "project-protocol.json").write_text(json.dumps({
-            "schema_version": "experiment-project-protocol/v1",
+        protocol = {
+            "schema_version": f"experiment-project-protocol/v{schema_generation}",
             "protocol_id": "example-protocol",
             "version": "1.0.0",
             "profile_id": "example-domain",
             "owner": {"kind": "human", "id": "domain-reviewer"},
-            "claim_ceiling": "diagnostic_only",
+            "claim_ceiling": claim_ceiling,
             "source_paths": ["src/analysis.py"],
-        }), encoding="utf-8")
+        }
+        if schema_generation == 2:
+            protocol["contract_bindings"] = [{
+                "instance_id": "study.SCI-05.validity",
+                "applicability": "required",
+                "rule_ids": ["positive"],
+                "audit_checks": [],
+                "required_scopes": ["design"],
+            }]
+        (project / "project-protocol.json").write_text(json.dumps(protocol), encoding="utf-8")
         (project / "domain-observations.json").write_text(json.dumps({
             "schema_version": "experiment-runtime-observation/v1",
             "observations": {"value": 1},
@@ -759,8 +768,9 @@ class ResearchPipelineTests(unittest.TestCase):
             payload = json.loads(stdout)
             self.assertEqual(payload["domain_validation_handoff"]["effective_state"], "not_declared")
             self.assertEqual(payload["readiness"]["domain_validation_state"], "not_declared")
-            self.assertEqual(payload["readiness"]["execution_state"], "not_authorized")
-            self.assertEqual(payload["readiness"]["claim_state"], "unsupported")
+            self.assertEqual(payload["readiness"]["execution_readiness_state"], "not_authorized")
+            self.assertEqual(payload["readiness"]["authorization_state"], "not_requested")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
             self.assertNotIn("domain-validation-not-declared", {item.get("code") for item in payload["review_gate_inputs"]["blockers"]})
             self.assertIn("domain-validation-not-declared", {item.get("code") for item in payload["review_gate_inputs"]["non_blockers"]})
             self.assertNotEqual(payload.get("status"), "pass")
@@ -785,7 +795,7 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(handoff["owner"], {"kind": "human", "id": "principal-investigator"})
             self.assertEqual(handoff["claim_ceiling"], "unsupported")
 
-    def test_current_domain_record_is_verified_and_hash_bound(self) -> None:
+    def test_current_v1_domain_record_is_readable_but_contract_incomplete(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
             record = self.make_domain_record(project)
@@ -796,11 +806,59 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(code, 0, stderr)
             payload = json.loads(stdout)
             handoff = payload["domain_validation_handoff"]
-            self.assertEqual(handoff["effective_state"], "verified")
-            self.assertEqual(handoff["claim_ceiling"], "diagnostic_only")
-            self.assertEqual(payload["readiness"]["claim_state"], "diagnostic_only")
+            self.assertEqual(handoff["effective_state"], "incomplete")
+            self.assertEqual(handoff["claim_ceiling"], "unsupported")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
+            self.assertEqual(handoff["source_record_schema"], "experiment-protocol-audit-result/v1")
+            self.assertIn("domain-validation-contract-coverage-unavailable", {item["code"] for item in handoff["findings"]})
             self.assertEqual(handoff["validator"]["sha256"], pipeline.sha256_file(DOMAIN_AUDITOR))
             pipeline.validate_plan_structure(payload)
+
+    def test_supported_claim_ceiling_never_becomes_claim_support(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project, claim_ceiling="supported", schema_generation=2)
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--full", "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            self.assertEqual(payload["domain_validation_handoff"]["claim_ceiling"], "supported")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
+            self.assertEqual(payload["readiness"]["authorization_state"], "not_requested")
+
+    def test_v2_domain_record_preserves_contract_coverage_without_promoting_claim(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project, claim_ceiling="supported", schema_generation=2)
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--full", "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            payload = json.loads(stdout)
+            handoff = payload["domain_validation_handoff"]
+            self.assertEqual(handoff["source_record_schema"], "experiment-protocol-audit-result/v2")
+            self.assertEqual(handoff["contract_coverage"][0]["status"], "covered")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
+            self.assertEqual(payload["readiness"]["authorization_state"], "not_requested")
+
+    def test_forged_verified_v2_record_cannot_hide_empty_contract_coverage(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            record = self.make_domain_record(project, schema_generation=2)
+            payload = json.loads(record.read_text(encoding="utf-8"))
+            payload["contract_coverage"] = []
+            record.write_text(json.dumps(payload), encoding="utf-8")
+            code, stdout, stderr = self.run_main([
+                "plan", str(project), "--domain-validation", "required",
+                "--domain-validation-record", record.relative_to(project).as_posix(), "--full", "--compact",
+            ])
+            self.assertEqual(code, 0, stderr)
+            handoff = json.loads(stdout)["domain_validation_handoff"]
+            self.assertEqual(handoff["effective_state"], "invalid")
+            self.assertIn("domain-validation-contract-coverage-conflict", {item["code"] for item in handoff["findings"]})
 
     def test_domain_record_becomes_stale_when_source_changes(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
@@ -814,7 +872,7 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(code, 0, stderr)
             payload = json.loads(stdout)
             self.assertEqual(payload["domain_validation_handoff"]["effective_state"], "stale")
-            self.assertEqual(payload["readiness"]["claim_state"], "unsupported")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
             self.assertIn("domain-validation-evidence-stale", {item["code"] for item in payload["domain_validation_handoff"]["findings"]})
 
     def test_forged_verified_record_with_blocker_is_invalid(self) -> None:
@@ -1081,7 +1139,7 @@ class ResearchPipelineTests(unittest.TestCase):
             self.assertEqual(handoff["authorization_effect"], "none")
             self.assertFalse(handoff["executed_by_pipeline"])
             self.assertEqual(payload["readiness"]["domain_validation_state"], "not_declared")
-            self.assertEqual(payload["readiness"]["claim_state"], "unsupported")
+            self.assertEqual(payload["readiness"]["claim_state"], "unreviewed")
 
             failed = json.loads(adapter.read_text(encoding="utf-8"))
             failed["status"] = "failed"
@@ -1094,8 +1152,8 @@ class ResearchPipelineTests(unittest.TestCase):
             failed_payload = json.loads(stdout)
             self.assertEqual(failed_payload["domain_adapter_handoff"]["status"], "failed")
             self.assertEqual(failed_payload["domain_adapter_handoff"]["authorization_effect"], "none")
-            self.assertEqual(failed_payload["readiness"]["execution_state"], "not_authorized")
-            self.assertEqual(failed_payload["readiness"]["claim_state"], "unsupported")
+            self.assertEqual(failed_payload["readiness"]["execution_readiness_state"], "not_authorized")
+            self.assertEqual(failed_payload["readiness"]["claim_state"], "unreviewed")
 
     def test_component_discovery_separates_project_build_and_reusable_core(self) -> None:
         args = pipeline.parse_args(["plan", str(Path.cwd())])

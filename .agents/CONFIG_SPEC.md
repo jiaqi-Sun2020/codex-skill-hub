@@ -16,6 +16,7 @@
 - `50-core-utils/*/agents/openai.yaml` where present
 - `20-project-build/research-project-pipeline/references/policy-topology.schema.json`
 - `20-project-build/research-project-pipeline/references/domain-validation-handoff.schema.json`
+- `20-project-build/research-management-pipeline/agents/openai.yaml`
 - `20-project-build/experiment-protocol-audit/references/cell-manifest.schema.json`
 - `20-project-build/experiment-protocol-audit/references/domain-profile.schema.json`
 - `20-project-build/experiment-protocol-audit/references/domain-validation-result.schema.json`
@@ -23,6 +24,7 @@
 - `20-project-build/experiment-protocol-audit/references/runtime-evidence.schema.json`
 - `20-project-build/experiment-protocol-audit/references/runtime-observation.schema.json`
 - `20-project-build/research-workspace-governance/references/equivalence-record.schema.json`
+- `20-project-build/research-workspace-governance/references/contract-registry.schema.json`
 - `20-project-build/research-workspace-governance/references/project-contract.schema.json`
 - `20-project-build/research-workspace-governance/references/relocation-map.schema.json`
 

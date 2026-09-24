@@ -412,12 +412,14 @@ class InventoryWorkspaceTests(unittest.TestCase):
                     {
                         "scope_type": "task", "scope_id": "review-1",
                         "status_record_id": "state-a", "work_state": "completed",
-                        "claim_state": "unreviewed", "evidence_refs": ["evidence:a"],
+                        "claim_state": "unreviewed", "claim_review_ref": None,
+                        "evidence_refs": ["evidence:a"],
                     },
                     {
                         "scope_type": "task", "scope_id": "REVIEW-1",
                         "status_record_id": "state-b", "work_state": "completed",
-                        "claim_state": "supported", "evidence_refs": ["evidence:b"],
+                        "claim_state": "supported", "claim_review_ref": "review:state-b",
+                        "evidence_refs": ["evidence:b"],
                     },
                 ],
             }), encoding="utf-8")
@@ -450,7 +452,8 @@ class InventoryWorkspaceTests(unittest.TestCase):
                 "current_statuses": [{
                     "scope_type": "task", "scope_id": "literature-review",
                     "status_record_id": "state-1", "work_state": "completed",
-                    "claim_state": "unreviewed", "evidence_refs": ["evidence:notes"],
+                    "claim_state": "unreviewed", "claim_review_ref": None,
+                    "evidence_refs": ["evidence:notes"],
                 }],
             }), encoding="utf-8")
             (governance / "project_contract.json").write_text(json.dumps({

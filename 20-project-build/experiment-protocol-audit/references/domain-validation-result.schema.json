@@ -1,15 +1,49 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "experiment-protocol-audit-result/v1",
+  "$id": "experiment-protocol-audit-result/v2",
   "title": "Experiment protocol audit result",
   "type": "object",
-  "required": ["schema_version", "document_type", "status", "owner", "validator", "profile", "scope", "protocol_fingerprints", "source_fingerprints", "evidence", "claim_ceiling", "findings", "unvalidated"],
+  "required": ["schema_version", "document_type", "status", "owner", "validator", "profile", "scope", "contract_coverage", "protocol_fingerprints", "source_fingerprints", "evidence", "claim_ceiling", "findings", "unvalidated"],
   "properties": {
-    "schema_version": {"const": "experiment-protocol-audit-result/v1"},
+    "schema_version": {"const": "experiment-protocol-audit-result/v2"},
     "document_type": {"const": "domain-validation-record"},
-    "status": {"enum": ["verified", "failed"]},
+    "status": {"enum": ["verified", "incomplete", "failed"]},
     "claim_ceiling": {"enum": ["unsupported", "diagnostic_only", "conditionally_supported", "supported"]},
     "scope": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["design", "manifest", "runtime"]}},
+    "contract_coverage": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["instance_id", "applicability", "required_scopes", "rule_ids", "audit_checks", "manual_review_ref", "status"],
+        "properties": {
+          "instance_id": {"type": "string", "minLength": 1},
+          "applicability": {"enum": ["required", "optional"]},
+          "required_scopes": {"type": "array", "uniqueItems": true, "items": {"enum": ["design", "manifest", "runtime"]}},
+          "rule_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "audit_checks": {"type": "array", "uniqueItems": true, "items": {"enum": ["manifest-identity", "runtime-completeness"]}},
+          "manual_review_ref": {
+            "oneOf": [
+              {"type": "null"},
+              {
+                "type": "object",
+                "required": ["id", "reviewer_ref", "decision", "scopes", "path", "sha256"],
+                "properties": {
+                  "id": {"type": "string", "minLength": 1},
+                  "reviewer_ref": {"type": "string", "minLength": 1},
+                  "decision": {"enum": ["pass", "fail"]},
+                  "scopes": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"enum": ["design", "manifest", "runtime"]}},
+                  "path": {"type": "string", "minLength": 1},
+                  "sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"}
+                },
+                "additionalProperties": false
+              }
+            ]
+          },
+          "status": {"enum": ["covered", "incomplete", "failed", "not_in_scope"]}
+        },
+        "additionalProperties": false
+      }
+    },
     "protocol_fingerprints": {"type": "array", "minItems": 1},
     "source_fingerprints": {"type": "array", "minItems": 1},
     "evidence": {"type": "array", "minItems": 1},

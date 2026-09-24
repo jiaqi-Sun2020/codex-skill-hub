@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "research-contract-registry/v1",
+  "title": "Research Contract Registry",
+  "type": "object",
+  "required": ["schema_version", "registry_id", "revision", "supersedes", "profile_refs", "protocol_refs", "contracts", "amendments"],
+  "properties": {
+    "schema_version": {"const": "research-contract-registry/v1"},
+    "registry_id": {"$ref": "#/$defs/id"},
+    "revision": {"type": "integer", "minimum": 1},
+    "supersedes": {"type": ["string", "null"]},
+    "profile_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "protocol_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+    "contracts": {"type": "array", "items": {"$ref": "#/$defs/contract"}},
+    "amendments": {"type": "array", "items": {"$ref": "#/$defs/amendment"}}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$"},
+    "idArray": {"type": "array", "items": {"$ref": "#/$defs/id"}, "uniqueItems": true},
+    "ref": {
+      "type": "object",
+      "required": ["id"],
+      "properties": {
+        "id": {"$ref": "#/$defs/id"},
+        "kind": {"type": "string", "minLength": 1},
+        "schema_version": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "minLength": 1},
+        "selector": {"type": "string", "minLength": 1},
+        "version": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[A-Fa-f0-9]{64}$"},
+        "state": {"type": "string", "minLength": 1},
+        "current": {"type": "boolean"},
+        "decision_ref": {"$ref": "#/$defs/id"},
+        "ceiling_compatibility": {"enum": ["within", "exceeds", "unresolved"]}
+      },
+      "additionalProperties": false
+    },
+    "applicability": {
+      "type": "object",
+      "required": ["mode", "reason", "decision_ref"],
+      "properties": {
+        "mode": {"enum": ["required", "optional", "not_applicable", "unresolved"]},
+        "reason": {"type": "string"},
+        "decision_ref": {"type": ["string", "null"]}
+      },
+      "additionalProperties": false
+    },
+    "contract": {
+      "type": "object",
+      "required": ["instance_id", "catalog_id", "category", "revision", "scope", "applicability", "owner_ref", "definition_ref", "depends_on", "implementation_refs", "verification_refs", "work_refs", "evidence_refs", "claim_refs", "authorization_refs", "deliverable_refs", "required_gates", "definition_state"],
+      "properties": {
+        "instance_id": {"$ref": "#/$defs/id"},
+        "catalog_id": {"$ref": "#/$defs/id"},
+        "category": {"enum": ["SCI", "STAT", "ENG", "GOV"]},
+        "revision": {"type": "integer", "minimum": 1},
+        "scope": {"type": "object", "required": ["type", "id"], "properties": {"type": {"$ref": "#/$defs/id"}, "id": {"$ref": "#/$defs/id"}}, "additionalProperties": false},
+        "applicability": {"$ref": "#/$defs/applicability"},
+        "owner_ref": {"anyOf": [{"$ref": "#/$defs/ref"}, {"type": "null"}]},
+        "definition_ref": {"anyOf": [{"$ref": "#/$defs/ref"}, {"type": "null"}]},
+        "depends_on": {"$ref": "#/$defs/idArray"},
+        "implementation_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "verification_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "work_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "claim_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "authorization_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "deliverable_refs": {"type": "array", "items": {"$ref": "#/$defs/ref"}},
+        "required_gates": {"$ref": "#/$defs/idArray"},
+        "definition_state": {"enum": ["draft", "reviewed", "frozen", "superseded"]}
+      },
+      "additionalProperties": false
+    },
+    "amendment": {
+      "type": "object",
+      "required": ["change_id", "reason", "old_contract_revision", "new_contract_revision", "author", "decision_ref", "changed_assumptions_or_parameters", "affected_contracts", "affected_tasks", "affected_evidence", "affected_claims", "affected_deliverables", "reuse_policy", "invalidation_reason", "required_revalidation", "next_allowed_action"],
+      "properties": {
+        "change_id": {"$ref": "#/$defs/id"},
+        "reason": {"type": "string", "minLength": 1},
+        "old_contract_revision": {"type": "integer", "minimum": 1},
+        "new_contract_revision": {"type": "integer", "minimum": 1},
+        "author": {"$ref": "#/$defs/id"},
+        "decision_ref": {"type": ["string", "null"]},
+        "changed_assumptions_or_parameters": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "affected_contracts": {"$ref": "#/$defs/idArray"},
+        "affected_tasks": {"$ref": "#/$defs/idArray"},
+        "affected_evidence": {"$ref": "#/$defs/idArray"},
+        "affected_claims": {"$ref": "#/$defs/idArray"},
+        "affected_deliverables": {"$ref": "#/$defs/idArray"},
+        "reuse_policy": {"type": "string", "minLength": 1},
+        "invalidation_reason": {"type": "string", "minLength": 1},
+        "required_revalidation": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+        "next_allowed_action": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    }
+  }
+}

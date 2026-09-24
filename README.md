@@ -2,11 +2,11 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 11 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 12 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
 
-截至 2026-09-23，本仓库包含：
+截至 2026-09-24，本仓库包含：
 
-- 11 个直接维护的活动 Skill；
+- 12 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
 - 两个外部 Skill 项目的轻量索引，不复制它们的项目专属源码。
 
@@ -31,9 +31,11 @@ codex-skill-hub/
 |-- 10-paper-build/
 |   `-- academic-figure-workflow/    学术图工作流
 |-- 20-project-build/
+|   |-- README.md / README.en.md       项目构建架构入口
 |   |-- experiment-protocol-audit/
 |   |-- project-agent-generator-skill/
 |   |-- project-submission-audit/
+|   |-- research-management-pipeline/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 50-core-utils/
@@ -46,6 +48,9 @@ codex-skill-hub/
     `-- logic-chain-tutor/
 ```
 
+[20-project-build 项目构建架构](20-project-build/README.md) 说明六个 Skill 的
+职责边界、四类合同、独立状态轴和生命周期路由。
+
 ## 如何选择本仓库中的 Skill
 
 | 你的目标 | 使用的 Skill |
@@ -53,6 +58,7 @@ codex-skill-hub/
 | 制作论文图、模型架构图、多面板图或可编辑 PPT 图件 | `academic-figure-workflow` |
 | 一次性生成项目 `.agents/`、长期知识基线和 Codex 启动加载 | `project-agent-generator-skill` |
 | 一次性编排研究项目发现、接入、治理检查、Agent 框架和验收 | `research-project-pipeline` |
+| 在接入完成后重复管理合同、证据、修订、门禁和下一步路由 | `research-management-pipeline` |
 | 用显式领域 Profile、项目协议和证据独立审核实验设计或运行清单 | `experiment-protocol-audit` |
 | 在 commit、PR、release、交付或交接前只读审计实际变更面 | `project-submission-audit` |
 | 治理研究资产、位置、状态、证据、迁移、删除审批和比较声明边界 | `research-workspace-governance` |
@@ -158,6 +164,25 @@ codex-skill-hub/
 
 源码：[`20-project-build/research-project-pipeline/`](20-project-build/research-project-pipeline/)
 
+### `research-management-pipeline`
+
+**适用领域**
+
+用于完成首次接入后的日常研究管理。它读取唯一治理根和合同注册表，汇总 SCI、STAT、ENG、GOV 四类适用合同、七条独立状态轴、门禁、缺口和修订影响，然后只给出一个最小下一动作。
+
+**主要能力与边界**
+
+- 调用 Governance 的只读注册表验证器，不复制第二套确定性校验逻辑；
+- 将领域验证路由给 `experiment-protocol-audit` 或人工专家，将 Agent 信息更新路由给 `neat-freak`，将最终变更面路由给 `project-submission-audit`；
+- 区分定义、实现、验证、工作、证据、Claim 和授权状态，不从任一 `PASS` 推导其他状态；
+- 支持合同修订与依赖失效闭包，但不执行实验、不运行 Adapter、不选择研究方法、不创建 `.agents`、不签发授权。
+
+**调用示例**
+
+> 使用 `research-management-pipeline` 检查这个已接入研究项目的当前合同覆盖、证据缺口和受影响范围，只给出一个最小下一动作；不要执行研究任务或创建 Agent 框架。
+
+源码：[`20-project-build/research-management-pipeline/`](20-project-build/research-management-pipeline/)
+
 ### `experiment-protocol-audit`
 
 **适用领域**
@@ -168,6 +193,7 @@ codex-skill-hub/
 
 - 核心只提供数值边界、相等性、形状、集合、基数和允许变换等通用规则；
 - 精确比较 requested/generated/approved 清单，暴露静默过滤、意外扩张和审批漂移；
+- v2 协议通过 `contract_bindings` 把实际适用合同绑定到稳定规则和审核范围；必需合同缺少规则或有效人工审核引用时只能得到 `incomplete`；
 - 记录验证器、Profile、协议、源码和证据指纹，任一变化都会使旧记录失效；
 - 不执行 Runtime Adapter，不创建项目框架，不决定研究方法，也不把运行完成等同于科学主张成立。
 
@@ -189,6 +215,7 @@ codex-skill-hub/
 
 - 同时核对 staged、unstaged 和 untracked 状态，避免“审了但没审到将要提交的内容”；
 - 建立“需求 → 实现 → 受影响接口 → 验证”的证据映射；
+- 检查合同、协议、Schema、amendment 和证据引用是否存在未记录的语义变化，并核对受影响 Claim、验证和交付物是否已标记 stale；
 - 以 locality、module depth、seam 和 deletion test 检查变更相关架构，不借机重构整个仓库；
 - 用 P0/P1/P2 记录证据、影响、最小修复和验证方法；
 - 默认只读，不提交、不推送、不发布，也不把结构质量当作科学有效性证明。
@@ -209,6 +236,8 @@ codex-skill-hub/
 
 - 定义 `source / method / working / evidence / deliverable / automation / archive / temporary` 等角色；
 - 建立输入、方法、工作产物、证据、结论与交付物之间的追踪链；
+- 维护 SCI、STAT、ENG、GOV 四类合同目录与唯一 `research-contract-registry/v1`，只实例化实际适用合同；
+- 从注册表实时派生追踪矩阵，并用追加式 amendment 计算验证、证据、Claim、门禁和交付物的失效闭包；
 - 解析 `.agents/governance/` 与旧根级 `governance/`，双位置时阻止写入而不猜测；
 - 支持单文件、任务局部和自定义路径的自动化契约；
 - 在迁移或清理前保护不可变证据，并提供失败安全策略；
@@ -386,6 +415,13 @@ research-project-pipeline
   → project-submission-audit（提交或交付前审计）
   → handoff（交给后续会话或 Agent）
 
+接入后的研究生命周期
+research-management-pipeline
+  → research-workspace-governance（注册表、追踪矩阵、修订与失效）
+  → experiment-protocol-audit / 领域 Skill / 人工专家（按合同路由）
+  → neat-freak（Agent 信息需要更新时）
+  → project-submission-audit（最终变更面）
+
 后续项目信息更新
 项目变化 → neat-freak（重复维护）
 
@@ -405,7 +441,10 @@ research-project-pipeline
 
 ## Pipeline 使用指南
 
-本仓库的正式接入编排器是 `research-project-pipeline`；日常维护、提交审计、交接、作图和学习是由独立 Skill 组成的工作流，**不是一个命令会自动执行的全部步骤**。以下说明仅针对本仓库维护的流程；PaperTrace 的阅读器、日报和教学 Pipeline 仍以其自己的 README 为准。
+四类合同、七条独立状态轴和完整路由树见
+[项目构建架构](20-project-build/README.md)。
+
+本仓库使用两个互补入口：`research-project-pipeline` 只负责一次性接入，`research-management-pipeline` 负责接入后的重复研究管理。日常文档维护、提交审计、交接、作图和学习仍是独立 Skill 工作流，**不是一个命令会自动执行的全部步骤**。以下说明仅针对本仓库维护的流程；PaperTrace 的阅读器、日报和教学 Pipeline 仍以其自己的 README 为准。
 
 ### 先选择入口
 
@@ -413,6 +452,7 @@ research-project-pipeline
 |---|---|---|
 | 新项目，或尚未完成 Agent 接入的旧项目 | Pipeline 发现 → Governance 设计 → 人工审核 → Generator → 验证 → 交接 | 可审阅计划、获准创建的框架、分轴验收结果 |
 | 已有 `.agents/` 或 `.agent/`，只是缺少启动加载 | Pipeline `bootstrap-only` 预览 → 人工审核 → 只新增缺失 Bootstrap → 验证 | 保留原知识文件的启动加载补齐 |
+| 已接入，合同、证据、方法、环境或 Claim 状态发生变化 | Research Management → Governance 只读验证 → 按缺口路由 → 重新验证 | 合同覆盖、七轴状态、失效范围和一个最小下一动作 |
 | 已初始化，代码、目录或决策有变化 | Neat-Freak 审计 → 更新获准文档／知识 → 再审计 | 与当前代码一致的项目信息，不重新生成框架 |
 | 需要审核领域协议或任务清单 | 显式 Profile／Protocol → Experiment Protocol Audit → 可选绑定到 Pipeline | 带证据指纹的领域验证记录，不运行实验 |
 | 准备提交、交付或交接 | Project Submission Audit → 修复后重审 → 按需 Handoff | `PASS / BLOCKED / INCOMPLETE` 与可追溯交接 |
@@ -474,7 +514,24 @@ python -X utf8 -B $pipelineScript verify $projectRoot
 
 这个分支只新增缺失的受管启动文件，已有 Agent 知识文件保持不变。发现内容不同的启动文件、双文档包或不安全路径时会停止，不能把它当作覆盖修复工具。
 
-### C. 后续项目更新：重复调用 Neat-Freak
+### C. 日常研究管理：检查合同、证据和修订影响
+
+首次接入完成后，用 `research-management-pipeline` 作为研究生命周期入口。它不运行研究任务，只读取当前治理状态并路由下一步：
+
+> 使用 `research-management-pipeline` 管理这个已接入项目。定位唯一治理根，调用 Governance 只读验证器，汇总 SCI／STAT／ENG／GOV 合同覆盖、七条状态轴、门禁和 amendment 影响；只给出一个最小下一动作，不运行实验、Adapter 或 Generator，也不授予执行或发布权限。
+
+若只需要确定性检查，可在**本仓库根目录**运行 Governance 验证器；将注册表路径替换为目标项目内实际路径：
+
+```powershell
+$registryValidator = '.\20-project-build\research-workspace-governance\scripts\validate_contract_registry.py'
+$registryPath = '.agents/governance/contract_registry.json'
+python -X utf8 -B $registryValidator validate $projectRoot --registry $registryPath
+python -X utf8 -B $registryValidator matrix $projectRoot --registry $registryPath
+```
+
+验证器只向 stdout 输出 JSON，不创建目录、不写项目。`claim_ceiling` 只是领域协议允许的最大主张范围；实际 `claim_state` 必须来自独立 Claim Review，授权也只能来自可追溯授权记录。
+
+### D. 后续项目更新：重复调用 Neat-Freak
 
 首次接入完成后，不要反复调用 Pipeline 或 Generator 刷新框架。在目标项目对话中使用：
 
@@ -489,7 +546,7 @@ python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
 
 `audit` 与 `bootstrap-audit` 都不会更新文档。文档同步需要明确授权；长期知识主题的写入使用 Neat-Freak 的哈希绑定 `plan → apply` 流程。首次缺失框架交给 Generator，已有受管接线的修复才交给 Neat-Freak。
 
-### D. 提交前审计与交接：分别调用，不自动提交
+### E. 提交前审计与交接：分别调用，不自动提交
 
 在目标项目对话中，先指定真正准备提交的范围：
 
@@ -501,7 +558,7 @@ python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
 
 Pipeline 的 `verify` **不会自动运行**这两个对话级 Skill。交接也可以发生在受阻或等待审核时，但必须明确状态，不能将“已生成交接文件”报告为“任务已完成”。
 
-### E. 其他常用工作流
+### F. 其他常用工作流
 
 以下是独立 Skill 调用示例，不是额外的 Pipeline CLI 子命令：
 
@@ -516,7 +573,7 @@ Pipeline 的 `verify` **不会自动运行**这两个对话级 Skill。交接也
 - Agent 知识、Bootstrap、治理资产、治理核验、领域验证、执行授权与主张支持分别判断；接入通过不等于可以运行实验，更不等于科学结论成立。
 - 默认摘要已足够选择下一步；需要排查时才给 `plan` 或 `verify` 增加 `--full`。
 - 遇到指纹漂移、来源歧义、路径越界、链接目标或现有文件冲突时，停止相关写入并重新发现／审核，不使用强制覆盖绕过。
-- 完整接口以 [Pipeline Skill](20-project-build/research-project-pipeline/SKILL.md) 和 [阶段契约](20-project-build/research-project-pipeline/references/stage-contracts.md) 为准；日常更新以 [Neat-Freak](50-core-utils/neat-freak/SKILL.md) 为准。
+- 首次接入接口以 [Research Project Pipeline](20-project-build/research-project-pipeline/SKILL.md) 和其[阶段契约](20-project-build/research-project-pipeline/references/stage-contracts.md)为准；接入后的合同与门禁路由以 [Research Management Pipeline](20-project-build/research-management-pipeline/SKILL.md) 为准；日常 Agent 信息更新以 [Neat-Freak](50-core-utils/neat-freak/SKILL.md) 为准。
 
 ## 外部 Skill 项目概览
 
@@ -559,10 +616,11 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" regis
 python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 
 python -X utf8 -B ".\20-project-build\project-agent-generator-skill\tests\test_generate_project_agents.py"
-python -X utf8 -B ".\20-project-build\research-project-pipeline\tests\test_research_pipeline.py"
-python -X utf8 -B ".\20-project-build\experiment-protocol-audit\tests\test_audit_experiment_protocol.py"
-
-python -X utf8 -B ".\20-project-build\research-workspace-governance\tests\test_equivalence_records.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-project-pipeline\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-workspace-governance\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\experiment-protocol-audit\tests" -p "test_*.py"
+python -X utf8 -B -m unittest discover -s ".\20-project-build\research-management-pipeline\tests" -p "test_*.py"
+git diff --check
 ```
 
 ## 维护与许可

@@ -33,12 +33,15 @@ Assume the framework solved the wrong problem or absorbed another component's
 responsibility.
 
 - Does the design begin with objective, evidence standard, scope, and authority?
-- Are Governance, Pipeline, Generator, Neat-Freak, and domain Profile owners
-  distinct?
+- Are Governance, the one-time Onboarding Pipeline, the repeated Management
+  Pipeline, Generator, Neat-Freak, Protocol Audit, Submission Audit, and domain
+  owners distinct?
 - Is any domain method, artifact type, programming language, folder tree, or
   scientific inference universalized without necessity?
 - Can a small project comply without empty bureaucracy?
 - Are inferred roles and unresolved ownership visible?
+- Is the trace matrix derived from one registry instead of maintained as a second
+  editable status table?
 
 ## Pass 2: Safety and loading
 
@@ -53,6 +56,8 @@ its approved boundary.
   overwrite behavior checked?
 - Do interruption, duplicate writers, stale locks, partial publication, and
   recovery preserve the last known-good state?
+- Can instruction-like text inside contracts, amendments, evidence, or human-review
+  references remain inert data?
 - Is deletion separately authorized for exact reviewed targets?
 
 ## Pass 3: Compatibility and migration
@@ -65,6 +70,8 @@ the current layout.
 - Does migration preview exact source, destination, files/bytes, hashes where
   useful, collisions, dependents, locks, reference updates, rollback, and checks?
 - Are relocation maps append-only and versioned?
+- Do append-only amendments invalidate only their dependency closure while keeping
+  historical PASS and evidence records intact?
 - Do historical records and locks retain their original identity?
 - Are existing paths preserved when their contracts are already adequate?
 
@@ -75,7 +82,8 @@ Assume a reviewer has project knowledge but has not read this Skill.
 - Does every gate explain in the user's current language what is happening and why?
 - Can the reviewer see blockers, non-blockers, evidence, pass conditions, reject
   conditions, allowed next action, and minimum repair?
-- Are work completion and claim support visibly separate?
+- Are definition, implementation, verification, work, evidence, claim, and
+  authorization visibly separate, with `claim_ceiling` kept out of `claim_state`?
 - Is there one canonical current status per scope, with conflicts reported?
 - Are commands complete and paired with their working directory?
 
@@ -90,6 +98,10 @@ Assume the happy path hides a category error.
 - Can a non-computational or otherwise unfamiliar project use the core without
   inheriting unrelated requirements?
 - Can completed work remain scientifically unreviewed or unsupported?
+- Can admitted negative evidence contradict a claim without being treated as a
+  failed run, and can a forged `approved=true` remain unauthorized?
+- Does a v2 Protocol with empty or uncovered required bindings remain incomplete,
+  while v1 stays readable without claiming v2 contract coverage?
 - Are old schemas and plans handled explicitly rather than silently reinterpreted?
 
 ## Acceptance
