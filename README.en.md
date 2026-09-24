@@ -2,13 +2,13 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **twelve active Skills whose source is actually stored in this repository**. Skills maintained independently in S Paper Skills and PaperTrace are covered only by a short overview and links near the end.
+`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **twenty active Skills whose source is actually stored in this repository**. Project-owned Skills maintained independently in PaperTrace are covered only by a short overview and links near the end.
 
 As of 2026-09-24, this repository contains:
 
-- twelve directly maintained active Skills;
+- twenty directly maintained active Skills;
 - one integrated version registry under `50-core-utils/skill-registry/`;
-- lightweight indexes for two external Skill projects, without duplicating their project-owned source.
+- a lightweight index for one external Skill project, without duplicating its project-owned source.
 
 > The public repository contains reusable instructions, scripts, tests, templates, and documentation. Manuscripts, experimental data, learner profiles, conversation records, credentials, and machine-local state are outside its publication scope.
 
@@ -29,7 +29,16 @@ codex-skill-hub/
 |-- .agents/                         Project context and durable knowledge
 |-- .codex/                          Project-local Codex bootstrap
 |-- 10-paper-build/
-|   `-- academic-figure-workflow/    Academic figure workflow
+|   |-- README.md / README.en.md     Paper-build category entry point
+|   |-- academic-figure-workflow/    Academic figure workflow
+|   |-- research-logic-skill/
+|   |-- experiment-design-skill/
+|   |-- data-analysis/
+|   |-- research-html-report/
+|   |-- latex-paper-build-skill/
+|   |-- paper-polishing-skill/
+|   |-- prl-manuscript-polisher/
+|   `-- interactive-skill-builder/
 |-- 20-project-build/
 |   |-- README.md / README.en.md       Project-build architecture entry points
 |   |-- experiment-protocol-audit/
@@ -50,12 +59,22 @@ codex-skill-hub/
 
 See the [project-build architecture](20-project-build/README.en.md) for the six
 Skills, four contract categories, independent state axes, and lifecycle routing.
+See the [paper-build catalog](10-paper-build/README.en.md) for the nine peer
+Skills' boundaries, compositions, and old-repository migration map.
 
 ## Choosing a Skill from this repository
 
 | Goal | Skill |
 |---|---|
 | Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
+| Diagnose shallow research combinations and establish mechanism-level contribution logic | `research-logic` |
+| Derive evidence gaps, controls, ablations, and claim boundaries from a paper claim | `experiment-design` |
+| Inspect experimental data and report tests, effect sizes, intervals, and reviewable interpretations | `data-analysis` |
+| Package research logic and evidence plans as a standalone HTML report | `research-html-report` |
+| Build, restructure, and maintain a LaTeX paper-delivery pipeline | `latex-paper-build-skill` |
+| Translate and polish approved Nature, PRL, or PRA manuscripts | `paper-polishing-skill` |
+| Compress and adapt a technically complete physics manuscript for PRL | `prl-manuscript-polisher` |
+| Create or update a Codex Skill through interviews, specification approval, and validation | `interactive-skill-builder` |
 | Generate initial `.agents/`, a durable-knowledge baseline, and Codex startup loading, or complete only missing startup files around one preserved bundle | `project-agent-generator-skill` |
 | Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
 | Repeatedly manage contracts, evidence, amendments, gates, and next-action routing after onboarding | `research-management-pipeline` |
@@ -101,7 +120,22 @@ The workflow does not invent data, units, uncertainty, mechanisms, or model comp
 
 Source: [`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-figure-workflow/)
 
-## 2. Central utilities
+## 2. Paper research and manuscript workflow
+
+Alongside `academic-figure-workflow`, `10-paper-build/` directly maintains eight peer Skills imported from the former S Paper Skills repository:
+
+- `research-logic` moves an “A + B” combination toward mechanism-, state-, or principle-level research logic;
+- `experiment-design` derives research questions, hypotheses, evidence gaps, datasets, baselines, ablations, metrics, controls, and claim boundaries from a claim;
+- `data-analysis` produces effect sizes, confidence intervals, significance results, and reviewable interpretations grounded in data integrity and experimental design;
+- `research-html-report` packages research logic, validation plans, risks, and next steps as a standalone HTML research report;
+- `latex-paper-build-skill` builds or restructures a maintainable, compilable, submission-ready LaTeX paper project;
+- `paper-polishing-skill` performs translation, structural revision, and venue-style polishing after scientific-content approval;
+- `prl-manuscript-polisher` audits focus, broad physics relevance, length, evidence calibration, and REVTeX consistency for PRL;
+- `interactive-skill-builder` creates reusable Skills through author interviews, specification approval, creation, and validation.
+
+`experiment-design` defines what should be tested, which evidence is missing, which controls are required, and how far a conclusion may extend. It does not implement runners or runtime gates. See [`10-paper-build/README.en.md`](10-paper-build/README.en.md) for the full selection guide, composition flow, migration map, and licensing note.
+
+## 3. Central utilities
 
 ### `project-agent-generator-skill`
 
@@ -355,7 +389,7 @@ Create a compact, evidence-linked continuation document when work is paused, tra
 
 Source: [`50-core-utils/handoff/`](50-core-utils/handoff/)
 
-## 3. Personal teaching Skill
+## 4. Personal teaching Skill
 
 ### `logic-chain-tutor`
 
@@ -385,7 +419,7 @@ Source: [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/)
 
 ## Skill Registry infrastructure
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not a twelfth active Skill and is no longer published as a separate repository.
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not counted as an active Skill and is no longer published as a separate repository.
 
 | Path | Purpose |
 |---|---|
@@ -428,6 +462,11 @@ existing code → training-code-architecture → reusable training template
 
 Paper figures
 claim / code / data → academic-figure-workflow → editable source + exports + QA
+
+Paper research and writing
+research-logic → experiment-design → project-owned experiment execution
+  → data-analysis → latex-paper-build-skill → paper-polishing-skill
+  → prl-manuscript-polisher (PRL targets only)
 
 Concept learning
 current blockage → logic-chain-tutor → prerequisite bridge → derivation / example / check
@@ -575,14 +614,13 @@ The following are independent Skill requests, not extra Pipeline CLI subcommands
 
 ## External Skill projects at a glance
 
-The following Skills are not maintained in this repository. This is navigation only; consult each linked repository for complete documentation, current scripts, and project-specific constraints.
+The following project-owned Skills are not maintained in this repository. This is navigation only; consult the linked repository for complete documentation, current scripts, and project-specific constraints.
 
 | External repository | Broad purpose | Included Skills |
 |---|---|---|
-| [S Paper Skills](https://github.com/jiaqi-Sun2020/S_paper_skills) | Research logic, experiment design, data analysis, LaTeX paper construction, polishing, and venue adaptation | `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `interactive-skill-builder`, `prl-manuscript-polisher` |
 | [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills) | Paper evidence extraction, bilingual readers, learner profiles, teaching, news briefings, and HTML presentation | `nature-reader`, `reader-skill`, `reader-learner`, `adaptive-teach`, `allegory-teach`, `chat-knowledge-profile`, `ai-quantum-news-briefing`, `demo-skill`, `lean-html-skill` |
 
-Obtain external Skills from their own repositories. Their presence in this README index is not a reason to copy them into this repository.
+Obtain PaperTrace's project-owned Skills from its repository. Their presence in this README index is not a reason to copy them here. The former S Paper Skills repository's eight Skills now live under [`10-paper-build/`](10-paper-build/); old repository paths do not redirect automatically.
 
 ## Acknowledgements and influences
 

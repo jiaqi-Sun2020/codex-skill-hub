@@ -26,8 +26,17 @@ My_skills/
 |   `-- hooks/
 |       `-- load_project_agents.py
 |-- 10-paper-build/
-|   |-- paper-build.lnk
-|   `-- academic-figure-workflow/
+|   |-- README.md / README.en.md
+|   |-- S_PAPER_SKILLS_LICENSE
+|   |-- academic-figure-workflow/
+|   |-- research-logic-skill/
+|   |-- experiment-design-skill/
+|   |-- data-analysis/
+|   |-- research-html-report/
+|   |-- latex-paper-build-skill/
+|   |-- paper-polishing-skill/
+|   |-- prl-manuscript-polisher/
+|   `-- interactive-skill-builder/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
 |   |-- README.md / README.en.md
@@ -81,6 +90,8 @@ My_skills/
 - `README.en.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
+- `10-paper-build/README.md`
+- `10-paper-build/README.en.md`
 - `.agents/AGENTS.md`
 - `.agents/memory/MEMORY.md`
 - `.codex/hooks/load_project_agents.py`
@@ -96,6 +107,14 @@ My_skills/
 - `50-core-utils/neat-freak/SKILL.md`
 - `50-core-utils/skill-registry/README.md`
 - `10-paper-build/academic-figure-workflow/SKILL.md`
+- `10-paper-build/research-logic-skill/SKILL.md`
+- `10-paper-build/experiment-design-skill/SKILL.md`
+- `10-paper-build/data-analysis/SKILL.md`
+- `10-paper-build/research-html-report/SKILL.md`
+- `10-paper-build/latex-paper-build-skill/SKILL.md`
+- `10-paper-build/paper-polishing-skill/SKILL.md`
+- `10-paper-build/prl-manuscript-polisher/SKILL.md`
+- `10-paper-build/interactive-skill-builder/SKILL.md`
 - `90-personal/logic-chain-tutor/SKILL.md`
 
 ## Tests
@@ -138,10 +157,15 @@ My_skills/
   root README pair remains the repository-wide overview.
   `50-core-utils/` owns the four reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
-- Project-owned skills remain behind their shortcut targets. The shortcuts do not
-  transfer ownership to this folder.
-- `10-paper-build/academic-figure-workflow/` is a centrally stored paper-building
-  Skill; it is not a shortcut target and is not one of the ten core Skills.
+- Project-owned external Skills remain behind their shortcut targets. The shortcuts
+  do not transfer ownership to this folder.
+- `10-paper-build/` owns nine centrally stored peer paper-building Skills. The eight
+  imported sources are a snapshot of former `S_paper_skills` commit
+  `dcd573b1768e48e794975100f8548dc0f1bcb50e`; they do not retain the old Git
+  history and are not Registry releases. `S_PAPER_SKILLS_LICENSE` preserves the
+  source repository's MIT notice.
+- `experiment-design-skill/` plans required evidence, controls, and claim
+  boundaries only; project runtimes or dedicated execution Skills own execution.
 - `90-personal/logic-chain-tutor/` is the centrally stored personal teaching
   Skill; its former external source and personal shortcut are retired.
 - The ten direct core Skills are used from their designated central category

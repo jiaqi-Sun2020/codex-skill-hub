@@ -2,13 +2,13 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 12 个活动 Skill**及其配套基础设施；独立维护在 S Paper Skills 和 PaperTrace 中的 Skill 仅在文末提供概览与入口。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与版本治理仓库。本文档重点说明**实际收录在本仓库中的 20 个活动 Skill**及其配套基础设施；独立维护在 PaperTrace 中的项目专属 Skill 仅在文末提供概览与入口。
 
 截至 2026-09-24，本仓库包含：
 
-- 12 个直接维护的活动 Skill；
+- 20 个直接维护的活动 Skill；
 - 1 套整合在 `50-core-utils/skill-registry/` 下的版本注册基础设施；
-- 两个外部 Skill 项目的轻量索引，不复制它们的项目专属源码。
+- 一个外部 Skill 项目的轻量索引，不复制其项目专属源码。
 
 > 本仓库公开的是可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据和机器本地状态不属于公开内容。
 
@@ -29,7 +29,16 @@ codex-skill-hub/
 |-- .agents/                         项目上下文与长期知识
 |-- .codex/                          项目级 Codex 启动 Hook
 |-- 10-paper-build/
-|   `-- academic-figure-workflow/    学术图工作流
+|   |-- README.md / README.en.md     论文构建类别入口
+|   |-- academic-figure-workflow/    学术图工作流
+|   |-- research-logic-skill/
+|   |-- experiment-design-skill/
+|   |-- data-analysis/
+|   |-- research-html-report/
+|   |-- latex-paper-build-skill/
+|   |-- paper-polishing-skill/
+|   |-- prl-manuscript-polisher/
+|   `-- interactive-skill-builder/
 |-- 20-project-build/
 |   |-- README.md / README.en.md       项目构建架构入口
 |   |-- experiment-protocol-audit/
@@ -50,12 +59,22 @@ codex-skill-hub/
 
 [20-project-build 项目构建架构](20-project-build/README.md) 说明六个 Skill 的
 职责边界、四类合同、独立状态轴和生命周期路由。
+[10-paper-build 论文构建目录](10-paper-build/README.md) 说明九个同级 Skill 的
+职责边界、组合方式和旧仓库迁移映射。
 
 ## 如何选择本仓库中的 Skill
 
 | 你的目标 | 使用的 Skill |
 |---|---|
 | 制作论文图、模型架构图、多面板图或可编辑 PPT 图件 | `academic-figure-workflow` |
+| 诊断浅层研究组合并建立机制级贡献逻辑 | `research-logic` |
+| 从论文 claim 推导证据缺口、对照、消融和 claim boundary | `experiment-design` |
+| 检查实验数据并给出统计检验、效应量、区间和可复核解释 | `data-analysis` |
+| 将研究逻辑和证据计划整理为独立 HTML 报告 | `research-html-report` |
+| 构建、重组和维护 LaTeX 论文交付流水线 | `latex-paper-build-skill` |
+| 在内容获批后翻译和润色 Nature、PRL 或 PRA 稿件 | `paper-polishing-skill` |
+| 将技术完整的物理稿件压缩并适配 PRL | `prl-manuscript-polisher` |
+| 通过访谈、规格审批和验证创建或更新 Codex Skill | `interactive-skill-builder` |
 | 一次性生成项目 `.agents/`、长期知识基线和 Codex 启动加载 | `project-agent-generator-skill` |
 | 一次性编排研究项目发现、接入、治理检查、Agent 框架和验收 | `research-project-pipeline` |
 | 在接入完成后重复管理合同、证据、修订、门禁和下一步路由 | `research-management-pipeline` |
@@ -101,7 +120,22 @@ codex-skill-hub/
 
 源码：[`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-figure-workflow/)
 
-## 2. 中央核心工具
+## 2. 论文研究与写作工作流
+
+除 `academic-figure-workflow` 外，`10-paper-build/` 还直接维护八个从旧 S Paper Skills 仓库迁入的同级 Skill：
+
+- `research-logic`：把“A + B”式浅层组合推进到机制、状态或原理层面的研究逻辑；
+- `experiment-design`：围绕 claim 定义研究问题、假设、证据缺口、数据集、基线、消融、指标、对照和 claim boundary；
+- `data-analysis`：以数据完整性、实验设计和统计假设为前提，输出效应量、置信区间、显著性和可复核解释；
+- `research-html-report`：把研究逻辑、验证计划、风险和下一步整理成独立 HTML 研究报告；
+- `latex-paper-build-skill`：构建或重组可维护、可编译、可投稿的 LaTeX 论文工程；
+- `paper-polishing-skill`：在科学内容获批后完成翻译、结构修订和期刊风格润色；
+- `prl-manuscript-polisher`：为 PRL 审核论点集中度、广泛物理意义、篇幅、证据校准和 REVTeX 一致性；
+- `interactive-skill-builder`：通过作者访谈、规格审批、创建和验证来构建可复用 Skill。
+
+`experiment-design` 只定义实验需要做什么、缺什么证据、如何设置对照，以及结论最多能延伸到哪里；它不实现执行器或运行时门禁。完整选择表、组合流程、迁移映射和许可说明见 [`10-paper-build/README.md`](10-paper-build/README.md)。
+
+## 3. 中央核心工具
 
 ### `project-agent-generator-skill`
 
@@ -357,7 +391,7 @@ codex-skill-hub/
 
 源码：[`50-core-utils/handoff/`](50-core-utils/handoff/)
 
-## 3. 个人教学 Skill
+## 4. 个人教学 Skill
 
 ### `logic-chain-tutor`
 
@@ -387,7 +421,7 @@ codex-skill-hub/
 
 ## Skill Registry 基础设施
 
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不是第 12 个活动 Skill，也不再作为独立仓库发布。
+[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) 是整合在本仓库中的版本治理工具，不计为活动 Skill，也不再作为独立仓库发布。
 
 | 路径 | 用途 |
 |---|---|
@@ -430,6 +464,11 @@ research-management-pipeline
 
 论文图件
 论文 claim / 代码 / 数据 → academic-figure-workflow → 可编辑源文件 + 导出 + QA
+
+论文研究与写作
+research-logic → experiment-design → 项目实验执行
+  → data-analysis → latex-paper-build-skill → paper-polishing-skill
+  → prl-manuscript-polisher（仅 PRL 目标）
 
 概念学习
 当前卡点 → logic-chain-tutor → 前置桥梁 → 推导 / 例子 / 验证
@@ -577,14 +616,13 @@ Pipeline 的 `verify` **不会自动运行**这两个对话级 Skill。交接也
 
 ## 外部 Skill 项目概览
 
-以下 Skill 不在本仓库中维护。这里仅提供导航；完整说明、最新脚本和项目约束请以对应仓库为准。
+以下项目专属 Skill 不在本仓库中维护。这里仅提供导航；完整说明、最新脚本和项目约束请以对应仓库为准。
 
 | 外部仓库 | 大致用途 | 包含的 Skill |
 |---|---|---|
-| [S Paper Skills](https://github.com/jiaqi-Sun2020/S_paper_skills) | 科研逻辑、实验设计、数据分析、LaTeX 建稿、论文润色和期刊适配 | `research-logic`、`experiment-design`、`data-analysis`、`research-html-report`、`latex-paper-build-skill`、`paper-polishing-skill`、`interactive-skill-builder`、`prl-manuscript-polisher` |
 | [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills) | 论文证据抽取、双语阅读器、学习画像、教学、资讯简报和 HTML 展示 | `nature-reader`、`reader-skill`、`reader-learner`、`adaptive-teach`、`allegory-teach`、`chat-knowledge-profile`、`ai-quantum-news-briefing`、`demo-skill`、`lean-html-skill` |
 
-外部 Skill 应从各自仓库获取，不要因为本 README 提供索引就复制到本仓库。
+PaperTrace 的项目专属 Skill 应从其仓库获取，不要因为本 README 提供索引就复制到本仓库。原 S Paper Skills 的八个 Skill 已迁入 [`10-paper-build/`](10-paper-build/)；旧仓库路径不会自动重定向。
 
 ## 致谢与借鉴
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Experiment Design"
+  short_description: "Design paper-grade experiments"
+  default_prompt: "Use $experiment-design to turn my model idea into a paper-grade experimental validation plan."

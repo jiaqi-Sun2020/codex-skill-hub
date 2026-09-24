@@ -14,6 +14,7 @@
 - `50-core-utils/skill-registry/registry.json`
 - `20-project-build/*/agents/openai.yaml` where present
 - `50-core-utils/*/agents/openai.yaml` where present
+- `10-paper-build/*/agents/openai.yaml` where present
 - `20-project-build/research-project-pipeline/references/policy-topology.schema.json`
 - `20-project-build/research-project-pipeline/references/domain-validation-handoff.schema.json`
 - `20-project-build/research-management-pipeline/agents/openai.yaml`

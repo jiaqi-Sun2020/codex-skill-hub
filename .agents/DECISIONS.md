@@ -123,6 +123,17 @@
   technical architecture entrypoints for the six project-build Skills. They explain
   ownership, SCI/STAT/ENG/GOV contracts, independent state axes, and lifecycle
   routing; the root README pair remains the repository-wide human overview.
+- 2026-09-24: Import the current `main` snapshot of `S_paper_skills` at commit
+  `dcd573b1768e48e794975100f8548dc0f1bcb50e` into `10-paper-build/` as eight
+  peer Skills alongside `academic-figure-workflow`. Normalize only the misspelled
+  `data-analsys-skill/` directory to `data-analysis/`; retire the wrapper,
+  `util_skills/` layer, shortcut, and standalone repository after the Hub push and
+  public-path checks succeed. Preserve all old refs in a verified external bundle.
+- 2026-09-24: The nine paper-build Skills are direct Hub source and do not enter
+  immutable Registry releases or the six-component `20-project-build/`
+  architecture. `experiment-design` remains a planning boundary for required
+  evidence, controls, gaps, and claims; it does not own experiment execution or
+  runtime gates.
 
 ## Open Questions
 

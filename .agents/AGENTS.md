@@ -50,16 +50,27 @@ codex-skill-hub/
 - Verify commands before documenting them as facts.
 - Treat `README.md` and `README.en.md` as the canonical Chinese and English
   human-facing overviews, inventories, architecture summaries, and usage guides.
+- Treat `10-paper-build/README.md` and `README.en.md` as the bilingual category
+  map for the nine peer paper-build Skills; they do not replace the root overview.
 - Do not recreate `00-overview/` or another document that duplicates the root
 - Treat `20-project-build/README.md` and `README.en.md` as the bilingual
   module-level technical architecture map; they do not replace the root overview.
   README's overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
-- Maintain the six project-build core Skill sources under `20-project-build/` and the four reusable core Skill sources under `50-core-utils/`; do not copy them into project repositories or add them to project manifests.
+- Maintain the nine paper-build Skill sources under `10-paper-build/`, the six
+  project-build core Skill sources under `20-project-build/`, the four reusable
+  core Skill sources under `50-core-utils/`, and the personal teaching Skill under
+  `90-personal/`; these twenty active Skills remain canonical at their designated paths.
+- Keep the paper-build Skills as direct hub source, not Registry releases. Preserve
+  `experiment-design` as an evidence-planning Skill: it defines required tests,
+  evidence gaps, controls, and claim boundaries without implementing execution or
+  runtime gates.
 - Treat `50-core-utils/skill-registry/releases/` as immutable published snapshots.
 - Preserve registry history and user changes; inspect the root Git worktree before editing or committing.
-- Shortcut targets are external projects or collections. Do not modify those targets merely because their `.lnk` files are present here.
+- Remaining shortcut targets are external projects or collections. Do not modify
+  those targets merely because their `.lnk` files are present here. Do not recreate
+  the retired `10-paper-build/paper-build.lnk`.
 - Keep durable project decisions in `.agents/memory/`; keep `.agents/memory/MEMORY.md` as a compact pointer index.
 - `project-agent-generator-skill` creates a missing Agent framework once; routine context maintenance belongs to `neat-freak`, while `--force` is legacy recovery only.
 - `research-project-pipeline` coordinates one-time onboarding and may boundary-check a project-contained loading manifest, but only `neat-freak` audits its policy content.

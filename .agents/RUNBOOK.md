@@ -9,7 +9,7 @@
 
 | Command | Source | Status |
 |---|---|---|
-| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for each directly maintained skill | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 20 directly maintained Skills | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\20-project-build\project-submission-audit"` | run from repository root; new submission-audit Skill structure | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\handoff"` | run from repository root; new handoff Skill structure | verified |
 | `python -X utf8 -B ".\tools\skill_registry.py" registry-check --registry .` | `50-core-utils/skill-registry/README.md`; run from the registry directory | verified |
@@ -44,8 +44,10 @@
    semantics or interpret the result; `claim_ceiling`, evidence, work completion,
    and authorization remain independent axes.
 5. Run the smallest relevant syntax or unit-test command first.
-6. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
-7. Do not open, print, copy, summarize, upload, or modify suspected credential files.
+6. For paper-build changes, validate all nine directories under `10-paper-build/`,
+   compile their Python scripts, and smoke-test documented CLI entry points.
+7. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
+8. Do not open, print, copy, summarize, upload, or modify suspected credential files.
 
 ## Long-Running Or Risky Commands
 

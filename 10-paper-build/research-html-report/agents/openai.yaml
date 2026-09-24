@@ -1,0 +1,4 @@
+interface:
+  display_name: "Research HTML Report"
+  short_description: "Render research plans as HTML"
+  default_prompt: "Use $research-html-report to synthesize my research idea, innovation points, and experiment plan into an HTML webpage."

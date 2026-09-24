@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Polishing"
+  short_description: "Post-review manuscript and LaTeX paper translation/polishing for Nature, PRL, and PRA."
+  default_prompt: "Use $paper-polishing-skill to translate or polish an approved manuscript or LaTeX paper while preserving claims, logic, citations, equations, and file structure."

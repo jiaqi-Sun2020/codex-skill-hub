@@ -8,13 +8,15 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates project-owned skills, ten directly used central core Skills, and
-versioned shared skills and project-owned forks. `.agents/AGENTS.md`
+skills. It separates twenty directly maintained active Skills, versioned shared
+skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the twelve Skills stored in this repository in
-detail and provide concise navigation for two external Skill projects.
+The bilingual root READMEs document the twenty Skills stored in this repository and
+provide concise navigation for PaperTrace's external project-owned Skills.
 
+The bilingual `10-paper-build` READMEs provide the category map for nine peer
+paper-build Skills, their compositions, and the retired-repository migration map.
 The bilingual `20-project-build` READMEs provide the detailed technical map for
 the six project-build Skills, SCI/STAT/ENG/GOV contract responsibilities, state
 separation, and lifecycle routing without duplicating the repository overview.
@@ -44,12 +46,16 @@ separation, and lifecycle routing without duplicating the repository overview.
 - `.agents/AGENTS.md`: project rules and long-term-memory entry point.
 - `20-project-build/README.md`: Chinese project-build component, contract, and lifecycle architecture.
 - `20-project-build/README.en.md`: English project-build component, contract, and lifecycle architecture.
+- `10-paper-build/README.md`: Chinese paper-build Skill map and migration guide.
+- `10-paper-build/README.en.md`: English paper-build Skill map and migration guide.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
-- `20-project-build/*/SKILL.md` and `50-core-utils/*/SKILL.md`: direct core-Skill entry points, grouped by project-build or reusable-utility ownership.
+- `10-paper-build/*/SKILL.md`, `20-project-build/*/SKILL.md`,
+  `50-core-utils/*/SKILL.md`, and `90-personal/*/SKILL.md`: active Skill entry
+  points grouped by paper-build, project-build, reusable-utility, or personal ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
-- `10-paper-build/`: paper-building navigation plus the centrally stored
-  `academic-figure-workflow` Skill.
+- `10-paper-build/`: nine centrally stored peer paper-building Skills and their
+  bilingual category map.
 - `90-personal/logic-chain-tutor/SKILL.md`: central personal teaching Skill.
 - Local shortcut categories are convenience navigation only and are excluded from Git.
 
@@ -86,8 +92,15 @@ separation, and lifecycle routing without duplicating the repository overview.
 - Optional policy-topology declarations are boundary-checked by the Pipeline and
   audited for content only by `neat-freak`, which also owns narrowly scoped repair
   of existing marked Bootstrap wiring after explicit authorization.
-- `academic-figure-workflow` is stored directly under `10-paper-build/` as a
-  paper-building Skill and is separate from the ten core Skills.
+- Nine peer paper-building Skills are stored directly under `10-paper-build/`:
+  `academic-figure-workflow`, `research-logic`, `experiment-design`,
+  `data-analysis`, `research-html-report`, `latex-paper-build-skill`,
+  `paper-polishing-skill`, `prl-manuscript-polisher`, and
+  `interactive-skill-builder`. They are separate from the ten core Skills and
+  are maintained as hub source rather than Registry releases.
+- `experiment-design` owns research questions, hypotheses, evidence gaps,
+  datasets, baselines, ablations, metrics, controls, and claim boundaries. It
+  does not own experiment execution, runners, adapters, or runtime gates.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
   personal Skill and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Data Analysis"
+  short_description: "Analyze experiment data for papers"
+  default_prompt: "Use $data-analysis to analyze my experiment results, choose appropriate statistical tests, and explain what claims the data supports."
