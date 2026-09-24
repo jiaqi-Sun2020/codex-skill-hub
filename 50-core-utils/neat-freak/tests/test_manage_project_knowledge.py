@@ -276,6 +276,37 @@ class ProjectKnowledgeManagerTests(unittest.TestCase):
                 0,
             )
 
+    def test_noncanonical_project_root_preserves_bootstrap_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            alias = project / "alias"
+            alias.mkdir()
+            noncanonical_project = alias / ".."
+
+            report = manager.audit_codex_bootstrap(noncanonical_project)
+            self.assertEqual(report["summary"]["status"], "clean", report)
+            self.assertEqual(report["project_root"], str(project.resolve(strict=True)))
+
+            manager.safe_target(noncanonical_project / "inside.md", noncanonical_project)
+            with self.assertRaisesRegex(ValueError, "escapes the project root"):
+                manager.safe_target(project.parent / "outside.md", noncanonical_project)
+
+            changes, _expected, _before = manager.bootstrap_repair_plan(
+                noncanonical_project
+            )
+            self.assertEqual(changes, {})
+
+            with mock.patch.object(
+                manager, "first_link_component", return_value=project
+            ):
+                with self.assertRaisesRegex(ValueError, "link or junction"):
+                    manager.audit_codex_bootstrap(project)
+                with self.assertRaisesRegex(ValueError, "link or junction"):
+                    manager.safe_target(project / "inside.md", project)
+                with self.assertRaisesRegex(ValueError, "link or junction"):
+                    manager.bootstrap_repair_plan(project)
+
     def test_bootstrap_audit_reports_missing_and_incomplete_loading(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))

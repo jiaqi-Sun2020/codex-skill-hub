@@ -372,6 +372,14 @@ def validate_record(
 
 
 def validate_document(document: Any, project: Path | None = None) -> dict[str, Any]:
+    if project is not None:
+        requested_project = project.absolute()
+        linked = first_link_component(requested_project)
+        if linked is not None:
+            raise ValueError(f"project root path traverses a link or junction: {linked}")
+        project = requested_project.resolve(strict=True)
+        if not project.is_dir():
+            raise ValueError("project root must be a regular directory")
     top_findings: list[dict[str, Any]] = []
     if not isinstance(document, dict):
         document = {}

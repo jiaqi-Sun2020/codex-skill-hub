@@ -148,15 +148,25 @@ class ComparisonRecordTests(unittest.TestCase):
             record["evidence"] = [
                 {"path": "evidence.json", "sha256": hashlib.sha256(evidence.read_bytes()).hexdigest()}
             ]
-            report = validator.validate_document(self.document(record), project)
+            alias = project / "alias"
+            alias.mkdir()
+            noncanonical_project = alias / ".."
+            report = validator.validate_document(self.document(record), noncanonical_project)
             self.assertEqual(report["status"], "verified", report)
+            self.assertEqual(report["project_root"], str(project.resolve(strict=True)))
 
             record["evidence"] = [{"path": "../outside.json", "sha256": "0" * 64}]
-            report = validator.validate_document(self.document(record), project)
+            report = validator.validate_document(self.document(record), noncanonical_project)
             self.assertIn(
                 "evidence-path-outside-project",
                 {item["code"] for item in report["records"][0]["findings"]},
             )
+
+            with mock.patch.object(
+                validator, "first_link_component", return_value=project
+            ):
+                with self.assertRaisesRegex(ValueError, "link or junction"):
+                    validator.validate_document(self.document(record), project)
 
     def test_cli_rejects_unknown_schema(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

@@ -253,7 +253,8 @@ class ProjectLock(AbstractContextManager):
 
 
 def safe_target(path: Path, root: Path) -> None:
-    if not is_relative_to(path.resolve(strict=False), root):
+    resolved_root = resolve_project(str(root))
+    if not is_relative_to(path.resolve(strict=False), resolved_root):
         raise ValueError("write target escapes the project root")
     link = first_link_component(path.absolute())
     if link is not None:
@@ -749,6 +750,7 @@ def audit_codex_bootstrap(
     strict_root_readme: bool = False,
     policy_topology: str | None = None,
 ) -> dict[str, object]:
+    root = resolve_project(str(root))
     bundle_candidate = Path(bundle_dir)
     if bundle_candidate.is_absolute() or ".." in bundle_candidate.parts:
         raise ValueError("bundle directory must be project-contained and relative")
@@ -1095,6 +1097,7 @@ def bootstrap_repair_plan(
     bundle_dir: str = ".agents",
 ) -> tuple[dict[Path, bytes], dict[Path, str | None], dict[str, object]]:
     """Plan a narrow repair of an existing, demonstrably managed bootstrap."""
+    root = resolve_project(str(root))
     before = audit_codex_bootstrap(root, bundle_dir=bundle_dir)
     issue_kinds = {str(item.get("kind")) for item in before["issues"]}  # type: ignore[index]
     unrepairable = sorted(issue_kinds - REPAIRABLE_BOOTSTRAP_FINDINGS)
