@@ -1,4 +1,4 @@
 interface:
   display_name: "Academic Figure Workflow"
-  short_description: "Create consistent figures and editable PowerPoint kits."
-  default_prompt: "Use $academic-figure-workflow to lock a reference-derived paper style, create evidence-backed editable diagrams and real-data plots, and assemble them into a validated PowerPoint figure kit."
+  short_description: "Create traceable figures and editable PowerPoint kits."
+  default_prompt: "Use $academic-figure-workflow to turn an evidence-checked figure argument into editable diagrams, real-data plots, captions, exports, and rendered QA. When used in a paper pipeline, keep one manuscript figure root and do not treat visual QA as scientific claim approval."

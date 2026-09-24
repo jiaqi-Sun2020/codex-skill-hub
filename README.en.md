@@ -2,15 +2,80 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is a central source and version-governance repository for reusable Codex Skills. This document focuses on the **twenty active Skills whose source is actually stored in this repository**. Project-owned Skills maintained independently in PaperTrace are covered only by a short overview and links near the end.
+`codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-As of 2026-09-24, this repository contains:
+The repository directly maintains 20 active Skills: nine under `10-paper-build`, six under `20-project-build`, four under `50-core-utils`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
-- twenty directly maintained active Skills;
-- one integrated version registry under `50-core-utils/skill-registry/`;
-- a lightweight index for one external Skill project, without duplicating its project-owned source.
+> Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
-> The public repository contains reusable instructions, scripts, tests, templates, and documentation. Manuscripts, experimental data, learner profiles, conversation records, credentials, and machine-local state are outside its publication scope.
+## Overall framework
+
+```text
+Initial onboarding and ongoing governance → 20-project-build
+Research results to paper delivery         → 10-paper-build
+Cross-project maintenance and quality      → 50-core-utils
+Personal learning and teaching             → 90-personal
+External and compatibility entry points    → 30-papertrace / 40-skill-registry
+Unreviewed and historical material         → 98-inbox / 99-archive
+```
+
+The three documentation layers have distinct responsibilities:
+
+1. This README explains the repository-wide framework, categories, and entry selection.
+2. Numbered-category READMEs explain the components, workflows, boundaries, and verification for their category.
+3. Each Skill's `SKILL.md` is its formal execution contract; READMEs do not duplicate the complete rules.
+
+## Category navigation
+
+| Category | Nature | Purpose | Details |
+|---|---|---|---|
+| `10-paper-build` | Active source | Move from research logic, evidence design, and analysis to figures, Chinese review drafts, review, and submission | [Paper-build framework](10-paper-build/README.en.md) |
+| `20-project-build` | Active source | Initial onboarding, governance contracts, repeated research management, protocol audits, and submission audits | [Project-build framework](20-project-build/README.en.md) |
+| `30-papertrace` | External navigation | Point to reader, teaching, and briefing Skills owned by PaperTrace | [PaperTrace entry](30-papertrace/README.en.md) |
+| `40-skill-registry` | Compatibility navigation | Point to the repository's one canonical Skill Registry source | [Registry entry](40-skill-registry/README.en.md) |
+| `50-core-utils` | Active source and infrastructure | Project-information maintenance, handoff, Skill audits, training architecture, and version governance | [Core utilities](50-core-utils/README.en.md) |
+| `90-personal` | Active source | Teaching Skills adapted to personal learning | [Personal Skills](90-personal/README.en.md) |
+| `98-inbox` | Unreviewed staging | Hold patches, plans, and candidate documents that have not been approved | [Staging rules](98-inbox/README.en.md) |
+| `99-archive` | Historical archive | Hold historical material excluded from current discovery and execution | [Archive rules](99-archive/README.en.md) |
+
+`.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
+
+## Twenty active Skills
+
+| Category | Skill | One-line responsibility |
+|---|---|---|
+| Paper build | `research-logic` | Build mechanism-level research logic and defensible contribution claims |
+| Paper build | `experiment-design` | Derive evidence gaps, controls, ablations, and claim boundaries from a claim |
+| Paper build | `data-analysis` | Check data integrity and produce statistics, intervals, and reviewable interpretation |
+| Paper build | `research-html-report` | Package research logic and evidence plans as a standalone HTML report |
+| Paper build | `academic-figure-workflow` | Produce editable, traceable academic figures with rendered QA |
+| Paper build | `latex-paper-build-skill` | Build and maintain a LaTeX-centered paper-delivery pipeline |
+| Paper build | `paper-polishing-skill` | Translate, restructure, and polish approved content for a target venue |
+| Paper build | `prl-manuscript-polisher` | Adapt, compress, and evidence-calibrate a technically complete manuscript for PRL |
+| Paper build | `interactive-skill-builder` | Create or update Skills through interviews, specifications, and approval gates |
+| Project build | `project-agent-generator-skill` | Create missing `.agents` scaffolding and startup loading once |
+| Project build | `research-project-pipeline` | Orchestrate project discovery, onboarding, verification, and handoff once |
+| Project build | `research-workspace-governance` | Manage research contracts, state, evidence, migration, and traceability |
+| Project build | `research-management-pipeline` | Repeatedly summarize state and route one smallest next action after onboarding |
+| Project build | `experiment-protocol-audit` | Read-only audit explicit Profiles, Protocols, manifests, and runtime evidence |
+| Project build | `project-submission-audit` | Read-only audit the actual change surface before submission or delivery |
+| Core utility | `neat-freak` | Repeatedly reconcile README, Agent documents, and durable project knowledge |
+| Core utility | `handoff` | Produce a compact, evidence-linked continuation handoff |
+| Core utility | `skill-audit-refactor` | Audit, simplify, split, or refactor an existing Skill |
+| Core utility | `training-code-architecture` | Turn training scripts into reusable, configuration-driven architecture |
+| Personal teaching | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
+
+## Where should I start?
+
+| Current goal | Entry point |
+|---|---|
+| New research project or a legacy project not yet onboarded | Start with the one-time onboarding flow in [20-project-build](20-project-build/README.en.md) |
+| Contracts, evidence, or state changed in an onboarded project | Use the repeated research-management flow in the project-build framework |
+| Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
+| Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
+| Audit a Skill or reorganize training code | Choose the corresponding core utility |
+| Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
+| Learn an unfamiliar concept, formula, or paper method | Use the teaching entry in [90-personal](90-personal/README.en.md) |
 
 ## Quick start
 
@@ -19,654 +84,21 @@ git clone https://github.com/jiaqi-Sun2020/codex-skill-hub.git
 Set-Location .\codex-skill-hub
 ```
 
-To use a Skill, ask Codex to read the `SKILL.md` in its directory or install the entire Skill directory into your Skill search path. Do not copy only `SKILL.md`: related `scripts/`, `references/`, `assets/`, and `templates/` may be part of the execution contract.
+Ask Codex to read the target directory's `SKILL.md`, or install the complete Skill directory. Do not copy only `SKILL.md`: `scripts/`, `references/`, `assets/`, and `templates/` may also be part of the execution contract.
 
-## Repository structure
-
-```text
-codex-skill-hub/
-|-- README.md / README.en.md
-|-- .agents/                         Project context and durable knowledge
-|-- .codex/                          Project-local Codex bootstrap
-|-- 10-paper-build/
-|   |-- README.md / README.en.md     Paper-build category entry point
-|   |-- academic-figure-workflow/    Academic figure workflow
-|   |-- research-logic-skill/
-|   |-- experiment-design-skill/
-|   |-- data-analysis/
-|   |-- research-html-report/
-|   |-- latex-paper-build-skill/
-|   |-- paper-polishing-skill/
-|   |-- prl-manuscript-polisher/
-|   `-- interactive-skill-builder/
-|-- 20-project-build/
-|   |-- README.md / README.en.md       Project-build architecture entry points
-|   |-- experiment-protocol-audit/
-|   |-- project-agent-generator-skill/
-|   |-- project-submission-audit/
-|   |-- research-management-pipeline/
-|   |-- research-project-pipeline/
-|   `-- research-workspace-governance/
-|-- 50-core-utils/
-|   |-- handoff/
-|   |-- skill-audit-refactor/
-|   |-- training-code-architecture-skill/
-|   |-- neat-freak/
-|   `-- skill-registry/              Version infrastructure, not an active Skill
-`-- 90-personal/
-    `-- logic-chain-tutor/
-```
-
-See the [project-build architecture](20-project-build/README.en.md) for the six
-Skills, four contract categories, independent state axes, and lifecycle routing.
-See the [paper-build catalog](10-paper-build/README.en.md) for the nine peer
-Skills' boundaries, compositions, and old-repository migration map.
-
-## Choosing a Skill from this repository
-
-| Goal | Skill |
-|---|---|
-| Create paper figures, model diagrams, multi-panel plots, or editable PPT figures | `academic-figure-workflow` |
-| Diagnose shallow research combinations and establish mechanism-level contribution logic | `research-logic` |
-| Derive evidence gaps, controls, ablations, and claim boundaries from a paper claim | `experiment-design` |
-| Inspect experimental data and report tests, effect sizes, intervals, and reviewable interpretations | `data-analysis` |
-| Package research logic and evidence plans as a standalone HTML report | `research-html-report` |
-| Build, restructure, and maintain a LaTeX paper-delivery pipeline | `latex-paper-build-skill` |
-| Translate and polish approved Nature, PRL, or PRA manuscripts | `paper-polishing-skill` |
-| Compress and adapt a technically complete physics manuscript for PRL | `prl-manuscript-polisher` |
-| Create or update a Codex Skill through interviews, specification approval, and validation | `interactive-skill-builder` |
-| Generate initial `.agents/`, a durable-knowledge baseline, and Codex startup loading, or complete only missing startup files around one preserved bundle | `project-agent-generator-skill` |
-| Orchestrate one-time research-project discovery, onboarding, governance checks, Agent setup, and acceptance | `research-project-pipeline` |
-| Repeatedly manage contracts, evidence, amendments, gates, and next-action routing after onboarding | `research-management-pipeline` |
-| Independently audit an experimental design or run manifest against an explicit domain profile, protocol, and evidence | `experiment-protocol-audit` |
-| Audit the actual change surface before a commit, PR, release, delivery, or handoff | `project-submission-audit` |
-| Govern research assets, locations, statuses, evidence, migration, deletion approval, and comparison-claim boundaries | `research-workspace-governance` |
-| Prepare a compact, traceable task handoff for another agent or later session | `handoff` |
-| Audit, simplify, split, or refactor an existing Skill | `skill-audit-refactor` |
-| Refactor ML scripts into a reusable configuration-driven training system | `training-code-architecture` |
-| Repeatedly update project documentation and `.agents/memory/`, then audit or repair managed bootstrap wiring | `neat-freak` |
-| Learn a concept or formula from the exact point of confusion | `logic-chain-tutor` |
-
-## 1. Academic figure workflow
-
-### `academic-figure-workflow`
-
-**Domain**
-
-Formal figures for papers, theses, and research reports: mechanism schematics, neural-network or system diagrams, real-data plots, multi-panel compositions, editable PowerPoint figure kits, captions, and pre-submission visual QA.
-
-**Use it when**
-
-- a figure set must be planned from manuscript claims and evidence rather than appearance alone;
-- a reference image should guide visual language without copying its scientific content;
-- the deliverable must remain editable and reproducible in Draw.io, SVG, Matplotlib, PDF, PNG, or PPTX;
-- typography, strokes, legends, markers, colour, accessibility, and layout must be checked at final publication size;
-- figures, captions, data, code, and manuscript claims need an inspectable provenance chain.
-
-**Typical inputs and outputs**
-
-- Inputs: manuscript passages, model code, datasets, equations, sketches, reference images, target venue, and final dimensions.
-- Outputs: editable sources, SVG/PDF/PNG exports, PPT figure kits, `caption.md`, style manifests, evidence traces, and rendered QA results.
-
-**Critical boundary**
-
-The workflow does not invent data, units, uncertainty, mechanisms, or model components. Data-backed figures require source and uncertainty checks, and complex figures are not complete until reviewed at their intended final size.
-
-**Example prompts**
-
-> Build an editable Draw.io neural-network architecture figure from the model code and manuscript methods, then verify every connection.
-
-> Turn these CSV results into a Nature-style multi-panel figure with an editable PPT kit, caption, and final-size QA.
-
-Source: [`10-paper-build/academic-figure-workflow/`](10-paper-build/academic-figure-workflow/)
-
-## 2. Paper research and manuscript workflow
-
-Alongside `academic-figure-workflow`, `10-paper-build/` directly maintains eight peer Skills imported from the former S Paper Skills repository:
-
-- `research-logic` moves an “A + B” combination toward mechanism-, state-, or principle-level research logic;
-- `experiment-design` derives research questions, hypotheses, evidence gaps, datasets, baselines, ablations, metrics, controls, and claim boundaries from a claim;
-- `data-analysis` produces effect sizes, confidence intervals, significance results, and reviewable interpretations grounded in data integrity and experimental design;
-- `research-html-report` packages research logic, validation plans, risks, and next steps as a standalone HTML research report;
-- `latex-paper-build-skill` builds or restructures a maintainable, compilable, submission-ready LaTeX paper project;
-- `paper-polishing-skill` performs translation, structural revision, and venue-style polishing after scientific-content approval;
-- `prl-manuscript-polisher` audits focus, broad physics relevance, length, evidence calibration, and REVTeX consistency for PRL;
-- `interactive-skill-builder` creates reusable Skills through author interviews, specification approval, creation, and validation.
-
-`experiment-design` defines what should be tested, which evidence is missing, which controls are required, and how far a conclusion may extend. It does not implement runners or runtime gates. See [`10-paper-build/README.en.md`](10-paper-build/README.en.md) for the full selection guide, composition flow, migration map, and licensing note.
-
-## 3. Central utilities
-
-### `project-agent-generator-skill`
-
-**Domain**
-
-Generate repository-local Agent context once for a project that has not yet initialized its Agent framework, using verified facts about architecture, commands, configuration, decisions, and safety boundaries.
-
-**Core capabilities**
-
-- Generate the initial `.agents/` documentation bundle once.
-- Initialize the `.agents/memory/` durable-knowledge index.
-- Install a project-local `.codex/` hook that loads `.agents/AGENTS.md` on startup and resume; or use strict bootstrap-only completion for one existing Agent bundle, creating missing files only.
-- Hand routine updates to `neat-freak`; retain forced replacement only as explicitly authorized legacy recovery.
-- Reject paths outside the project, link targets, and suspected credential content.
-
-**Typical output**
-
-`AGENTS.md`, `PROJECT_CONTEXT.md`, `ARCHITECTURE.md`, `CONFIG_SPEC.md`, `RUNBOOK.md`, `DECISIONS.md`, a documentation index, a knowledge baseline, and the project bootstrap hook.
-
-**Example prompts**
-
-> Inspect this repository and generate project-local `.agents` context. Preview all destinations first and do not modify application code.
-
-> This project has no Agent context yet. Generate the framework once, then hand routine maintenance to Neat-Freak.
-
-Source: [`20-project-build/project-agent-generator-skill/`](20-project-build/project-agent-generator-skill/)
-
-### `research-project-pipeline`
-
-**Domain**
-
-Initialize a new research project, or onboard a legacy project that has not completed Agent setup, through a one-time workflow spanning governance, Agent context, knowledge audits, and final acceptance.
-
-**Core capabilities**
-
-- Begin with read-only discovery and separate facts, risks, and unresolved choices.
-- Use research-workspace rules to design the target structure.
-- Produce a reviewable and reversible migration plan.
-- Delegate project Agent-context generation to the Generator; when an existing bundle has complete knowledge but missing startup files, delegate only create-only bootstrap completion and preserve every knowledge file.
-- Run knowledge, bootstrap, and adversarial acceptance checks.
-- Report knowledge, Bootstrap, governance assets, project-contract, and governance-verification states separately. The default CLI result is a bounded summary; request a full snapshot explicitly.
-- Accept an optional Agent-loading manifest path and delegate its content audit to `neat-freak`; Pipeline performs only project-boundary path checks.
-- Invoke a domain-neutral comparison-record validator that checks structure, evidence, review, and declared boundaries without prescribing relation types.
-- Bind an independent `experiment-protocol-audit` record when applicable, reporting onboarding, governance, domain validation, execution authorization, and claim support on separate axes.
-
-**Difference from adjacent Skills**
-
-- For `.agents/` generation alone, use `project-agent-generator-skill`.
-- For research-directory and evidence policy alone, use `research-workspace-governance`.
-- Use this Skill when both are required together with migration and handoff.
-
-**Example prompts**
-
-> Integrate this legacy research project into the standard workflow: inventory it read-only, propose a migration plan, and wait for review before applying it.
-
-> Set up a new research project from workspace structure through Agent context and adversarial acceptance.
-
-> Audit whether nested subprojects can load every applicable mandatory policy, and confirm that comparison claims remain owned by an explicitly selected domain Profile or reviewer.
-
-Source: [`20-project-build/research-project-pipeline/`](20-project-build/research-project-pipeline/)
-
-### `research-management-pipeline`
-
-**Domain**
-
-Use after initial onboarding for repeated research management. It locates the single governance root and contract registry, summarizes applicable SCI, STAT, ENG, and GOV contracts, seven independent state axes, gates, gaps, and amendment impact, then returns one smallest next action.
-
-**Core capabilities and boundary**
-
-- Calls Governance's read-only registry validator instead of duplicating deterministic validation.
-- Routes domain validation to `experiment-protocol-audit` or a human expert, Agent-information updates to `neat-freak`, and the final change surface to `project-submission-audit`.
-- Keeps definition, implementation, verification, work, evidence, claim, and authorization states independent; no single `PASS` promotes another axis.
-- Supports amendments and dependency invalidation closure, but does not run research, execute adapters, select methods, create `.agents`, or grant authorization.
-
-**Example prompt**
-
-> Use `research-management-pipeline` to inspect this onboarded project's current contract coverage, evidence gaps, and affected scope. Return one smallest next action; do not run research or create an Agent framework.
-
-Source: [`20-project-build/research-management-pipeline/`](20-project-build/research-management-pipeline/)
-
-### `experiment-protocol-audit`
-
-**Domain**
-
-Use this Skill to evaluate explicit domain constraints against a project-owned Domain Profile, Project Protocol, normalized observations, manifests, and runtime evidence without running experiments or project commands.
-
-**Core capabilities and boundary**
-
-- Support generic numeric bounds, equality, shapes, sets, cardinality, and allowed transforms.
-- A v2 protocol uses `contract_bindings` to connect applicable contracts to stable rules and audit scopes; a required contract without a rule or valid manual-review reference is `incomplete`.
-- Compare requested/generated/approved manifests exactly and record validator/profile/protocol/source/evidence hashes so a change makes the old record stale.
-- Emit an independent record for Pipeline binding; never execute Runtime Adapters, create project frameworks, choose methods, or equate completed work with a supported scientific claim.
-
-**Example prompts**
-
-> Audit the experimental design against this project's declared Domain Profile and Project Protocol. Read normalized JSON only; do not run experiments, project commands, or adapters. Produce a validation record that the Pipeline can bind.
-
-> Compare the requested, generated, and approved task manifests exactly. Identify silent filtering, duplicate units, or unapproved scope expansion.
-
-Source: [`20-project-build/experiment-protocol-audit/`](20-project-build/experiment-protocol-audit/)
-
-### `project-submission-audit`
-
-**Domain**
-
-Perform a read-only audit of the exact proposed change surface before a commit, pull request, release, external delivery, or task handoff. It checks scope, behavior contracts, architecture, tests, security, documentation, and repository cleanliness, then returns `PASS`, `BLOCKED`, or `INCOMPLETE`.
-
-**Core capabilities and boundary**
-
-- Reconcile staged, unstaged, and untracked state so the reviewed content matches the proposed submission.
-- Map requirements to implementation, affected interfaces, and verification evidence.
-- Check contracts, protocols, schemas, amendments, and evidence references for unrecorded semantic changes, and confirm affected claims, validations, and deliverables are marked stale.
-- Apply locality, module depth, seams, and the deletion test only to architecture relevant to the change.
-- Record P0/P1/P2 findings with evidence, impact, smallest repair, and verification method.
-- Remain read-only by default; it does not commit, push, publish, or establish scientific validity.
-
-**Example prompt**
-
-> Audit the final diff before I submit this branch. Confirm that tests reach the changed behavior and return an evidence-backed PASS or BLOCKED decision.
-
-Source: [`20-project-build/project-submission-audit/`](20-project-build/project-submission-audit/)
-
-### `research-workspace-governance`
-
-**Domain**
-
-Govern a research workspace in a domain-neutral way when sources, working assets, evidence, automation, temporary material, and deliverables have become mixed or difficult to trace.
-
-**Core capabilities**
-
-- Define roles such as `source`, `method`, `working`, `evidence`, `deliverable`, `automation`, `archive`, and `temporary`.
-- Trace sources, methods, working assets, evidence, claims, and deliverables.
-- Maintain SCI, STAT, ENG, and GOV contract catalogs plus the single `research-contract-registry/v1`, instantiating only applicable contracts.
-- Derive the traceability matrix from the registry and use append-only amendments to compute invalidation closure across validation, evidence, claims, gates, and deliverables.
-- Resolve canonical `.agents/governance/` and legacy root `governance/` without guessing when both exist.
-- Support single-file, task-local, and custom-path automation contracts.
-- Protect immutable evidence and provide failure-safe migration and cleanup policies.
-- Record work completion separately from scientific-claim review.
-- Audit reproducibility and handoff readiness.
-
-**Boundary**
-
-This Skill owns research assets, locations, status, evidence, and change governance. It does not replace any field's method design or scientific interpretation. Its comparison validator checks declaration shape, evidence metadata, review state, invalidation, and allowed uses; an explicitly selected domain Skill or reviewer remains responsible for scientific validity.
-
-**Example prompts**
-
-> Establish a minimal governance contract for this project without renaming its existing directories, and define each asset lifecycle.
-
-> Audit whether each conclusion traces to sources, methods, work records, evidence, and review state.
-
-> Create a domain-defined comparison record for two candidate results, including allowed uses, forbidden inferences, reviewer, and revalidation conditions.
-
-Source: [`20-project-build/research-workspace-governance/`](20-project-build/research-workspace-governance/)
-
-### `skill-audit-refactor`
-
-**Domain**
-
-Audit and refactor existing Codex Skills, especially when triggers are vague, instructions are bloated, scope is overloaded, resources are duplicated, validation is missing, or safety boundaries are unclear.
-
-**Core capabilities**
-
-- Review frontmatter, triggers, body instructions, scripts, references, templates, and Agent metadata.
-- Classify content as keep, compress, move to resources, or delete.
-- Decide whether a Skill should remain whole, split into sub-Skills, or only decompose resources.
-- Reduce context cost without losing critical capability or safety rules.
-- Validate the refactor and explain residual risk.
-
-**Example prompts**
-
-> Audit whether this Skill is too long, broad, or easy to trigger incorrectly. Give me prioritized findings and a refactor plan first.
-
-> Move conditional details into `references/` while preserving every safety gate and output-quality contract.
-
-Source: [`50-core-utils/skill-audit-refactor/`](50-core-utils/skill-audit-refactor/)
-
-### `training-code-architecture`
-
-**Domain**
-
-Extract a reusable machine-learning training architecture from existing code. It preserves execution structure and interfaces, not the special logic of one dataset, model, or task.
-
-**Core capabilities**
-
-- Establish a thin `main.py → train(args)` entry point.
-- Organize experiment, data, model, training, task, and output settings in JSON.
-- Use factories for model, optimizer, scheduler, and component construction.
-- Isolate batching, graph structure, model calls, losses, and metrics behind a `TaskAdapter`.
-- Standardize checkpoints, logs, copied configuration, history, and final metrics.
-- Reuse one training engine across static-graph, dynamic-graph, sequence, or other tasks.
-
-**Critical boundary**
-
-Fixed tensor shapes, preprocessing rules, graph assumptions, losses, and model names from the example project are not hard-coded as universal architecture.
-
-**Example prompts**
-
-> Convert this training script into a reusable configuration-driven template while preserving the `main.py → train(args)` workflow.
-
-> Isolate task logic behind adapters so one training engine supports both static and dynamic graph experiments.
-
-Source: [`50-core-utils/training-code-architecture-skill/`](50-core-utils/training-code-architecture-skill/)
-
-### `neat-freak`
-
-**Domain**
-
-After one-time framework generation, repeatedly maintain repository-local Markdown knowledge and Agent documentation while preventing contradictions and duplication across `.agents/memory/`, README files, architecture documentation, and current code.
-
-**Core capabilities**
-
-- Audit the knowledge index, topic files, project documentation, and provenance without writing.
-- Initialize only missing knowledge baselines.
-- Update durable knowledge through a hash-bound `plan → apply` workflow.
-- Audit `.agents/AGENTS.md` and project-local Codex hooks for correct loading.
-- With explicit authorization, repair existing managed project-local Codex Hook wiring without regenerating the framework.
-- Independently verify mandatory-policy paths, hashes, loader evidence, isolation decisions, and copy drift across nested execution roots.
-- Reconcile duplicate knowledge, repair indexes, and prepare durable handoff context.
-
-**Critical boundary**
-
-Requests phrased as “audit,” “check,” or “review” are read-only. Writing requires an explicit initialize, sync, repair, or maintenance request.
-
-**Example prompts**
-
-> Audit the MEMORY index, topic files, and project documentation for conflicts. Do not modify anything.
-
-> Prepare a hash-bound update plan for this durable decision, then apply it only after review.
-
-> Audit whether every nested Agent root can reach its applicable mandatory policy; report missing declarations and unreviewed natural-language weakening as risks.
-
-Source: [`50-core-utils/neat-freak/`](50-core-utils/neat-freak/)
-
-### `handoff`
-
-**Domain**
-
-Create a compact, evidence-linked continuation document when work is paused, transferred, compacted, or continued by another agent or later session.
-
-**Core capabilities and boundary**
-
-- Prefer current files, Git state, and test output over conversational memory.
-- Separate completed, in-progress, not-started, blocked, and unauthorized work.
-- Link to existing specs, issues, ADRs, diffs, and reports instead of copying them.
-- Record working directories, complete commands, results, decisions, residual risks, and one exact next action.
-- Write to the operating-system temporary directory by default; it neither mutates the project nor proves completion or authorizes external actions.
-
-**Example prompt**
-
-> Prepare a handoff for the next session with only the current state, verification evidence, blockers, and exact next action, saved in the system temporary directory.
-
-Source: [`50-core-utils/handoff/`](50-core-utils/handoff/)
-
-## 4. Personal teaching Skill
-
-### `logic-chain-tutor`
-
-**Domain**
-
-Teach an unfamiliar concept, mathematical expression, physical meaning, or paper method from the learner's exact point of confusion. It is designed for questions such as “what is it?”, “why does this follow?”, “where does this formula come from?”, and “how do these two objects differ?”
-
-**Core capabilities**
-
-- Diagnose the missing prerequisite instead of restarting an entire course mechanically.
-- Present a map from known anchor to missing bridge, target idea, and application.
-- Explain each symbol's type, shape, operation, and physical meaning step by step.
-- Repair misconceptions with the smallest complete example, counterexample, and explicit comparison.
-- Respect output contracts such as concise explanation, prompt-only, or localized rewrite.
-
-**Boundary**
-
-It should not trigger for simple factual lookup or execution-only work. It adapts teaching within the current exchange and does not mutate an external learner profile.
-
-**Example prompts**
-
-> I have forgotten the linear-algebra prerequisites. Explain graph convolution from eigenvectors and justify each step.
-
-> Distinguish a quantum state, operator, eigenvalue, and measurement outcome, then use one minimal example to show why they are not interchangeable.
-
-Source: [`90-personal/logic-chain-tutor/`](90-personal/logic-chain-tutor/)
-
-## Skill Registry infrastructure
-
-[`50-core-utils/skill-registry/`](50-core-utils/skill-registry/) is version-governance infrastructure integrated into this repository. It is not counted as an active Skill and is no longer published as a separate repository.
-
-| Path | Purpose |
-|---|---|
-| `registry.json` | Records governed Skill versions and integrity metadata |
-| `sources/` | Editable canonical source |
-| `releases/` | Immutable published snapshots |
-| `tools/skill_registry.py` | Registry checking, release, and synchronization tool |
-| `tests/` | Registry behavior tests |
-
-The registry supports two project relationships:
-
-- `vendored`: a project consumes a locked central release;
-- `forked`: a project owns its implementation and central synchronization must not overwrite it.
-
-The central `reader-learner 1.0.0` is retained as a traceable historical release. PaperTrace's current `reader-learner` is a project-owned fork and must not be overwritten from this registry.
-
-## Common compositions
-
-```text
-Initial research-project onboarding
-research-project-pipeline
-  → research-workspace-governance (discovery and design, then human review)
-  → project-agent-generator-skill (one-time generation, or completion of only missing Bootstrap around an existing bundle)
-  → neat-freak (initial acceptance)
-  → project-submission-audit (pre-submission or pre-delivery audit)
-  → handoff (continue in another session or agent)
-
-Post-onboarding research lifecycle
-research-management-pipeline
-  → research-workspace-governance (registry, trace matrix, amendments, invalidation)
-  → experiment-protocol-audit / domain Skill / human expert (contract-driven routing)
-  → neat-freak (when Agent information changes)
-  → project-submission-audit (final change surface)
-
-Later project-information updates
-project change → neat-freak (repeated maintenance)
-
-Machine-learning engineering
-existing code → training-code-architecture → reusable training template
-
-Paper figures
-claim / code / data → academic-figure-workflow → editable source + exports + QA
-
-Paper research and writing
-research-logic → experiment-design → project-owned experiment execution
-  → data-analysis → latex-paper-build-skill → paper-polishing-skill
-  → prl-manuscript-polisher (PRL targets only)
-
-Concept learning
-current blockage → logic-chain-tutor → prerequisite bridge → derivation / example / check
-
-Ordinary project submission
-final change surface → project-submission-audit → PASS / BLOCKED / INCOMPLETE
-  → handoff (when work continues elsewhere)
-```
-
-## Pipeline usage guide
-
-See the [project-build architecture](20-project-build/README.en.md) for the four
-contract categories, seven independent state axes, and complete routing tree.
-
-This repository has two complementary entry points: `research-project-pipeline` handles one-time onboarding, while `research-management-pipeline` handles repeated post-onboarding research management. Routine documentation maintenance, submission auditing, handoff, figure work, and learning remain separate Skill workflows; **one command does not run every workflow automatically**. This guide applies only to workflows maintained here. PaperTrace readers, digests, and teaching pipelines remain governed by their own README files.
-
-### Choose the entry point first
-
-| Situation | Entry and sequence | Expected deliverable |
-|---|---|---|
-| New project, or legacy project without completed Agent onboarding | Pipeline discovery → Governance design → human review → Generator → verification → handoff | Reviewable plan, approved framework creation, and separate acceptance states |
-| Existing `.agents/` or `.agent/` bundle, but startup loading is missing | Pipeline `bootstrap-only` preview → human review → create only missing Bootstrap → verification | Startup loading completed without changing the original knowledge files |
-| Onboarded project whose contracts, evidence, methods, environment, or claim status changed | Research Management → read-only Governance validation → route by gap → revalidate | Contract coverage, seven-axis state, invalidation scope, and one smallest next action |
-| Already initialized project with code, directory, or decision changes | Neat-Freak audit → update authorized docs/knowledge → re-audit | Project information aligned with current code, without regenerating the framework |
-| Domain protocol or task-manifest review | Explicit Profile/Protocol → Experiment Protocol Audit → optionally bind to Pipeline | Evidence-fingerprinted domain-validation record; no experiment execution |
-| Submission, delivery, or transfer | Project Submission Audit → repair and re-audit → Handoff if needed | `PASS / BLOCKED / INCOMPLETE` and a traceable handoff |
-
-### A. Initial onboarding: plan, then approve writes
-
-Inputs are an existing project directory, the intended onboarding scope, protected paths, and any current project rules. Keep the central Skill source in this hub; do not copy the full Skill package into the target project.
-
-In the target project conversation, ask:
-
-> Use `research-project-pipeline` to onboard `D:\Research\my-project`. Read existing rules and perform read-only discovery first. Give the governance design, exact write list, risks, and rollback method; produce a plan only and wait for my review. Do not run research tasks or rewrite existing Agent knowledge files.
-
-The supplied script can also be used directly. **Run every PowerShell command below from the hub repository root.** Replace the generic checkout path below with your own; the following code blocks assume the same PowerShell session:
+Run the minimum repository checks from the repository root:
 
 ```powershell
-Set-Location 'C:\path\to\codex-skill-hub'
-$projectRoot = 'D:\Research\my-project' # Replace with the actual existing project
-$pipelineScript = '.\20-project-build\research-project-pipeline\scripts\research_pipeline.py'
-$knowledgeScript = '.\50-core-utils\neat-freak\scripts\manage_project_knowledge.py'
-
-# Read-only discovery and a bounded plan summary
-python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
-
-# Write a complete plan outside the target project without overwriting an existing one
-$planPath = Join-Path $env:TEMP ('research-onboarding-' + [guid]::NewGuid().ToString('N') + '.json')
-python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal --output $planPath
-```
-
-`minimal`, `lightweight`, `collaborative`, and `controlled` are governance presets, not scientific-method profiles. Start with the smallest suitable preset; declare domain validation separately.
-
-Review the plan's write locations, component actions, blockers, rollback, and `plan_sha256`. **Only if the project has no Agent framework and you approve this exact plan** should you run the next commands. Replace the placeholder hash with the reviewed value; never auto-approve every discovery result:
-
-```powershell
-# Optional preview of Generator output
-python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot
-
-# This writes only after human review
-python -X utf8 -B $pipelineScript bootstrap-agents $projectRoot --apply --plan $planPath --confirm-plan-sha256 'REVIEWED_PLAN_SHA256'
-
-# Rediscover after creation, then verify without writing
-python -X utf8 -B $pipelineScript plan $projectRoot --profile minimal
-python -X utf8 -B $pipelineScript verify $projectRoot
-```
-
-`bootstrap-agents` delegates only missing framework creation to Generator; it does not execute the entire governance migration. Other approved governance work remains owned by the appropriate Skill. Regenerate and review a plan whenever files, components, or fingerprints change; do not force an old approval through.
-
-### B. Legacy project: preserve knowledge and complete only startup files
-
-Use this path when exactly one existing `.agents/` or `.agent/` bundle has valid knowledge but incomplete startup files. Keep the hub root as the working directory and reuse the variables above:
-
-```powershell
-$bootstrapPreview = Join-Path $env:TEMP ('bootstrap-preview-' + [guid]::NewGuid().ToString('N') + '.json')
-python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --output $bootstrapPreview
-
-# This writes only after reviewing the preview. Replace the placeholder with manifest_sha256.
-python -X utf8 -B $pipelineScript bootstrap-only $projectRoot --apply --manifest $bootstrapPreview --confirm-manifest-sha256 'REVIEWED_MANIFEST_SHA256'
-python -X utf8 -B $pipelineScript verify $projectRoot
-```
-
-This branch creates only missing managed startup files. Existing Agent knowledge remains byte-for-byte unchanged. It stops on a differing startup file, dual bundles, linked/unsafe paths, or drift; it is not an overwrite or merge mechanism.
-
-### C. Repeated research management: inspect contracts, evidence, and amendment impact
-
-After onboarding, use `research-management-pipeline` as the research-lifecycle entry point. It does not run research; it reads current governance state and routes the next action:
-
-> Use `research-management-pipeline` to manage this onboarded project. Locate the unique governance root, call the Governance read-only validator, summarize SCI/STAT/ENG/GOV coverage, seven state axes, gates, and amendment impact, and return one smallest next action. Do not run experiments, adapters, Generator, or grant execution or publication permission.
-
-For deterministic checks only, run the Governance validator from **this repository root** and replace the registry path with the target project's actual path:
-
-```powershell
-$registryValidator = '.\20-project-build\research-workspace-governance\scripts\validate_contract_registry.py'
-$registryPath = '.agents/governance/contract_registry.json'
-python -X utf8 -B $registryValidator validate $projectRoot --registry $registryPath
-python -X utf8 -B $registryValidator matrix $projectRoot --registry $registryPath
-```
-
-The validator prints JSON to stdout only; it creates no directory and writes no project file. `claim_ceiling` is only the maximum scope permitted by a domain handoff. Actual `claim_state` requires an independent Claim Review, and authorization requires its own traceable record.
-
-### D. Later project-information updates: call Neat-Freak again
-
-After onboarding, do not rerun Pipeline or Generator to refresh the framework. In the target project conversation, ask:
-
-> Use `neat-freak` to update this project. Based on current code and verification results, synchronize only the README, relevant `.agents` documents, and durable knowledge that need updating. Preserve my changes; do not modify application code or governance records, and do not regenerate the framework. Audit before and after, and list every actual change.
-
-For read-only checks, still from the hub root:
-
-```powershell
-python -X utf8 -B $knowledgeScript $projectRoot audit
-python -X utf8 -B $knowledgeScript $projectRoot bootstrap-audit
-```
-
-Neither `audit` nor `bootstrap-audit` updates documentation. Documentation synchronization requires explicit authorization. Durable-knowledge topic writes use Neat-Freak's hash-bound `plan → apply` flow. Generator owns missing framework creation; Neat-Freak can repair only existing marked wiring under its separately authorized maintenance workflow.
-
-### E. Submission audit and handoff: invoke them separately
-
-In the target project conversation, first specify the exact surface intended for submission:
-
-> Use `project-submission-audit` to read-only audit the changes I intend to submit. Inspect staged, unstaged, and untracked files; distinguish this scope from existing changes; report issue priority, file evidence, and verification gaps. Do not commit, push, or publish.
-
-Repair and re-audit the same change surface. If the work needs another session or agent, then ask:
-
-> Use `handoff` to create a handoff document in the system temporary directory. Record the absolute project path, goal, completed work, open items, verification commands and results, residual risks, and one concrete next step; link to existing material, do not copy sensitive data, and do not expand the next agent's authority.
-
-Pipeline `verify` **does not automatically invoke** either conversation-level Skill. A handoff can be created while blocked or awaiting review, but it must state that status and never present a generated document as completed work.
-
-### F. Other common workflows
-
-The following are independent Skill requests, not extra Pipeline CLI subcommands:
-
-- **Domain protocol audit:** “Use `experiment-protocol-audit` to audit requested/generated/approved manifests against this project's explicit Domain Profile, Project Protocol, and normalized JSON. Do not run experiments or adapters.” Bind the resulting record with Pipeline's `--domain-validation-record` only when needed.
-- **Training-code organization:** “Use `training-code-architecture` to analyze existing training code and first propose a behavior-preserving interface and configuration refactor. Implement only after confirmation and provide regression verification.” Do not impose this structure on projects without ML work.
-- **Paper figures:** “Use `academic-figure-workflow` with my claim, data, code, and target dimensions. Confirm the figure plan first, then create editable sources, exports, a caption, and rendered QA.”
-- **Concept learning:** “Use `logic-chain-tutor` to explain this concept from the exact step where I am stuck, using the smallest complete example, derivation, or counterexample. Do not update an external learning profile by default.”
-
-### How to tell whether the workflow is actually complete
-
-- `verify` exit `0` means passed; `1` means verification completed but did not pass; `2` means the command or inputs could not be evaluated. Inspect the reported evidence, not merely the existence of generated folders.
-- Evaluate Agent knowledge, Bootstrap, governance assets, governance verification, domain validation, execution authorization, and claim support independently. Onboarding does not authorize experiments or establish a scientific conclusion.
-- The default summary is enough to choose a next step; add `--full` to `plan` or `verify` only for diagnosis.
-- Stop and rediscover/review when a fingerprint drifts, source authority is ambiguous, a path escapes, a link is encountered, or an existing target conflicts. Do not use force to bypass these checks.
-- Initial onboarding is defined by the [Research Project Pipeline](20-project-build/research-project-pipeline/SKILL.md) and its [stage contracts](20-project-build/research-project-pipeline/references/stage-contracts.md); post-onboarding contract and gate routing is defined by the [Research Management Pipeline](20-project-build/research-management-pipeline/SKILL.md); routine Agent-information updates are defined by [Neat-Freak](50-core-utils/neat-freak/SKILL.md).
-
-## External Skill projects at a glance
-
-The following project-owned Skills are not maintained in this repository. This is navigation only; consult the linked repository for complete documentation, current scripts, and project-specific constraints.
-
-| External repository | Broad purpose | Included Skills |
-|---|---|---|
-| [PaperTrace](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills) | Paper evidence extraction, bilingual readers, learner profiles, teaching, news briefings, and HTML presentation | `nature-reader`, `reader-skill`, `reader-learner`, `adaptive-teach`, `allegory-teach`, `chat-knowledge-profile`, `ai-quantum-news-briefing`, `demo-skill`, `lean-html-skill` |
-
-Obtain PaperTrace's project-owned Skills from its repository. Their presence in this README index is not a reason to copy them here. The former S Paper Skills repository's eight Skills now live under [`10-paper-build/`](10-paper-build/); old repository paths do not redirect automatically.
-
-## Acknowledgements and influences
-
-We thank the authors and maintainers of the following open-source Skills. The local implementations have been reorganized and extended; acknowledgement does not imply endorsement by the original authors.
-
-- [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), from the `nature-skills` project maintained by Yuan1z0825 (Apache-2.0). This repository draws on its ideas for claim-driven multi-panel information architecture, semantic colour, editable SVG, and pre-submission QA.
-- [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill), maintained by Haojae (MIT). This repository draws on its data-first visualization-advisor approach—understand the data and argument before selecting a chart—and its active interception of common scientific-plotting anti-patterns.
-- [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md), from `khazix-skills` maintained by KKKKhazix (MIT). The local Skill draws on its knowledge-and-governance closeout concept and its approach to reconciling code, runtime state, documentation, Agent rules, authorized memory, and workspace state. This repository extends that foundation with `.agents/memory/`, hash-bound updates, and Codex bootstrap audits.
-
-- [`Scientific-Coding-Skill`](https://github.com/cemde/Scientific-Coding-Skill) (MIT), [`opensciflow-skill`](https://github.com/OpenSciFlow/opensciflow-skill), [`superpowers`](https://github.com/obra/superpowers) (MIT), and [`Hypothesis`](https://github.com/HypothesisWorks/hypothesis) (MPL-2.0) informed `experiment-protocol-audit` principles for explicit parameters, fail-closed evidence, approval records, separated review layers, boundary counterexamples, and minimal failing examples. Their runtimes were neither copied nor added as dependencies.
-
-- Matt Pocock's [`improve-codebase-architecture`](https://github.com/mattpocock/skills/tree/main/skills/engineering/improve-codebase-architecture) and [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT) informed, respectively, the change-surface-first, locality/module-depth/deletion-test architecture review in `project-submission-audit`, and the temporary-directory, evidence-linking, and sensitive-data rules in this repository's `handoff`. The local Skills extend those ideas into a generic submission gate and verifiable transfer without adding the upstream runtime as a dependency.
-
-We also thank the authors of the public figure and accessibility guidance from Nature, PLOS, Springer Nature, Elsevier, IEEE, ACM, SIGACCESS, and JCB. Those sources ground the publication-quality, accessibility, and export checks in this repository. Exact links are recorded in [`publisher-visual-source-map.md`](10-paper-build/academic-figure-workflow/references/publisher-visual-source-map.md).
-
-When a future Skill explicitly draws from another open-source Skill, its author, project link, scope of influence, and license should be added here during integration rather than being recorded only in a commit message.
-
-## Validation
-
-Run all commands from the repository root:
-
-```powershell
-Set-Location C:\path\to\codex-skill-hub
-
-python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" ".\<skill-source-directory>"
-
-python -X utf8 -B ".\50-core-utils\skill-registry\tools\skill_registry.py" registry-check --registry ".\50-core-utils\skill-registry"
-
-python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
-
-python -X utf8 -B ".\20-project-build\project-agent-generator-skill\tests\test_generate_project_agents.py"
-python -X utf8 -B -m unittest discover -s ".\20-project-build\research-project-pipeline\tests" -p "test_*.py"
-python -X utf8 -B -m unittest discover -s ".\20-project-build\research-workspace-governance\tests" -p "test_*.py"
-python -X utf8 -B -m unittest discover -s ".\20-project-build\experiment-protocol-audit\tests" -p "test_*.py"
-python -X utf8 -B -m unittest discover -s ".\20-project-build\research-management-pipeline\tests" -p "test_*.py"
 git diff --check
+python -X utf8 -B ".\50-core-utils\neat-freak\scripts\manage_project_knowledge.py" "." audit
 ```
 
-## Maintenance and licensing
+See each category README for category commands and tests. The corresponding `SKILL.md` remains authoritative for execution semantics.
 
-1. Keep one canonical source location for each Skill.
-2. Keep project-owned external Skills in their projects instead of duplicating them here.
-3. Never edit immutable Registry `releases/` directly; create a new version for an upgrade.
-4. Review diffs, tests, sensitive information, machine-specific paths, and license compatibility before pushing.
-5. Never publish manuscripts, experimental data, learner profiles, conversation records, or credentials.
+## External projects, provenance, and license
 
-Content originally created by `jiaqi-Sun2020`, or otherwise eligible for relicensing, is released under the permissive [MIT License](LICENSE). Anyone may use, copy, modify, merge, publish, distribute, sublicense, and build on these Skills, provided the copyright and MIT permission notice are retained. If this project helps you, attribution or a Star is appreciated, but it is not an additional restriction beyond MIT.
+Project-owned PaperTrace Skills are maintained in their [separate repository](https://github.com/jiaqi-Sun2020/PaperTrace/tree/main/skills). This repository provides navigation only and does not copy their current source. The one canonical Skill Registry source is [`50-core-utils/skill-registry/`](50-core-utils/skill-registry/README.md).
 
-Third-party and derivative portions remain subject to their original licenses, copyright notices, and notice requirements. This repository's MIT License does not override those obligations. Confirmed Skill-level sources are listed above under “Acknowledgements and influences.”
+Each category README records the migration sources, open-source influences, and licenses directly relevant to that category. New influences must record the author or maintainer, project link, scope of influence, and license rather than leaving provenance only in commit history.
+
+Content created by `jiaqi-Sun2020` or otherwise eligible for relicensing is provided under the [MIT License](LICENSE). Third-party and derivative portions remain subject to their original licenses, copyright notices, and notice obligations; the root MIT License does not override those requirements.

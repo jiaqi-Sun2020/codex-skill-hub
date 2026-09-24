@@ -32,7 +32,11 @@ paper_latex_framework/
 - `frontmatter.tex`: generated from or checked against `paper_config.json`; contains title, authors, affiliations, date, abstract, keywords when supported, and `\maketitle` policy.
 - `sections/*.tex`: one top-level section per file. Preserve labels and internal subsection structure.
 - `backmatter.tex`: bibliography style, bibliography command, acknowledgments, appendices, and any final material.
-- `figures/`: the single folder for all figure and image assets referenced by the generated framework unless the user asks for archival copy.
+- `figures/`: the single figure root for all manuscript figures and images. When
+  the optional `academic-figure-workflow` lane is used, it may contain
+  `style/` plus one package per numbered figure with editable sources, exports,
+  captions, manifests, and evidence trace. Do not create a second root-level
+  figure tree.
 - `references/`: `.bib` databases used by the paper. Do not manage literature through inline bibliography blocks in generated frameworks.
 - `notes/paper_context.md`: generated structure report and known mechanical issues.
 
@@ -47,6 +51,9 @@ paper_latex_framework/
 - Manage all literature in `.bib` files, typically under `references/`; do not emit inline `thebibliography`.
 - Rewrite bibliography paths only when the generated file layout requires it.
 - Put every copied figure or image under `figures/` and rewrite figure paths only when the corresponding file has been copied.
+- Do not create empty style manifests or figure packages for a figure-free
+  manuscript. Create optional package structure only when the figure lane is
+  active.
 - Prefer short, stable slugs: `01_introduction.tex`, `02_background.tex`, `03_model.tex`, `04_experiments.tex`, `05_conclusion.tex`.
 
 ## Build Rules

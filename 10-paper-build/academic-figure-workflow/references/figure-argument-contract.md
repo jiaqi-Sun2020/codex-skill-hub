@@ -2,17 +2,53 @@
 
 Use this reference for complex, submission-bound, multi-panel, data-backed, code-backed, or evidence-sensitive figures.
 
-Use the canonical `material_passport` and `claim_anchor` field names in [handoff-field-schema.md](../../../shared/handoff-field-schema.md) when figures consume shared project artifacts or support central manuscript claims.
+This contract is also the handoff boundary between a paper pipeline and
+`academic-figure-workflow`. It is self-contained: a consuming pipeline may use
+its own storage format, but it must preserve the meanings below.
+
+## Paper Pipeline Handoff
+
+Before drawing, record the smallest complete input packet:
+
+```text
+Figure id:
+Target manuscript section:
+Primary claim anchor:
+Evidence/material sources:
+Evidence readiness: unavailable | unreviewed | verified_for_figure
+Statistics readiness: not_applicable | unreviewed | verified_for_figure
+Panel roles and non-redundant messages:
+Target venue and final physical size:
+Required editable source and export formats:
+Open scientific decisions:
+```
+
+- A **claim anchor** is a stable identifier or exact manuscript statement for
+  the primary claim the figure is intended to communicate. It is not proof
+  that the claim is true.
+- An **evidence/material source** is a resolvable reference to the data, code,
+  equation, manuscript passage, image, or user-approved fact used by the
+  figure. Record provenance and relevant transformations rather than copying
+  unrelated private material into the figure package.
+- `verified_for_figure` means the source and its interpretation were checked
+  for this visual use. It does not promote the scientific claim to supported,
+  accepted, or publishable.
+- Use `not_applicable` for statistics only when the figure does not make a
+  quantitative statistical assertion, and state why.
+- If evidence is unavailable or unreviewed, or a required statistical check is
+  unreviewed, stop at a specification, storyboard, or clearly marked draft.
+  Do not label the figure submission-ready.
 
 ## Contract
 
 Before drawing, define:
 
 ```text
-Main claim:
-Claim anchor id:
-Evidence hierarchy:
-Material passports:
+Figure id:
+Target manuscript section:
+Main claim and claim anchor:
+Evidence hierarchy and material sources:
+Evidence/statistics readiness:
 Panel roles:
 Non-redundant message per panel:
 Drawing method:
@@ -28,6 +64,9 @@ Open decisions:
 - For data-backed plots, record the data source, analysis status, statistics or uncertainty status, and whether values are provided or pending.
 - For image-based figures, record permitted image processing, scale bars, annotations, and any manipulation or disclosure requirement.
 - If the evidence hierarchy is incomplete, stop at a specification or storyboard instead of producing a final-looking figure.
+- Visual, packaging, or editability QA must not change the scientific claim's
+  review state. Claim support is decided by the relevant research analysis or
+  human scientific review, not by this figure workflow.
 
 ## Quality Gate
 
@@ -52,12 +91,15 @@ Treat missing editable sources, missing exports, and captions without claim anch
 ## Output Packet
 
 ```text
+Figure package status: specification | storyboard | draft | visually_and_structurally_verified
 Figure source file:
-Export file:
+Export files:
 Caption draft:
 Placement recommendation:
 Evidence trace:
 Related claim anchors:
+Evidence/statistics readiness:
+Rendered and structural QA summary:
 Assumptions:
 Manual checks:
 Unresolved issues:

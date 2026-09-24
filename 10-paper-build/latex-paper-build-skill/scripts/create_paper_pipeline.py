@@ -322,15 +322,17 @@ def pipeline_context(title: str, project_key: str, latex_source: Path | None, co
 | Intake and inventory | `00_research_logic/` | this skill | TODO |
 | Research logic | `00_research_logic/research_logic.md` | `research-logic` | TODO |
 | Experiment design | `01_experiment_design/experiment_plan.md` | `experiment-design` | TODO |
-| Training code/results | `02_training_code/`, `03_results/` | `training-code-architecture` | TODO |
+| Evidence production | `02_training_code/`, `03_results/` | project/domain workflow | TODO/N/A |
+| Data integrity and analysis | `03_results/` | `data-analysis` | TODO/N/A |
 | HTML research report | `04_reports/` | `research-html-report` | TODO |
+| Optional figure-evidence lane | `05_manuscript_zh/figures/` | `academic-figure-workflow` | N/A until activated |
 | Chinese LaTeX manuscript | `05_manuscript_zh/` | `latex-paper-build-skill` | TODO |
 | Author review gate | `06_review_gate/` | this skill | TODO |
 | Polished submission | `07_polished_submission/` | `paper-polishing-skill` | TODO |
 
 ## Next Step
 
-Start at the first TODO stage whose artifact is missing or too weak to support the later stages. Edit `paper_config.json` before finalizing title, authors, affiliations, correspondence, acknowledgments, and keywords.
+Start at the first TODO stage whose artifact is missing or too weak to support the later stages. Edit `paper_config.json` before finalizing title, authors, affiliations, correspondence, acknowledgments, and keywords. Activate the figure-evidence lane only when the paper needs figures; do not create empty figure packages for figure-free work. Figure/package QA and scientific claim review remain separate states.
 """
 
 
@@ -423,6 +425,23 @@ TODO
 
 TODO
 
+## Optional Figure Evidence Plan
+
+- Applicable: TODO (yes/no, with reason)
+- Figure id and target manuscript section: TODO
+- Primary claim anchor: TODO
+- Evidence/material sources: TODO
+- Evidence readiness: TODO (`unavailable`, `unreviewed`, or `verified_for_figure`)
+- Statistics readiness: TODO (`not_applicable`, `unreviewed`, or `verified_for_figure`)
+- Panel roles and non-redundant message per panel: TODO
+- Target venue and final physical size: TODO
+- Required editable source and export formats: TODO
+- Open scientific decisions: TODO
+
+This section defines figure intent only. Use `data-analysis` for applicable
+data/statistical review and `academic-figure-workflow` for drawing, exports,
+captions, evidence trace, and rendered QA.
+
 ## Claim Boundaries
 
 TODO
@@ -443,6 +462,11 @@ Before using `paper-polishing-skill`, the author should check:
 - [ ] The Chinese scientific claim is correct and appropriately bounded.
 - [ ] Completed, partial, and planned experiments are clearly separated.
 - [ ] Figure/table intent and captions are correct.
+- [ ] Each applicable figure traces its claim, labels, values, and annotations to reviewed source material; missing evidence remains draft or blocked.
+- [ ] Applicable statistical findings, units, uncertainty, and exclusions agree with the `data-analysis` output or documented human review.
+- [ ] Each applicable figure has the required editable source or approved exception, exports, `caption.md`, evidence trace, and final-size QA under `05_manuscript_zh/figures/`.
+- [ ] Final-size readability, clipping, typography, colour accessibility, editability, and scientific consistency have been reviewed.
+- [ ] A visual/package PASS has not been interpreted as scientific claim approval. Mark these figure checks `N/A` with a reason when the manuscript has no figure work.
 - [ ] TODO markers are either resolved or deliberately retained.
 """
 
@@ -464,7 +488,13 @@ latexmk -xelatex -bibtex -interaction=nonstopmode -file-line-error -outdir=build
 | PDF builds | TODO | |
 | Undefined references | TODO | |
 | Undefined citations | TODO | |
-| Missing figures | TODO | |
+| Figure lane applicable | TODO/N/A | Give a reason when N/A |
+| Missing figures or broken paths | TODO/N/A | All applicable paths remain under `05_manuscript_zh/figures/` |
+| Editable figure sources or approved exceptions | TODO/N/A | |
+| Required figure exports and final formats | TODO/N/A | |
+| Figure captions and manuscript references | TODO/N/A | |
+| Figure evidence/source trace | TODO/N/A | |
+| Rendered final-size and accessibility QA | TODO/N/A | Visual QA does not approve the scientific claim |
 | Bibliography drift | TODO | |
 | Page count | TODO | |
 | Anonymization | TODO | |

@@ -13,6 +13,66 @@ and other categories.
 > or grant execution, publication, or scientific-claim authority because a check
 > passes.
 
+## Framework overview
+
+### One-time project onboarding
+
+```text
+Project directory
+  ↓
+research-project-pipeline: read-only discovery
+  ↓
+research-workspace-governance: location, asset, contract, and migration design
+  ↓
+Human review: approve exact writes, risks, and rollback
+  ↓
+project-agent-generator-skill: create .agents only when the framework is missing
+  ↓
+Rediscovery and independent-axis verification
+  ↓
+Handoff to repeated research management
+```
+
+The Onboarding Pipeline orchestrates but does not perform research. Governance
+does not create Agent entry points; Generator only creates a framework once or
+performs restricted Bootstrap and does not own routine updates. A safe existing
+Agent framework is not regenerated. Passing onboarding satisfies only the
+onboarding contract and grants no experiment, publication, or scientific-claim
+authority.
+
+### Repeated post-onboarding research management
+
+```text
+research-management-pipeline
+  ↓
+Resolve the one governance root and contract registry
+  ↓
+research-workspace-governance read-only validation
+  ↓
+Summarize SCI / STAT / ENG / GOV contracts
+  ↓
+Summarize seven independent state axes and amendment invalidation impact
+  ↓
+Choose one smallest next action
+  ├─ experiment-protocol-audit / domain expert
+  ├─ neat-freak: project-information update
+  ├─ project-submission-audit: final change surface
+  └─ human approval or additional evidence
+```
+
+The Management Pipeline repeatedly reads facts and routes the next action, but
+does not execute Adapters, create `.agents`, choose a domain method, or grant
+authority. `neat-freak` and `handoff` live under `50-core-utils`; they are
+explicit external integration points, not contract owners in this directory.
+
+| Current situation | Correct entry |
+|---|---|
+| New project or legacy project not yet onboarded | `research-project-pipeline` |
+| One safe Agent document bundle exists but managed startup loading is incomplete | The Onboarding Pipeline's `bootstrap-only` branch |
+| Contracts, methods, evidence, or environment changed after onboarding | `research-management-pipeline` |
+| Explicit domain protocol and normalized evidence need independent review | `experiment-protocol-audit` |
+| Preparing a commit, PR, release, delivery, or handoff | `project-submission-audit`, followed by `handoff` when needed |
+
 ## Component and ownership tree
 
 ~~~text
@@ -109,7 +169,7 @@ PASS, completed work, or evidence admission proves only its declared scope.
 claim_ceiling constrains the maximum reviewable claim; it does not create
 claim_state, and registry text cannot itself grant authority.
 
-## Lifecycle and routing
+## Detailed lifecycle and routing rules
 
 ~~~text
 Project not yet onboarded
@@ -142,6 +202,49 @@ An unresolved contract blocks only actions that depend on it; unrelated safe
 read-only analysis may continue. Changes append an amendment and compute reverse
 dependency impact. They never rewrite historical PASS, evidence, or conclusion
 records.
+
+## Human review gates
+
+Every gate should preserve both machine-readable state and a summary that an
+ordinary researcher can judge. The summary states what is under review, why it is
+necessary, which evidence to inspect, pass criteria, rejection criteria, and the
+next action.
+
+| Gate | What and why to review | A pass means | Rejection and smallest repair |
+|---|---|---|---|
+| Onboarding writes | Exact target paths, files to create or modify, conflicts, risk, and rollback; prevents overwriting existing project facts | Only the approved onboarding writes may proceed | Correct paths, narrow the write surface, or add rollback, then regenerate the preview |
+| Contracts and governance | Applicability, owner, dependencies, state source, evidence references, and amendment impact; prevents multiple owners and stale state | The reviewed scope may continue under its current governance state | Complete definitions, resolve ambiguity, or mark affected items stale without rewriting history |
+| Domain protocol and claims | Method semantics, normalized evidence, gaps, counterexamples, and claim boundary; prevents schema validity from becoming scientific validity | Domain results or claim state are accepted only within the reviewed scope | Return to the domain expert for evidence, protocol repair, or a narrower claim |
+| Submission and delivery | Actual change surface, unrecorded contract-semantic changes, invalidation propagation, and unresolved blockers; prevents omission or unauthorized release | The surface may proceed to the next separately authorized action | Resolve blockers or exclude out-of-scope material; no automatic commit, push, or publication follows |
+
+Conflicting reviews must be shown explicitly and referred to an authorized
+decision maker. Passing one gate does not pass another; rejection blocks only
+actions that depend on that decision.
+
+## Practical entry points
+
+Run these commands from the repository root. Generate and review a plan first;
+do not write without user approval:
+
+```powershell
+$projectRoot = 'D:\path\to\project'
+$pipeline = '.\20-project-build\research-project-pipeline\scripts\research_pipeline.py'
+$plan = Join-Path $env:TEMP ('research-onboarding-' + [guid]::NewGuid().ToString('N') + '.json')
+
+python -X utf8 -B $pipeline plan $projectRoot --profile minimal --output $plan
+python -X utf8 -B $pipeline verify $projectRoot
+```
+
+When the Agent framework is missing, review the plan's writes, risks, rollback,
+and `plan_sha256` before using the approved `bootstrap-agents --apply` contract
+from `research-project-pipeline/SKILL.md`. When one safe document bundle already
+exists and only Bootstrap is incomplete, use the hash-bound `bootstrap-only`
+preview and apply flow without rewriting knowledge files.
+
+After onboarding, `research-management-pipeline` reads Governance results and
+returns one smallest next action. Route routine documentation and durable
+knowledge updates to `neat-freak`. Invoke submission audit and `handoff`
+separately; no PASS automatically commits, pushes, or publishes.
 
 ## Read-only contract interface
 

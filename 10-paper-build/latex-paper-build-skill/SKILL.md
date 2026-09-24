@@ -1,6 +1,6 @@
 ---
 name: latex-paper-build-skill
-description: Build, restructure, and maintain complete research-paper delivery pipelines centered on LaTeX manuscripts. Use when Codex needs to inspect an existing .tex paper, generate a project-specific LaTeX scaffold, create a standalone editable main.tex, split a monolithic manuscript into modular files, preserve revtex/ctex/fontspec/BibTeX conventions, enforce .bib reference management and a single figures/ folder, check figure and bibliography paths, choose XeLaTeX/latexmk build commands, or orchestrate a full paper workflow from research logic, experiment design, training-code outputs, HTML research reports, config-driven paper metadata, manuscript architecture, compilation, and submission checks. Also use for QCT/QWCT coin-state tomography manuscripts derived from experiment-code outputs or research reports, especially when the manuscript needs narrative QA for self-interrupted claims, thin result sections, or figures/tables that are not sufficiently read in the main text.
+description: Build, restructure, and maintain complete research-paper delivery pipelines centered on LaTeX manuscripts. Use when Codex needs to inspect an existing .tex paper, generate a project-specific LaTeX scaffold, create a standalone editable main.tex, split a monolithic manuscript into modular files, preserve revtex/ctex/fontspec/BibTeX conventions, enforce .bib reference management and a single figures/ folder, check figure and bibliography paths, choose XeLaTeX/latexmk build commands, or orchestrate a full paper workflow from research logic, experiment design, evidence analysis, optional academic-figure production, HTML research reports, config-driven paper metadata, manuscript architecture, compilation, and submission checks. Also use for QCT/QWCT coin-state tomography manuscripts derived from experiment-code outputs or research reports, especially when the manuscript needs narrative QA for self-interrupted claims, thin result sections, or figures/tables that are not sufficiently read in the main text.
 ---
 
 # LaTeX Paper Build Skill
@@ -19,6 +19,9 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
    - Find the main `.tex`, `.bib`, figure directories, compiled PDFs/logs, and venue class.
    - Prefer `rg --files`, then inspect `\documentclass`, packages, `\title`, `\section`, `\includegraphics`, `\bibliographystyle`, and `\bibliography`.
    - Treat `.bib` files as the sole literature source for generated frameworks, and plan to consolidate manuscript images under one `figures/` folder.
+   - If figure packages already exist, inventory editable sources, exports,
+     captions, evidence traces, style manifests, and unresolved QA separately
+     from the manuscript's use of those figures.
    - If the project is the QWCT/QWTA paper under `2026_06_17`, read `references/qwct-paper-profile.md`.
    - If creating or reorganizing a framework, read `references/framework-contract.md`.
    - If the paper needs authors, affiliations, corresponding address, contact email, keywords, venue, or acknowledgments configured centrally, read `references/paper-config.md`.
@@ -56,6 +59,12 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
      `latexmk -xelatex -bibtex -interaction=nonstopmode -file-line-error -outdir=build main.tex`
    - If `latexmk` is unavailable, use `xelatex`, `bibtex`, `xelatex`, `xelatex`.
    - For QCT/QWCT manuscript regeneration, run a narrative QA pass before finalizing: check main-line continuity, result-section interpretation depth, and whether each figure/table is explicitly read in the main text rather than left to carry the argument alone.
+   - When figure work is applicable, verify that the manuscript uses exports
+     from the one canonical `figures/` root and that each submission-facing
+     figure has an editable source or documented exception, a caption,
+     evidence trace, final-size QA, and explicit unresolved issues.
+   - Treat figure-package QA and scientific claim review as separate states. A
+     visually verified figure does not prove the claim it illustrates.
 
 ## Script Entry Point
 
@@ -117,12 +126,23 @@ When this skill lives inside a skill hub such as `10-paper-build`, treat sibling
 
 - `../research-logic-skill/SKILL.md` for contribution logic and mechanism-level claims.
 - `../experiment-design-skill/SKILL.md` for paper-grade validation plans.
+- `../data-analysis/SKILL.md` for data integrity, statistical analysis,
+  uncertainty, and claim-support assessment before quantitative figure work.
+- `../academic-figure-workflow/SKILL.md` for the optional figure-evidence lane:
+  figure arguments, editable sources, style, exports, captions, source trace,
+  and rendered QA. Inside a generated pipeline, its single figure root is
+  `05_manuscript_zh/figures/`.
 - `../research-html-report/SKILL.md` for shareable research briefs and publication-style HTML reports.
 - `../paper-polishing-skill/SKILL.md` for post-approval Chinese-to-English translation and Nature/PRL/PRA manuscript polishing.
 - `references/paper-config.md` for config-driven title, author, affiliation, correspondence, keyword, acknowledgment, and abstract metadata.
 - `references/qct-writing-methodology.md` for reusable QCT/QWCT abstract, introduction, contribution, result-framing, terminology, and claim-boundary methodology.
 
 Do not copy all sibling skill instructions into context by default. Use `references/paper-pipeline.md` as the routing contract.
+
+This skill orchestrates figure work but does not implement drawing, plotting,
+style migration, or figure-package QA. It owns manuscript placement,
+cross-references, compilation, and prose interpretation only. Figure-free
+papers must remain valid and must not receive empty figure metadata.
 
 ## Extensibility
 

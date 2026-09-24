@@ -1,67 +1,152 @@
-# Paper Build Skills
+# Paper-build framework
 
-[中文](README.md) | [English](README.en.md)
+[中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`10-paper-build/` directly maintains nine Skills for research reasoning, evidence design, analysis, manuscript construction, editing, and figures. They are peer components: none is nested under `academic-figure-workflow`, and they are not part of the six-component project-governance architecture in `20-project-build/`.
+`10-paper-build/` directly maintains nine peer Skills that turn research questions, evidence, and analysis into reviewable figures, Chinese author-review drafts, and final submission material. This document is the human entry point for the paper-build category; each Skill's `SKILL.md` remains its formal execution contract.
 
-## Selection guide
+> The paper pipeline manages research arguments and deliverables. It does not perform the underlying research, invent data, or declare a scientific claim established because a figure, build, or polishing pass succeeded.
+
+## Overall framework
+
+```text
+Research logic
+  ↓
+Experiment and evidence design ──→ Figure-argument planning
+  ↓
+Research execution and data analysis ──→ Usable evidence
+  ↓                                      ↓
+HTML report (optional)          academic-figure-workflow
+  ↓                                      ↓
+Chinese LaTeX manuscript ← figure package, caption, trace, QA
+  ↓
+Author scientific and visual review
+  ↓
+English polishing and submission checks
+```
+
+This is not a sequence that must always start from the beginning. Enter at the earliest missing or evidence-deficient stage; figures and HTML reports are optional branches.
+
+## First principles
+
+1. **Claims precede evidence design.** Existing charts or convenient experiments cannot justify a stronger claim after the fact.
+2. **Research execution is outside the paper Skills.** Computational, field, laboratory, qualitative, or other research is performed by project code, domain Skills, or human experts.
+3. **Analysis and figure work have separate owners.** `data-analysis` determines whether data, statistics, and uncertainty are defensible; `academic-figure-workflow` turns approved material into figures.
+4. **A figure expresses evidence; it is not the evidence itself.** Visual and structural QA cannot promote the scientific claim state.
+5. **Review Chinese scientific content before English polishing.** Unless explicitly overridden, approve the science, boundaries, and figure/table intent before translation and venue adaptation.
+6. **Simple projects remain simple.** Do not create empty directories, manifests, or ceremonial placeholders when figures, statistics, or HTML reports do not apply.
+
+## Unique responsibilities of the nine Skills
 
 | Skill | Owns | Does not own |
 |---|---|---|
-| [`research-logic`](research-logic-skill/) | Diagnose shallow module stacking and build mechanism-level research logic with defensible contribution claims | Implementation or invented results |
-| [`experiment-design`](experiment-design-skill/) | Derive research questions, hypotheses, evidence gaps, datasets, baselines, ablations, metrics, controls, and claim boundaries from a claim | Experiment execution, runners, or runtime gates |
-| [`data-analysis`](data-analysis/) | Check experimental-data integrity, choose statistical tests, and report effect sizes, intervals, and reviewable interpretations | Turning missing or unreliable data into confident conclusions |
-| [`research-html-report`](research-html-report/) | Package research logic, evidence plans, and risks as a standalone HTML research report | Replacing research design or manufacturing evidence |
-| [`latex-paper-build-skill`](latex-paper-build-skill/) | Build, restructure, and maintain a LaTeX-centered paper-delivery pipeline | Changing scientific content without author approval |
-| [`paper-polishing-skill`](paper-polishing-skill/) | Translate, restructure, and polish approved scientific content for Nature, PRL, or PRA | Inventing data, citations, mechanisms, or stronger claims |
-| [`prl-manuscript-polisher`](prl-manuscript-polisher/) | Adapt, compress, and evidence-calibrate a technically complete physics manuscript for PRL | Hiding weak evidence behind stronger prose |
-| [`academic-figure-workflow`](academic-figure-workflow/) | Plan, create, validate, and package editable, traceable academic figures | Inventing data, mechanisms, modules, or visual evidence |
-| [`interactive-skill-builder`](interactive-skill-builder/) | Create or update Codex Skills through interviews, approved specifications, gates, and validation | Skipping author confirmation to generate a final Skill |
+| [`research-logic`](research-logic-skill/SKILL.md) | Mechanism-level research logic, contribution claims, and theory gaps | Implementation or invented results |
+| [`experiment-design`](experiment-design-skill/SKILL.md) | Research questions, evidence gaps, controls, ablations, metrics, and claim boundaries | Experiment execution, runners, or execution authority |
+| [`data-analysis`](data-analysis/SKILL.md) | Data integrity, statistical tests, effect sizes, intervals, uncertainty, and reviewable interpretation | Presenting missing or unreliable data as a confident conclusion |
+| [`research-html-report`](research-html-report/SKILL.md) | Standalone HTML research briefs, evidence plans, and risk displays | Replacing research design or manufacturing evidence |
+| [`academic-figure-workflow`](academic-figure-workflow/SKILL.md) | Figure arguments, editable sources, style, exports, captions, evidence trace, and rendered QA | Inventing data, mechanisms, modules, or scientific support |
+| [`latex-paper-build-skill`](latex-paper-build-skill/SKILL.md) | Pipeline orchestration, LaTeX architecture, figure placement, cross-references, and compilation | Reimplementing statistics or figure-generation logic |
+| [`paper-polishing-skill`](paper-polishing-skill/SKILL.md) | Translation, structural revision, and Nature/PRL/PRA polishing of approved content | Inventing data, citations, or stronger claims |
+| [`prl-manuscript-polisher`](prl-manuscript-polisher/SKILL.md) | PRL compression, adaptation, and evidence calibration for a technically complete physics manuscript | Hiding weak evidence with stronger prose |
+| [`interactive-skill-builder`](interactive-skill-builder/SKILL.md) | Skill creation through interviews, specification confirmation, approval gates, and validation | Producing a final Skill without author confirmation |
 
-## Recommended compositions
+`latex-paper-build-skill` is the paper-pipeline orchestrator but does not own the other Skills' specialist capabilities. `interactive-skill-builder` is a peer utility, not a mandatory paper-lifecycle stage.
 
-The main sequence is not mandatory. Choose the smallest combination that closes the current gap:
+## Stages 0–7
+
+| Stage | Enter when | Owner | Core artifact | Exit condition |
+|---|---|---|---|---|
+| 0 Intake and inventory | Starting a paper or attaching an existing manuscript | LaTeX Pipeline | `paper_config.json`, asset and gap inventory | Current sources, venue, language, and missing decisions are visible |
+| 1 Research logic | The contribution, mechanism, or combination is unclear | `research-logic` | `research_logic.md` | The central mechanism and defensible claim are explicit |
+| 2 Experiment and evidence design | The claim is known but the evidence plan is weak | `experiment-design` | `experiment_plan.md`, optional Figure Evidence Plan | Every claim maps to evidence or an explicit TODO |
+| 3 Research execution and analysis | Results must be produced or reviewed | Project/domain executor + `data-analysis` | Raw results, analysis code, statistics, and interpretation | Sources, units, transforms, uncertainty, and boundaries are reviewable |
+| 4 Research brief | A shareable or printable plan is useful | `research-html-report` | Standalone HTML report | Claim, evidence matrix, risk, and TODOs are visible |
+| 5 Figures and Chinese manuscript | Formal figures or manuscript structure are needed | Figure Skill + LaTeX Pipeline | Figure packets, `caption.md`, Chinese LaTeX manuscript | Paths, captions, prose interpretation, and build relationships resolve |
+| 6 Author review | The Chinese manuscript and applicable figures exist | Author/domain expert | Review decision and retained TODOs | Science, claim boundary, terminology, figures, and metadata are approved |
+| 7 English polishing and submission checks | Scientific content is author-approved | Polishing / PRL Skill | English manuscript and build/submission report | PDF, citations, figures, anonymity, and venue checks pass or expose gaps |
+
+Completing a stage means only that its contract is satisfied. Work completion, data trustworthiness, figure quality, manuscript compilation, claim support, and publication authorization remain independent judgments.
+
+## Optional figure-evidence lane
+
+Experiment design plans what a figure must answer; it does not draw the figure. The minimum handoff to `academic-figure-workflow` includes:
+
+- figure ID and target manuscript section;
+- primary claim anchor;
+- source data, code, equations, text, or user-approved facts;
+- evidence readiness: `unavailable / unreviewed / verified_for_figure`;
+- statistics readiness: `not_applicable / unreviewed / verified_for_figure`;
+- the non-redundant role of each panel;
+- target venue, final physical size, editable source, and export formats;
+- unresolved scientific decisions.
+
+The output packet contains editable sources, SVG/PDF/PNG or other exports, `caption.md`, placement recommendation, evidence trace, related claim anchors, rendered/structural QA, and unresolved issues. Insufficient evidence permits only a specification, storyboard, or explicitly marked draft.
+
+The generated paper pipeline has one figure root:
 
 ```text
-research idea
-  -> research-logic
-  -> experiment-design
-  -> experiment execution (owned by project code or a dedicated execution Skill)
-  -> data-analysis
-  -> research-html-report (optional research brief)
-  -> latex-paper-build-skill
-  -> paper-polishing-skill
-  -> prl-manuscript-polisher (PRL targets only)
-
-paper claim / code / data
-  -> academic-figure-workflow
-  -> editable source + exports + caption + QA
+05_manuscript_zh/figures/
+├── style/                 # create only when a shared visual system is needed
+└── figNN_<slug>/          # create only when this figure exists
+    ├── source/
+    ├── exports/
+    ├── caption.md
+    └── manifest
 ```
 
-The endpoint of `experiment-design` is a precise account of what must be tested, which evidence is missing, which controls are required, and how far the resulting claim may extend. It does not implement experiment runners, replace the project runtime, or grant execution, publication, or claim authority.
+Do not create a second root-level `figures/` or duplicate figure packets under `04_reports/` or `07_polished_submission/`. Standalone figure-workflow use may still select another figure root.
 
-## Migration note
+## Default workspace
 
-On 2026-09-24, this directory imported eight Skills from the `main` snapshot of the retired `jiaqi-Sun2020/S_paper_skills` repository (source commit `dcd573b1768e48e794975100f8548dc0f1bcb50e`). The import retains a source snapshot, not the old commit history; all old repository refs were saved separately in a Git bundle before retirement.
+```text
+paper_pipeline/
+├── paper_config.json
+├── 00_research_logic/
+├── 01_experiment_design/
+├── 02_training_code/      # use only when training or analysis code exists
+├── 03_results/
+├── 04_reports/            # optional
+├── 05_manuscript_zh/
+│   ├── main.tex
+│   ├── preamble.tex
+│   ├── frontmatter.tex
+│   ├── sections/
+│   ├── figures/           # create when figures exist
+│   └── references/
+├── 06_review_gate/
+├── 07_polished_submission/
+└── pipeline_context.md
+```
 
-Path mapping:
+Directory numbers are compatibility contracts and are not renumbered for the figure lane. `02_training_code/` is also a compatibility location; it does not require every research project to train a model.
 
-| Old path | New path |
+## Choose the entry by current state
+
+| Current state | Entry |
 |---|---|
-| `research-logic-skill/` | `10-paper-build/research-logic-skill/` |
-| `experiment-design-skill/` | `10-paper-build/experiment-design-skill/` |
-| `data-analsys-skill/` | `10-paper-build/data-analysis/` |
-| `latex-paper-build-skill/` | `10-paper-build/latex-paper-build-skill/` |
-| `paper-polishing-skill/` | `10-paper-build/paper-polishing-skill/` |
-| `util_skills/research-html-report/` | `10-paper-build/research-html-report/` |
-| `util_skills/interactive-skill-builder/` | `10-paper-build/interactive-skill-builder/` |
-| `util_skills/prl-manuscript-polisher/` | `10-paper-build/prl-manuscript-polisher/` |
+| Only a research idea exists | Stage 1 |
+| The claim is clear but the evidence plan is missing | Stage 2 |
+| Results exist but data, statistics, or uncertainty are unreviewed | Stage 3 |
+| A shareable research brief is needed | Stage 4 |
+| A figure, caption, style lock, or figure QA is needed | Optional figure lane, then return to Stage 5 |
+| A `.tex` manuscript needs restructuring or configuration | Stage 5 |
+| Chinese scientific content awaits an author decision | Stage 6 |
+| Content is approved and needs English or PRL adaptation | Stage 7 |
 
-The original repository's MIT notice is retained in [`S_PAPER_SKILLS_LICENSE`](S_PAPER_SKILLS_LICENSE). These Skills are directly maintained hub sources and are not added to the Skill Registry's immutable `releases/`.
+Small edits do not restart from Stage 0. Missing evidence, an unapproved decision, or a failed gate returns the workflow to the earliest affected stage rather than being hidden by polishing.
 
-## Validation
+## Usage and verification
 
-Run from the repository root:
+Create a pipeline from the repository root:
+
+```powershell
+python -X utf8 -B ".\10-paper-build\latex-paper-build-skill\scripts\create_paper_pipeline.py" `
+  --project "D:\path\to\paper_pipeline" `
+  --title "Paper Title"
+```
+
+When attaching an existing LaTeX manuscript, add `--latex-source`, `--bib`, and `--copy-figures` as needed. The command does not run experiments, generate scientific conclusions, or approve a submission.
+
+Validate this category:
 
 ```powershell
 Get-ChildItem .\10-paper-build -Directory | ForEach-Object {
@@ -70,8 +155,13 @@ Get-ChildItem .\10-paper-build -Directory | ForEach-Object {
     }
 }
 
-python -X utf8 -B -m py_compile `
-  .\10-paper-build\latex-paper-build-skill\scripts\create_paper_pipeline.py `
-  .\10-paper-build\latex-paper-build-skill\scripts\scaffold_latex_paper.py `
-  .\10-paper-build\prl-manuscript-polisher\scripts\audit_tex.py
+python -X utf8 -B -m unittest discover `
+  -s ".\10-paper-build\latex-paper-build-skill\tests" `
+  -p "test_*.py"
 ```
+
+## Migration, provenance, and license
+
+On 2026-09-24, this directory imported eight Skills from the `main` snapshot of the retired `jiaqi-Sun2020/S_paper_skills` repository (source commit `dcd573b1768e48e794975100f8548dc0f1bcb50e`). Together with the existing `academic-figure-workflow`, they form nine peer Skills. The old `data-analsys-skill/` path is normalized to `data-analysis/`; the wrapper, `util_skills/` layer, and shortcut are retired. The source repository's MIT notice is retained in [`S_PAPER_SKILLS_LICENSE`](S_PAPER_SKILLS_LICENSE).
+
+The figure workflow draws on argument-driven multi-panel design, semantic colour, and submission QA ideas from [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), and the data-first visualization-advisor approach from [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill). Specific publication-guideline sources are recorded in [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md). These acknowledgements do not imply endorsement; third-party material remains subject to its original licenses and notices.

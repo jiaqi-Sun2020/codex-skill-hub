@@ -48,14 +48,16 @@ codex-skill-hub/
 - Before changing generated outputs or large experiment/data folders, ask the user.
 - Keep edits scoped to the requested task.
 - Verify commands before documenting them as facts.
-- Treat `README.md` and `README.en.md` as the canonical Chinese and English
-  human-facing overviews, inventories, architecture summaries, and usage guides.
-- Treat `10-paper-build/README.md` and `README.en.md` as the bilingual category
-  map for the nine peer paper-build Skills; they do not replace the root overview.
+- Treat `README.md` and `README.en.md` as the canonical repository-wide purpose,
+  inventory, and category-routing entry points.
+- Treat each numbered category's `README.md` and `README.en.md` as that category's
+  human-facing framework, component, boundary, and maintenance map. In particular,
+  `10-paper-build` owns the paper lifecycle map and `20-project-build` owns the
+  onboarding and repeated-management architecture map.
+- Keep execution rules, scripts, and resource routing in the relevant `SKILL.md`;
+  category READMEs must not become a second execution contract.
 - Do not recreate `00-overview/` or another document that duplicates the root
-- Treat `20-project-build/README.md` and `README.en.md` as the bilingual
-  module-level technical architecture map; they do not replace the root overview.
-  README's overview role.
+  README pair's repository-wide overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
 - Maintain the nine paper-build Skill sources under `10-paper-build/`, the six

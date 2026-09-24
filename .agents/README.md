@@ -9,7 +9,9 @@ This directory contains agent-facing context for `My_skills`.
 
 `My_skills` is the navigation and central-source hub for local Codex skills. The
 root `README.md` and `README.en.md` are the canonical Chinese and English
-human-facing overviews and inventories; nine paper-build Skills live in
+repository overviews and inventories. Every numbered category has its own
+bilingual README pair for human navigation, while each Skill's `SKILL.md`
+remains the formal execution contract. Nine paper-build Skills live in
 `10-paper-build/`, six project-build core Skills live in `20-project-build/`,
 four reusable core Skills and the versioned skill registry live in
 `50-core-utils/`, and one personal teaching Skill lives in `90-personal/`.

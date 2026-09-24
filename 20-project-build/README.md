@@ -9,6 +9,63 @@
 > 本目录定义可复用的职责、数据合同和只读验证边界。它不执行研究任务、不选择
 > 领域方法，也不会仅因某个检查通过而授予执行、发布或科学主张权限。
 
+## 框架流程简介
+
+### 一次性项目接入
+
+```text
+项目目录
+  ↓
+research-project-pipeline：只读发现
+  ↓
+research-workspace-governance：位置、资产、合同与迁移设计
+  ↓
+人工审核：确认精确写入、风险和回退
+  ↓
+project-agent-generator-skill：仅在缺少框架时创建 .agents
+  ↓
+重新发现与分轴验证
+  ↓
+交接给日常研究管理
+```
+
+Onboarding Pipeline 只编排，不执行研究任务。Governance 不创建 Agent 入口；
+Generator 只负责一次性框架创建或受限 Bootstrap，不负责日常更新。已有安全
+Agent 框架时不重新生成。接入通过只说明接入合同满足，不产生实验、发布或
+科学主张授权。
+
+### 接入后的重复研究管理
+
+```text
+research-management-pipeline
+  ↓
+定位唯一治理根与合同注册表
+  ↓
+research-workspace-governance 只读验证
+  ↓
+汇总 SCI / STAT / ENG / GOV 合同
+  ↓
+汇总七条独立状态轴与 amendment 失效范围
+  ↓
+选择一个最小下一动作
+  ├─ experiment-protocol-audit / 领域专家
+  ├─ neat-freak：项目信息更新
+  ├─ project-submission-audit：最终变更面
+  └─ 人工审批或补充证据
+```
+
+Management Pipeline 重复读取事实并路由下一步，但不执行 Adapter、创建
+`.agents`、选择领域方法或签发授权。`neat-freak` 和 `handoff` 位于
+`50-core-utils`，只作为明确的外部衔接点，不成为本目录的合同 owner。
+
+| 当前情况 | 正确入口 |
+|---|---|
+| 新项目或尚未完成接入的遗留项目 | `research-project-pipeline` |
+| 已有唯一安全 Agent 文档包，只缺受管启动加载 | Onboarding Pipeline 的 `bootstrap-only` 分支 |
+| 已接入，合同、方法、证据或环境发生变化 | `research-management-pipeline` |
+| 需要独立核验显式领域协议和规范化证据 | `experiment-protocol-audit` |
+| 准备 commit、PR、release、交付或交接 | `project-submission-audit`，按需再使用 `handoff` |
+
 ## 组件与职责树
 
 ~~~text
@@ -100,7 +157,7 @@ authorization_state    可追溯决定所声明的授权状态
 声明范围。claim_ceiling 仅限制可审查的最大主张范围，不产生 claim_state；
 实际授权也不能仅由注册表文本产生。
 
-## 生命周期与路由
+## 详细生命周期与路由规则
 
 ~~~text
 尚未接入的项目
@@ -131,6 +188,43 @@ authorization_state    可追溯决定所声明的授权状态
 
 未解决的合同只阻止依赖它的动作；安全的无关只读分析可继续。修订必须追加
 amendment 并计算反向依赖影响，不能重写历史 PASS、证据或结论记录。
+
+## 人工审核点
+
+每个门禁都应同时保留机器可读状态和普通研究人员能判断的摘要。摘要至少说明
+当前审核对象、必须审核的原因、应查看的证据、通过标准、驳回条件以及下一步。
+
+| 审核点 | 审核什么与为什么 | 通过意味着 | 驳回与最小修正 |
+|---|---|---|---|
+| 接入写入 | 精确目标路径、将创建或修改的文件、冲突、风险和回退；避免覆盖既有项目事实 | 仅允许执行已批准的接入写入 | 修正路径、缩小写入面或补齐回退后重新预览 |
+| 合同与治理 | 合同适用性、owner、依赖、状态来源、证据引用和 amendment 影响；避免多 owner 与陈旧状态 | 该作用域可按当前治理状态继续 | 补定义、裁决歧义或标记受影响项 stale，不改写历史记录 |
+| 领域协议与主张 | 方法语义、规范化证据、缺口、反例和 claim boundary；避免把结构合法当成科学有效 | 只在已审核范围内接受领域结果或主张状态 | 交回领域专家补证据、修协议或降低主张范围 |
+| 提交与交付 | 实际变更面、未记录的合同语义变化、失效传播和未解决阻塞项；避免漏交或越权发布 | 变更面可进入下一项明确批准动作 | 修复阻塞项或排除不应提交的内容；不会自动 commit、push 或发布 |
+
+审核冲突必须显式呈现并交由有权人员裁决。通过某一门禁不代表其他门禁通过，
+驳回也只阻塞依赖该决定的动作。
+
+## 实际使用入口
+
+以下命令均从仓库根目录运行。先生成并审核计划；没有用户批准时不执行写入：
+
+```powershell
+$projectRoot = 'D:\path\to\project'
+$pipeline = '.\20-project-build\research-project-pipeline\scripts\research_pipeline.py'
+$plan = Join-Path $env:TEMP ('research-onboarding-' + [guid]::NewGuid().ToString('N') + '.json')
+
+python -X utf8 -B $pipeline plan $projectRoot --profile minimal --output $plan
+python -X utf8 -B $pipeline verify $projectRoot
+```
+
+如果项目缺少 Agent 框架，应先审阅计划中的写入、风险、回退和
+`plan_sha256`，再按 `research-project-pipeline/SKILL.md` 的审批合同执行
+`bootstrap-agents --apply`。若项目已有唯一安全文档包，只缺 Bootstrap，则使用
+哈希绑定的 `bootstrap-only` 预览和应用，不改写知识文件。
+
+接入后的重复管理通过 `research-management-pipeline` 读取 Governance 结果并
+返回一个最小下一动作。日常文档和长期知识更新交给 `neat-freak`；提交前审计与
+`handoff` 分开调用，任何 PASS 都不会自动 commit、push 或发布。
 
 ## 只读合同接口
 

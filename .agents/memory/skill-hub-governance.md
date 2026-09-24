@@ -7,9 +7,9 @@ type: project
 ## Durable decisions
 
 - `My_skills` is the canonical local source and navigation hub for reusable Codex Skills. Its public repository is `jiaqi-Sun2020/codex-skill-hub`.
-- `README.md` and `README.en.md` are the bilingual repository-wide entrypoints. They explain all twenty active Skills whose canonical source is stored here and provide only concise navigation for PaperTrace's external project-owned Skills.
-- `10-paper-build/README.md` and `README.en.md` are the bilingual category map for nine peer paper-build Skills. `20-project-build/README.md` and `README.en.md` remain the technical architecture map for the six project-build Skills, SCI/STAT/ENG/GOV contracts, independent state axes, and lifecycle routing.
-- README acknowledgements identify confirmed open-source Skill influences with author or maintainer, project link, scope of influence, and license when known. Do not infer unrecorded provenance.
+- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the eight numbered categories, index all twenty active Skills whose canonical source is stored here, and route readers to category documentation.
+- Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` and `90-personal` describe active local sources; `98-inbox` and `99-archive` define staging and archive safety.
+- Category READMEs are human-facing maps. Each Skill's `SKILL.md` remains its formal execution contract. README acknowledgements identify confirmed open-source influences with author or maintainer, project link, scope of influence, and license when known. Do not infer unrecorded provenance.
 - Original or otherwise relicensable hub content is MIT licensed. Third-party license, copyright, and notice obligations remain in force.
 - The hub directly maintains nine paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, four reusable core Skills under `50-core-utils/`, and `logic-chain-tutor` under `90-personal/`.
 - The nine paper-build Skills are `academic-figure-workflow`, `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `prl-manuscript-polisher`, and `interactive-skill-builder`.
@@ -50,6 +50,18 @@ type: project
 - `10-paper-build/experiment-design-skill/SKILL.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
+- `30-papertrace/README.md`
+- `30-papertrace/README.en.md`
+- `40-skill-registry/README.md`
+- `40-skill-registry/README.en.md`
+- `50-core-utils/README.md`
+- `50-core-utils/README.en.md`
+- `90-personal/README.md`
+- `90-personal/README.en.md`
+- `98-inbox/README.md`
+- `98-inbox/README.en.md`
+- `99-archive/README.md`
+- `99-archive/README.en.md`
 - `.agents/DECISIONS.md`
 - `50-core-utils/skill-registry/README.md`
 - `20-project-build/experiment-protocol-audit/SKILL.md`

@@ -1,4 +1,4 @@
 interface:
   display_name: "LaTeX Paper Pipeline"
-  short_description: "Build LaTeX paper pipelines with .bib references, one figures folder, editable main.tex drafts, and narrative QA for results and figures."
-  default_prompt: "Use $latex-paper-build-skill to create or restructure a research-paper pipeline with .bib-managed references, a single figures/ folder, a complete editable main.tex when requested, and manuscript body text that reads results figures/tables clearly."
+  short_description: "Build LaTeX paper pipelines with evidence-aware figure routing."
+  default_prompt: "Use $latex-paper-build-skill to create or restructure a research-paper pipeline with .bib-managed references, one manuscript figures/ root, optional routing through $academic-figure-workflow, and body text that interprets every included figure without confusing visual QA with scientific claim approval."

@@ -1,13 +1,13 @@
 # Figure Style Manifest
 
-Use this reference to create and maintain `figures/style/style_manifest.yaml`. The manifest is the sole paper-wide visual source of truth for SVG, Draw.io, Matplotlib, and PowerPoint outputs.
+Use this reference to create and maintain `<figure-root>/style/style_manifest.yaml`. The manifest is the sole paper-wide visual source of truth for SVG, Draw.io, Matplotlib, and PowerPoint outputs.
 
 ## Storage Contract
 
 Recommended project layout:
 
 ```text
-figures/
+<figure-root>/
 ├── style/
 │   ├── reference_images/
 │   ├── style_manifest.yaml
@@ -30,6 +30,19 @@ figures/
 │   ├── exports/fig02.pdf
 │   └── exports/fig02.png
 ```
+
+Resolve `<figure-root>` once for the active manuscript:
+
+- inside a generated paper pipeline, use
+  `05_manuscript_zh/figures/`;
+- in standalone use, default to `<project>/figures/` or use the explicit root
+  selected by the user;
+- do not create both locations for the same manuscript or add an extra
+  `<paper>/` layer unless a multi-paper workspace explicitly requires it.
+
+Create `style/` only when the project needs a shared visual system. A paper
+with no figure work must not receive an empty manifest or placeholder style
+files.
 
 Use dedicated temporary directories for rendered QA. Do not retain `preview/`, layout dumps, inspect snapshots, or cache folders in the final project tree unless requested. See [figure-package-hygiene.md](figure-package-hygiene.md).
 
@@ -118,7 +131,7 @@ Run:
 
 ```powershell
 # Directory: the academic-figure-workflow skill directory
-python .\scripts\validate_style_manifest.py --manifest <project>\figures\style\style_manifest.yaml
+python .\scripts\validate_style_manifest.py --manifest <figure-root>\style\style_manifest.yaml
 ```
 
 Validation must report missing required roles, malformed colours, invalid lock state, reference-role conflicts, and unsupported units. A schema-valid manifest can still be visually or scientifically wrong; inspect the rendered figures and `style_report.md`.

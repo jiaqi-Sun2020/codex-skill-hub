@@ -134,6 +134,12 @@
   architecture. `experiment-design` remains a planning boundary for required
   evidence, controls, gaps, and claims; it does not own experiment execution or
   runtime gates.
+- 2026-09-24: The bilingual documentation uses three layers: the root README pair
+  owns repository-wide purpose, category routing, and the compact twenty-Skill
+  index; every numbered category owns a bilingual human-facing framework and
+  boundary map; each Skill's `SKILL.md` remains the formal execution contract.
+  This documentation change does not add an active Skill, move a source, or make
+  shortcut, inbox, or archive content canonical.
 
 ## Open Questions
 

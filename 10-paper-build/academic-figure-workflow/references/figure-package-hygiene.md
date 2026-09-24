@@ -4,10 +4,11 @@ Use this reference after a figure has passed scientific, visual, and structural 
 
 ## One Figure, One Folder
 
-Use a project-level style folder and a separate folder for each numbered figure:
+Use one resolved figure root, a shared style folder when needed, and a separate
+folder for each numbered figure:
 
 ```text
-figures/<paper>/
+<figure-root>/
 ├── style/
 │   ├── reference_images/
 │   ├── style_manifest.yaml
@@ -21,6 +22,16 @@ figures/<paper>/
 └── fig02_<short_name>/
     └── ...
 ```
+
+For a generated paper pipeline, `<figure-root>` is
+`05_manuscript_zh/figures/`. For standalone use it defaults to
+`<project>/figures/` or an explicit user-selected root. Never create both roots
+for the same manuscript. Do not add a redundant `<paper>/` layer in a
+single-paper workspace.
+
+Create only the style and figure-package directories required by the active
+work. A manuscript with no figure requirement must not receive empty style,
+manifest, source, or export placeholders.
 
 Do not mix Figure 1 and Figure 2 sources, exports, manifests, or QA remnants in the project root.
 

@@ -23,6 +23,32 @@ Do not:
 - Call a figure or PPTX submission-ready when labels overlap, source files or traces are missing, or vector/native editability was not verified.
 - Flatten a complete editable figure or slide to one raster image unless the user explicitly requests a raster-only deliverable.
 
+## Paper Pipeline Integration
+
+When this skill is called from `latex-paper-build-skill`, treat it as an
+optional evidence-figure lane, not a mandatory step for every manuscript.
+
+- Read [figure-argument-contract.md](references/figure-argument-contract.md)
+  for the incoming claim, evidence, analysis readiness, panel roles, venue,
+  final size, and requested outputs.
+- Use `05_manuscript_zh/figures/` as the single figure root for that generated
+  pipeline. Do not create a second root-level `figures/` or duplicate figure
+  packages under reports or submission folders.
+- In standalone use, keep supporting a user-selected figure root and otherwise
+  default to `<project>/figures/`; this skill does not depend on the LaTeX
+  pipeline.
+- Own figure method selection, editable sources, style, exports, captions,
+  evidence trace, and rendered QA. The LaTeX skill owns placement,
+  cross-references, compilation, and manuscript prose that interprets the
+  figure.
+- Accept data and statistical findings from `data-analysis`; do not repeat or
+  silently upgrade their scientific review state.
+- If the handoff lacks verified evidence needed by the figure, deliver only a
+  specification, storyboard, or marked draft. Figure QA never proves the
+  underlying scientific claim.
+- Create package and style directories only when figure work is applicable;
+  do not populate empty placeholders for figure-free papers.
+
 ## Intake
 
 Collect:

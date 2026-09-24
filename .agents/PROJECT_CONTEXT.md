@@ -12,14 +12,17 @@ skills. It separates twenty directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the twenty Skills stored in this repository and
-provide concise navigation for PaperTrace's external project-owned Skills.
+The bilingual root READMEs document the twenty Skills stored in this repository
+and route readers to eight numbered categories. Each numbered category has a
+bilingual README pair for its human-facing framework, contents, boundaries, and
+maintenance entry points; individual `SKILL.md` files remain the formal execution
+contracts.
 
-The bilingual `10-paper-build` READMEs provide the category map for nine peer
-paper-build Skills, their compositions, and the retired-repository migration map.
-The bilingual `20-project-build` READMEs provide the detailed technical map for
-the six project-build Skills, SCI/STAT/ENG/GOV contract responsibilities, state
-separation, and lifecycle routing without duplicating the repository overview.
+The bilingual `10-paper-build` READMEs define the paper lifecycle and optional
+figure-evidence lane for nine peer Skills. The bilingual `20-project-build`
+READMEs define one-time onboarding and repeated research management for six
+project-build Skills, including SCI/STAT/ENG/GOV contract responsibilities and
+independent state axes, without duplicating the repository overview.
 ## Analysis Coverage
 
 - Repository enumeration completed within the 5,000-file analysis bound.
@@ -33,8 +36,11 @@ separation, and lifecycle routing without duplicating the repository overview.
 - `README.md`
 - `README.en.md`
 - `LICENSE`
+- `10-paper-build/README.md` and `10-paper-build/README.en.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
+- Numbered category README pairs under `30-papertrace/`, `40-skill-registry/`,
+  `50-core-utils/`, `90-personal/`, `98-inbox/`, and `99-archive/`
 - `50-core-utils/skill-registry/README.md`
 - `.gitignore`
 - `.agents/memory/MEMORY.md`
@@ -48,6 +54,15 @@ separation, and lifecycle routing without duplicating the repository overview.
 - `20-project-build/README.en.md`: English project-build component, contract, and lifecycle architecture.
 - `10-paper-build/README.md`: Chinese paper-build Skill map and migration guide.
 - `10-paper-build/README.en.md`: English paper-build Skill map and migration guide.
+- `30-papertrace/README.md` and `README.en.md`: safe navigation to the external
+  PaperTrace project without treating local shortcuts as repository source.
+- `40-skill-registry/README.md` and `README.en.md`: compatibility navigation to
+  the single Registry source under `50-core-utils/skill-registry/`.
+- `50-core-utils/README.md` and `README.en.md`: reusable utility and Registry
+  infrastructure map.
+- `90-personal/README.md` and `README.en.md`: personal teaching Skill map.
+- `98-inbox/README.md` and `README.en.md`: untrusted staging-area safety rules.
+- `99-archive/README.md` and `README.en.md`: inactive archive safety rules.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
 - `10-paper-build/*/SKILL.md`, `20-project-build/*/SKILL.md`,
@@ -57,7 +72,9 @@ separation, and lifecycle routing without duplicating the repository overview.
 - `10-paper-build/`: nine centrally stored peer paper-building Skills and their
   bilingual category map.
 - `90-personal/logic-chain-tutor/SKILL.md`: central personal teaching Skill.
-- Local shortcut categories are convenience navigation only and are excluded from Git.
+- Shortcut files are convenience navigation only and are not canonical source;
+  their tracked category READMEs describe the boundary without relying on a
+  machine-specific target path.
 
 ## Current Facts
 
@@ -116,13 +133,14 @@ separation, and lifecycle routing without duplicating the repository overview.
 - Top-level category names use a two-digit numeric prefix followed by lowercase
   English words.
 - The seven named `.agents/*.md` files are generated context. The bilingual root
-  READMEs, root MIT `LICENSE`, `.agents/memory/`, and the contents of
-  `50-core-utils/` are maintained project documentation, licensing, knowledge,
-  and code.
+  and numbered-category READMEs, root MIT `LICENSE`, `.agents/memory/`, and the
+  maintained Skill and infrastructure directories are project documentation,
+  licensing, knowledge, and code.
 - `.codex/` and `.agents/scripts/start-codex.ps1` provide project-scoped explicit
   instruction loading without a root `AGENTS.md` or global configuration.
-- `00-overview/` is intentionally absent because its former inventory and
-  architecture responsibilities are consolidated into the root `README.md`.
+- `00-overview/` is intentionally absent because repository-wide inventory and
+  routing are consolidated into the root README pair; category detail belongs in
+  the numbered category README pairs.
 
 ## Open Context Questions
 

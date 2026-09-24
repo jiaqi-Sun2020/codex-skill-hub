@@ -46,10 +46,13 @@ My_skills/
 |   |-- research-project-pipeline/
 |   `-- research-workspace-governance/
 |-- 30-papertrace/
+|   |-- README.md / README.en.md
 |   `-- papertrace-skills.lnk
 |-- 40-skill-registry/
+|   |-- README.md / README.en.md
 |   `-- skill-registry.lnk
 |-- 50-core-utils/
+|   |-- README.md / README.en.md
 |   |-- handoff/
 |   |-- neat-freak/
 |   |-- skill-audit-refactor/
@@ -57,9 +60,12 @@ My_skills/
 |   |-- training-code-architecture-skill/
 |   `-- .pipeline-interface-backups/
 |-- 90-personal/
+|   |-- README.md / README.en.md
 |   `-- logic-chain-tutor/
 |-- 98-inbox/
+|   `-- README.md / README.en.md
 `-- 99-archive/
+    `-- README.md / README.en.md
 ```
 
 ## Top-Level Directories
@@ -92,6 +98,18 @@ My_skills/
 - `20-project-build/README.en.md`
 - `10-paper-build/README.md`
 - `10-paper-build/README.en.md`
+- `30-papertrace/README.md`
+- `30-papertrace/README.en.md`
+- `40-skill-registry/README.md`
+- `40-skill-registry/README.en.md`
+- `50-core-utils/README.md`
+- `50-core-utils/README.en.md`
+- `90-personal/README.md`
+- `90-personal/README.en.md`
+- `98-inbox/README.md`
+- `98-inbox/README.en.md`
+- `99-archive/README.md`
+- `99-archive/README.en.md`
 - `.agents/AGENTS.md`
 - `.agents/memory/MEMORY.md`
 - `.codex/hooks/load_project_agents.py`
@@ -149,6 +167,10 @@ My_skills/
 
 ## Boundary Notes
 
+- The root README pair owns repository-wide purpose, category routing, and the
+  compact twenty-Skill index. Every numbered category README pair owns only the
+  human-facing map and boundaries for that category; `SKILL.md` files own formal
+  execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
   Audit, Generator, Submission Audit, Management Pipeline, Onboarding Pipeline,
   and Workspace Governance.
@@ -158,7 +180,9 @@ My_skills/
   `50-core-utils/` owns the four reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
 - Project-owned external Skills remain behind their shortcut targets. The shortcuts
-  do not transfer ownership to this folder.
+  do not transfer ownership to this folder, and the `30-papertrace` and
+  `40-skill-registry` README pairs do not make those shortcut targets repository
+  source.
 - `10-paper-build/` owns nine centrally stored peer paper-building Skills. The eight
   imported sources are a snapshot of former `S_paper_skills` commit
   `dcd573b1768e48e794975100f8548dc0f1bcb50e`; they do not retain the old Git
@@ -196,5 +220,6 @@ My_skills/
   operational artifacts in their designated subdirectories.
 - Keep `.agents/AGENTS.md` as the canonical Agent entrypoint and load it through
   `.codex/`; do not add a root copy.
-- Do not recreate `00-overview/`; its former inventory and architecture content
-  is canonical in the root `README.md`.
+- Do not recreate `00-overview/`; repository-wide inventory and routing are
+  canonical in the root README pair, while category detail belongs in numbered
+  category README pairs.
