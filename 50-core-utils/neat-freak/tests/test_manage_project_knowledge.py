@@ -487,6 +487,25 @@ class ProjectKnowledgeManagerTests(unittest.TestCase):
                 0,
             )
 
+    def test_noncanonical_project_root_accepts_absolute_policy_topology(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.install_bootstrap_fixture(project)
+            manifest = self.make_policy_topology(project)
+            alias = project / "alias"
+            alias.mkdir()
+
+            report = manager.audit_codex_bootstrap(
+                alias / "..",
+                policy_topology=str(manifest),
+            )
+
+            self.assertEqual(report["summary"]["status"], "clean", report)
+            self.assertEqual(
+                report["policy_topology"]["summary"]["status"],
+                "clean",
+            )
+
     def test_policy_topology_rejects_unbootstrapped_nested_reference(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))

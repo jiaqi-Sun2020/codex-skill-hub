@@ -466,16 +466,17 @@ def resolve_policy_file(root: Path, raw: object) -> Path:
 
 
 def resolve_policy_manifest(root: Path, raw: str) -> Path:
+    root = resolve_project(str(root))
     candidate = Path(raw).expanduser()
     if ".." in candidate.parts:
         raise ValueError("policy topology must not contain parent traversal")
     unresolved = (candidate if candidate.is_absolute() else root / candidate).absolute()
-    if not is_relative_to(unresolved, root.absolute()):
-        raise ValueError("policy topology must stay inside the project")
     if first_link_component(unresolved) is not None:
         raise ValueError("policy topology must not traverse a link or junction")
     resolved = unresolved.resolve(strict=True)
-    if not is_relative_to(resolved, root) or not resolved.is_file() or is_link_like(resolved):
+    if not is_relative_to(resolved, root):
+        raise ValueError("policy topology must stay inside the project")
+    if not resolved.is_file() or is_link_like(resolved):
         raise ValueError("policy topology must be a regular project-contained file")
     return resolved
 
