@@ -10,8 +10,8 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
-SCRIPTS = ROOT / "skills" / "reader-learner" / "scripts"
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
 from profile_v2 import (  # noqa: E402

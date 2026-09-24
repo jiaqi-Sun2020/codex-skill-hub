@@ -36,6 +36,7 @@ independent state axes, without duplicating the repository overview.
 - `README.md`
 - `README.en.md`
 - `LICENSE`
+- `.github/workflows/ci.yml`
 - `10-paper-build/README.md` and `10-paper-build/README.en.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
@@ -130,6 +131,13 @@ independent state axes, without duplicating the repository overview.
 - The registry retains `reader-learner` version `1.0.0` as historical release
   material. PaperTrace owns its current project-specific fork, which is not synced
   from that historical release.
+- Registry, Manifest, Lock, and CLI Skill identifiers share one fail-fast,
+  cross-platform contract; backup, staging, release, and destination paths also
+  remain independently confined to their declared roots.
+- CI runs all standard-library unit suites and Reader-Learner source smoke tests
+  on Windows, cross-platform safety tests on informational Linux, repository
+  integrity checks inline, and a pinned Gitleaks scan. No root `tests/` directory
+  is part of the architecture.
 - Top-level category names use a two-digit numeric prefix followed by lowercase
   English words.
 - The seven named `.agents/*.md` files are generated context. The bilingual root

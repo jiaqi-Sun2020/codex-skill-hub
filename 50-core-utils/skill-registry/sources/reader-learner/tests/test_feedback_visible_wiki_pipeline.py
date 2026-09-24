@@ -9,11 +9,11 @@ import tempfile
 from pathlib import Path
 
 
-ROOT = Path(__file__).resolve().parents[3]
-SCRIPTS = ROOT / "skills" / "reader-learner" / "scripts"
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from feedback_visible_wiki_pipeline import main as pipeline_main  # noqa: E402
+from feedback_visible_wiki_pipeline import NEWS_IMPORTER, main as pipeline_main  # noqa: E402
 from lint_visible_wiki import lint  # noqa: E402
 from profile_v2 import empty_profile_v2, save_json  # noqa: E402
 
@@ -103,23 +103,37 @@ def main() -> int:
         news_wiki = root / "news_wiki"
         save_json(news_profile, empty_profile_v2())
         news_feedback_path.write_text(json.dumps(news_feedback(), ensure_ascii=False), encoding="utf-8")
-        news_code = pipeline_main([
-            "news-feedback",
-            "--profile", str(news_profile),
-            "--feedback", str(news_feedback_path),
-            "--wiki", str(news_wiki),
-        ])
-        if news_code != 0:
-            raise AssertionError(f"news-feedback pipeline failed with {news_code}")
-        news_findings = lint(news_profile, news_wiki, require_profile_coverage=True)
-        if news_findings:
-            raise AssertionError(news_findings)
-        if not news_feedback_path.with_name("news_feedback_reader_feedback.json").exists():
-            raise AssertionError("news feedback was not normalized before profile import")
-        news_profile_data = json.loads(news_profile.read_text(encoding="utf-8"))
-        concept_data = news_profile_data["concepts"].get("quantum-error-correction")
-        if not isinstance(concept_data, dict) or concept_data.get("status") != "unknown":
-            raise AssertionError("news feedback did not preserve its explicit knowledge status")
+        if NEWS_IMPORTER.is_file():
+            news_code = pipeline_main([
+                "news-feedback",
+                "--profile", str(news_profile),
+                "--feedback", str(news_feedback_path),
+                "--wiki", str(news_wiki),
+            ])
+            if news_code != 0:
+                raise AssertionError(f"news-feedback pipeline failed with {news_code}")
+            news_findings = lint(news_profile, news_wiki, require_profile_coverage=True)
+            if news_findings:
+                raise AssertionError(news_findings)
+            if not news_feedback_path.with_name("news_feedback_reader_feedback.json").exists():
+                raise AssertionError("news feedback was not normalized before profile import")
+            news_profile_data = json.loads(news_profile.read_text(encoding="utf-8"))
+            concept_data = news_profile_data["concepts"].get("quantum-error-correction")
+            if not isinstance(concept_data, dict) or concept_data.get("status") != "unknown":
+                raise AssertionError("news feedback did not preserve its explicit knowledge status")
+        else:
+            try:
+                pipeline_main([
+                    "news-feedback",
+                    "--profile", str(news_profile),
+                    "--feedback", str(news_feedback_path),
+                    "--wiki", str(news_wiki),
+                ])
+            except FileNotFoundError as exc:
+                if "Required importer is missing" not in str(exc):
+                    raise
+            else:
+                raise AssertionError("missing optional news importer did not fail clearly")
     print("feedback-to-visible-wiki pipeline test: pass")
     return 0
 

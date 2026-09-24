@@ -84,6 +84,114 @@ def run_cli(arguments):
 
 
 class SkillRegistryTests(unittest.TestCase):
+    def test_skill_id_contract_accepts_portable_ids_and_rejects_unsafe_ids(self):
+        for value in ("reader-learner", "alpha_2", "paper.v3", "a"):
+            with self.subTest(value=value):
+                self.assertEqual(registry.validate_skill_id(value), value)
+
+        invalid_values = (
+            "",
+            ".",
+            "..",
+            "../escape",
+            "..\\escape",
+            "/absolute",
+            "Demo",
+            "demo..copy",
+            "demo-",
+            "con",
+            "con.txt",
+            "com1",
+            "lpt9.log",
+            "a" * 65,
+            7,
+        )
+        for value in invalid_values:
+            with self.subTest(value=value):
+                with self.assertRaises(registry.RegistryError):
+                    registry.validate_skill_id(value)
+
+    def test_registry_and_cli_skill_ids_are_rejected_before_side_effects(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            registry_root = root / "registry"
+            create_registry(registry_root)
+
+            registry_path = registry_root / "registry.json"
+            document = json.loads(registry_path.read_text(encoding="utf-8"))
+            document["skills"]["../../../escape"] = document["skills"].pop("demo")
+            write_json(registry_path, document)
+
+            code, output, error = run_cli(
+                ["registry-check", "--registry", str(registry_root)]
+            )
+            self.assertEqual(code, 2)
+            self.assertIn("lowercase cross-platform identifier", output + error)
+            self.assertFalse((root / "escape").exists())
+
+            registry_root = root / "registry-cli"
+            create_registry(registry_root)
+            code, output, error = run_cli(
+                [
+                    "release",
+                    "--registry",
+                    str(registry_root),
+                    "--skill",
+                    "../escape",
+                    "--version",
+                    "1.0.0",
+                    "--apply",
+                ]
+            )
+            self.assertEqual(code, 2)
+            self.assertIn("lowercase cross-platform identifier", output + error)
+            self.assertFalse((registry_root / "releases").exists())
+            self.assertFalse((root / "escape").exists())
+
+    def test_manifest_and_lock_skill_ids_are_rejected_before_side_effects(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            registry_root = root / "registry"
+            project_root = root / "project"
+            create_registry(registry_root)
+            create_project(project_root, registry_root)
+
+            manifest_path = project_root / "skills.manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["skills"]["../../../escape"] = manifest["skills"].pop("demo")
+            write_json(manifest_path, manifest)
+
+            code, output, error = run_cli(
+                [
+                    "sync",
+                    "--project",
+                    str(project_root),
+                    "--skill",
+                    "../../../escape",
+                    "--apply",
+                ]
+            )
+            self.assertEqual(code, 2)
+            self.assertIn("lowercase cross-platform identifier", output + error)
+            self.assertFalse((project_root / ".skill-registry").exists())
+            self.assertFalse((root / "escape").exists())
+
+            create_project(project_root, registry_root)
+            write_json(
+                project_root / "skills.lock.json",
+                {
+                    "schema_version": 1,
+                    "skills": {"../../../escape": {"version": "1.0.0"}},
+                },
+            )
+            code, output, error = run_cli(
+                ["check", "--project", str(project_root)]
+            )
+            self.assertEqual(code, 2)
+            self.assertIn("lowercase cross-platform identifier", output + error)
+            self.assertFalse((project_root / ".skill-registry").exists())
+            self.assertFalse((root / "escape").exists())
+
     def test_tree_hash_is_deterministic_and_ignores_caches(self):
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)

@@ -3,6 +3,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -31,6 +32,17 @@ class GeneratorSafetyTests(unittest.TestCase):
         (project / "README.md").write_text("# Demo Project\n\nSafe prose.\n", encoding="utf-8")
         (project / "main.py").write_text("print('ok')\n", encoding="utf-8")
         return project
+
+    def run_loader(self, loader: Path, project: Path, event: str = "SessionStart"):
+        proc = subprocess.run(
+            [sys.executable, "-X", "utf8", "-B", str(loader)],
+            input=json.dumps({"hook_event_name": event, "cwd": str(project)}),
+            text=True,
+            capture_output=True,
+            check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stderr)
+        return json.loads(proc.stdout)
 
     def test_new_bundle_and_legacy_force_backup(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
@@ -314,15 +326,7 @@ class GeneratorSafetyTests(unittest.TestCase):
                 "startup|resume|clear|compact",
             )
             for event in ("SessionStart", "SubagentStart"):
-                proc = subprocess.run(
-                    [sys.executable, "-X", "utf8", "-B", str(loader)],
-                    input=json.dumps({"hook_event_name": event, "cwd": str(project)}),
-                    text=True,
-                    capture_output=True,
-                    check=False,
-                )
-                self.assertEqual(proc.returncode, 0, proc.stderr)
-                payload = json.loads(proc.stdout)
+                payload = self.run_loader(loader, project, event)
                 output = payload["hookSpecificOutput"]
                 self.assertEqual(output["hookEventName"], event)
                 self.assertIn(
@@ -330,6 +334,87 @@ class GeneratorSafetyTests(unittest.TestCase):
                     output["additionalContext"],
                 )
                 self.assertIn("# Agent Instructions", output["additionalContext"])
+
+    def test_bootstrap_loader_rejects_unsupported_event(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.assertEqual(generator.main([str(project)]), 0)
+            loader = project / ".codex" / "hooks" / "load_project_agents.py"
+            payload = self.run_loader(loader, project, "Stop")
+            self.assertFalse(payload["continue"])
+            self.assertNotIn("hookSpecificOutput", payload)
+            self.assertIn("unsupported bootstrap event", payload["stopReason"])
+
+    def test_bootstrap_loader_rejects_invalid_instruction_files(self) -> None:
+        cases = {
+            "missing": lambda target: target.unlink(),
+            "empty": lambda target: target.write_bytes(b""),
+            "oversized": lambda target: target.write_bytes(b"x" * (12 * 1024 + 1)),
+            "non-utf8": lambda target: target.write_bytes(b"\xff\xfe\xfa"),
+        }
+        expected = {
+            "missing": "are missing",
+            "empty": "are empty",
+            "oversized": "exceed the 12-KiB bootstrap limit",
+            "non-utf8": "codec can't decode",
+        }
+        for name, mutate in cases.items():
+            with self.subTest(case=name), tempfile.TemporaryDirectory() as raw:
+                project = self.make_project(Path(raw))
+                self.assertEqual(generator.main([str(project)]), 0)
+                target = project / ".agents" / "AGENTS.md"
+                mutate(target)
+                loader = project / ".codex" / "hooks" / "load_project_agents.py"
+                payload = self.run_loader(loader, project)
+                self.assertFalse(payload["continue"])
+                self.assertNotIn("hookSpecificOutput", payload)
+                self.assertIn(expected[name], payload["stopReason"])
+
+    @unittest.skipIf(os.name == "nt", "POSIX symbolic-link coverage")
+    def test_bootstrap_loader_rejects_symbolic_linked_agents_file(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.assertEqual(generator.main([str(project)]), 0)
+            target = project / ".agents" / "AGENTS.md"
+            real = project / "real-agents.md"
+            real.write_text("# Linked instructions\n", encoding="utf-8")
+            target.unlink()
+            target.symlink_to(real)
+            loader = project / ".codex" / "hooks" / "load_project_agents.py"
+            payload = self.run_loader(loader, project)
+            self.assertFalse(payload["continue"])
+            self.assertNotIn("hookSpecificOutput", payload)
+            self.assertIn("linked or junction-based", payload["stopReason"])
+
+    @unittest.skipUnless(os.name == "nt", "Windows junction coverage")
+    def test_bootstrap_loader_rejects_junctioned_agents_bundle(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.assertEqual(generator.main([str(project)]), 0)
+            bundle = project / ".agents"
+            real_bundle = project / "agents-target"
+            bundle.rename(real_bundle)
+            created = subprocess.run(
+                ["cmd", "/c", "mklink", "/J", str(bundle), str(real_bundle)],
+                text=True,
+                capture_output=True,
+                check=False,
+            )
+            self.assertEqual(created.returncode, 0, created.stdout + created.stderr)
+            loader = project / ".codex" / "hooks" / "load_project_agents.py"
+            payload = self.run_loader(loader, project)
+            self.assertFalse(payload["continue"])
+            self.assertNotIn("hookSpecificOutput", payload)
+            self.assertIn("linked or junction-based", payload["stopReason"])
+
+    def test_generated_loader_matches_repository_loader(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw))
+            self.assertEqual(generator.main([str(project)]), 0)
+            generated = project / ".codex" / "hooks" / "load_project_agents.py"
+            repository_root = Path(__file__).resolve().parents[3]
+            repository_loader = repository_root / ".codex" / "hooks" / "load_project_agents.py"
+            self.assertEqual(generated.read_bytes(), repository_loader.read_bytes())
 
     def test_bootstrap_merges_existing_config_and_hooks(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

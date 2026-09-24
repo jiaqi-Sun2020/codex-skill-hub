@@ -32,6 +32,14 @@ type: project
 - Relocation maps preserve historical paths without rewriting history. Comparison semantics come from a domain Profile or authorized reviewer; governance preserves evidence, review, invalidation, allowed uses, and forbidden inferences.
 - `logic-chain-tutor` remains the single canonical personal Skill source under `90-personal/`.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it at supported lifecycle events; do not add a root `AGENTS.md`.
+- The Skill Registry accepts only portable 1–64 character lowercase identifiers
+  with single `.`, `_`, or `-` separators and rejects Windows reserved basenames;
+  all identifier-bearing inputs are validated before filesystem side effects,
+  while every derived filesystem path remains independently root-confined.
+- Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are
+  required, Linux compatibility is informational, action dependencies are pinned
+  by commit SHA, and Gitleaks scans committed history. Integrity assertions stay
+  inline; do not add a root `tests/` directory merely to hold repository checks.
 
 ### Publication contract
 
@@ -44,6 +52,7 @@ type: project
 
 - `README.md`
 - `README.en.md`
+- `.github/workflows/ci.yml`
 - `10-paper-build/README.md`
 - `10-paper-build/README.en.md`
 - `10-paper-build/S_PAPER_SKILLS_LICENSE`

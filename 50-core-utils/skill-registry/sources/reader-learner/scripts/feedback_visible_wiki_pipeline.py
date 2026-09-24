@@ -19,12 +19,17 @@ from compile_visible_wiki import sync
 from lint_visible_wiki import lint
 
 
-PROJECT_ROOT = Path(__file__).resolve().parents[3]
+SKILL_ROOT = Path(__file__).resolve().parents[1]
+PROJECT_ROOT = (
+    SKILL_ROOT.parent.parent
+    if SKILL_ROOT.parent.name.casefold() == "skills"
+    else Path.cwd().resolve()
+)
 DEFAULT_PROFILE = PROJECT_ROOT / ".agents" / "reader-learner" / "knowledge_profile.json"
 DEFAULT_WIKI = PROJECT_ROOT / ".agents" / "wiki"
-READER_IMPORTER = PROJECT_ROOT / "skills" / "reader-learner" / "scripts" / "import_reader_feedback.py"
-NEWS_IMPORTER = PROJECT_ROOT / "skills" / "ai-quantum-news-briefing" / "scripts" / "import_news_feedback.py"
-TEACHING_IMPORTER = PROJECT_ROOT / "skills" / "reader-learner" / "scripts" / "import_teaching_feedback.py"
+READER_IMPORTER = SKILL_ROOT / "scripts" / "import_reader_feedback.py"
+NEWS_IMPORTER = SKILL_ROOT.parent / "ai-quantum-news-briefing" / "scripts" / "import_news_feedback.py"
+TEACHING_IMPORTER = SKILL_ROOT / "scripts" / "import_teaching_feedback.py"
 
 
 def parse_args(argv: Iterable[str]) -> argparse.Namespace:

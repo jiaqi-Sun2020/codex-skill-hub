@@ -13,6 +13,21 @@
 7. 首次接管已有副本必须使用 `--bootstrap`，原目录会保存在项目的 `.skill-registry/backups/`。
 8. 项目差异明显的 Skill 使用 `forked`，不得被中央版本自动覆盖。
 
+## Skill ID 合同
+
+`registry.json`、`skills.manifest.json`、`skills.lock.json` 和命令行中的
+`skill_id` 使用同一套跨平台规则：
+
+- 仅允许小写 ASCII 字母、数字，以及作为分隔符的 `-`、`_`、`.`；
+- 必须以字母或数字开头和结尾，分隔符不能连续；
+- 长度为 1–64 个字符；
+- 不允许路径分隔符、`.`、`..`、绝对路径或 Windows 保留名（例如
+  `con`、`com1.txt`）；
+- 标识符在 Registry、Manifest、Lock 和 CLI 边界进入时立即校验。
+
+标识符校验不是唯一的路径防线。release、staging、backup 和项目目标路径
+仍须分别通过根目录 confinement；无效输入必须在创建目录或备份之前失败。
+
 ## 目录
 
 ```text

@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUTF8: "1"
+
+jobs:
+  core-windows:
+    name: Core / Windows
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Run standard-library unit suites
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $suites = @(
+            '.\10-paper-build\latex-paper-build-skill\tests',
+            '.\20-project-build\experiment-protocol-audit\tests',
+            '.\20-project-build\project-agent-generator-skill\tests',
+            '.\20-project-build\research-management-pipeline\tests',
+            '.\20-project-build\research-project-pipeline\tests',
+            '.\20-project-build\research-workspace-governance\tests',
+            '.\50-core-utils\neat-freak\tests',
+            '.\50-core-utils\skill-registry\tests'
+          )
+          foreach ($suite in $suites) {
+            python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Run Reader-Learner smoke tests
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $tests = Get-ChildItem '.\50-core-utils\skill-registry\sources\reader-learner\tests' -Filter 'test_*.py' | Sort-Object Name
+          foreach ($test in $tests) {
+            python -X utf8 -B $test.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+      - name: Validate registry and project knowledge
+        shell: pwsh
+        run: |
+          python -X utf8 -B '.\50-core-utils\skill-registry\tools\skill_registry.py' registry-check --registry '.\50-core-utils\skill-registry'
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -X utf8 -B '.\50-core-utils\neat-freak\scripts\manage_project_knowledge.py' '.' audit
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Check repository integrity
+        shell: pwsh
+        env:
+          CI_BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+
+          $categories = @('10-paper-build', '20-project-build', '30-papertrace', '40-skill-registry', '50-core-utils', '90-personal', '98-inbox', '99-archive')
+          foreach ($category in $categories) {
+            foreach ($name in @('README.md', 'README.en.md')) {
+              $path = Join-Path $category $name
+              if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing category README: $path" }
+            }
+          }
+
+          $active = @()
+          foreach ($category in @('10-paper-build', '20-project-build', '90-personal')) {
+            $active += Get-ChildItem $category -Directory | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md') }
+          }
+          $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {
+            $_.Name -ne 'skill-registry' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md'))
+          }
+          if ($active.Count -ne 20) { throw "Expected 20 active Skills, found $($active.Count)" }
+
+          $rootReadmes = (Get-Content -Raw 'README.md') + "`n" + (Get-Content -Raw 'README.en.md')
+          foreach ($skill in $active) {
+            $skillDocument = Get-Content -Raw (Join-Path $skill.FullName 'SKILL.md')
+            $nameMatch = [regex]::Match($skillDocument, '(?m)^name:\s*([^\s]+)\s*$')
+            if (-not $nameMatch.Success) { throw "Skill has no frontmatter name: $($skill.FullName)" }
+            $skillName = $nameMatch.Groups[1].Value
+            if ($rootReadmes -notmatch [regex]::Escape("``$skillName``")) {
+              throw "Root READMEs do not index active Skill: $skillName"
+            }
+          }
+
+          foreach ($path in @('98-inbox/README.md', '98-inbox/README.en.md', '99-archive/README.md', '99-archive/README.en.md')) {
+            git ls-files --error-unmatch -- $path | Out-Null
+            if ($LASTEXITCODE -ne 0) { throw "Expected tracked navigation README: $path" }
+          }
+
+          $navigation = Get-Content -Raw '30-papertrace/README.md', '30-papertrace/README.en.md', '40-skill-registry/README.md', '40-skill-registry/README.en.md'
+          if (($navigation -join "`n") -match '(?i)[a-z]:\\') { throw 'Navigation READMEs expose a machine-local absolute path' }
+
+          $readmes = @('README.md', 'README.en.md')
+          foreach ($category in $categories) {
+            $readmes += Join-Path $category 'README.md'
+            $readmes += Join-Path $category 'README.en.md'
+          }
+          $linkPattern = '\[[^\]]+\]\(([^)]+)\)'
+          foreach ($readme in $readmes) {
+            $base = Split-Path -Parent $readme
+            if (-not $base) { $base = '.' }
+            foreach ($match in [regex]::Matches((Get-Content -Raw $readme), $linkPattern)) {
+              $target = $match.Groups[1].Value.Trim().Trim('<', '>')
+              if ($target -match '^(?i:https?://|mailto:|#)') { continue }
+              $target = ($target -split '#', 2)[0]
+              if (-not $target) { continue }
+              $resolved = Join-Path $base ([uri]::UnescapeDataString($target))
+              if (-not (Test-Path -LiteralPath $resolved)) { throw "Broken README link: $readme -> $target" }
+            }
+          }
+
+          if ($env:GITHUB_EVENT_NAME -eq 'pull_request' -and $env:GITHUB_BASE_REF) {
+            git diff --check "origin/$env:GITHUB_BASE_REF...HEAD"
+          } elseif ($env:CI_BEFORE_SHA -match '^[0-9a-f]{40}$' -and $env:CI_BEFORE_SHA -notmatch '^0+$') {
+            git diff --check "$env:CI_BEFORE_SHA..HEAD"
+          } else {
+            git show --check --format= --no-ext-diff HEAD
+          }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+  compatibility-linux:
+    name: Compatibility / Linux (informational)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.11"
+
+      - name: Run cross-platform safety suites
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($suite in @(
+            './20-project-build/project-agent-generator-skill/tests',
+            './50-core-utils/skill-registry/tests'
+          )) {
+            python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+          foreach ($test in (Get-ChildItem './50-core-utils/skill-registry/sources/reader-learner/tests' -Filter 'test_*.py' | Sort-Object Name)) {
+            python -X utf8 -B $test.FullName
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+
+  secret-scan:
+    name: Security / Gitleaks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out full history
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan for committed secrets
+        uses: gitleaks/gitleaks-action@e0c47f4f8be36e29cdc102c57e68cb5cbf0e8d1e # v3.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

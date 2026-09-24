@@ -2,8 +2,12 @@
 *.lnk
 
 # Staging, archives, and generated backups
-98-inbox/
-99-archive/
+98-inbox/*
+!98-inbox/README.md
+!98-inbox/README.en.md
+99-archive/*
+!99-archive/README.md
+!99-archive/README.en.md
 50-core-utils/.pipeline-interface-backups/
 .agents/.project-agent-generator-backups/
 **/.skill-registry/backups/

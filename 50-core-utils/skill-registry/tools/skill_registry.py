@@ -22,6 +22,16 @@ EXCLUDED_DIRECTORIES = {".git", ".pytest_cache", "__pycache__"}
 EXCLUDED_FILES = {".DS_Store"}
 EXCLUDED_SUFFIXES = {".pyc"}
 SEMVER_RE = re.compile(r"^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$")
+SKILL_ID_RE = re.compile(r"^[a-z0-9]+(?:[._-][a-z0-9]+)*$")
+MAX_SKILL_ID_LENGTH = 64
+WINDOWS_RESERVED_NAMES = {
+    "con",
+    "prn",
+    "aux",
+    "nul",
+    *{"com{}".format(index) for index in range(1, 10)},
+    *{"lpt{}".format(index) for index in range(1, 10)},
+}
 
 
 class RegistryError(RuntimeError):
@@ -72,6 +82,35 @@ def ensure_schema(document: Mapping[str, Any], path: Path) -> None:
         raise RegistryError(
             "{} must use schema_version {}".format(path, SCHEMA_VERSION)
         )
+
+
+def validate_skill_id(value: object, label: str = "skill id") -> str:
+    if not isinstance(value, str):
+        raise RegistryError("{} must be a string".format(label))
+    if not value or len(value) > MAX_SKILL_ID_LENGTH:
+        raise RegistryError(
+            "{} must contain 1-{} characters: {!r}".format(
+                label, MAX_SKILL_ID_LENGTH, value
+            )
+        )
+    if not SKILL_ID_RE.fullmatch(value):
+        raise RegistryError(
+            "{} must be a lowercase cross-platform identifier: {!r}".format(
+                label, value
+            )
+        )
+    windows_basename = value.split(".", 1)[0]
+    if windows_basename in WINDOWS_RESERVED_NAMES:
+        raise RegistryError("{} uses a reserved Windows name: {!r}".format(label, value))
+    return value
+
+
+def validate_skill_map(value: object, label: str) -> Dict[str, Any]:
+    if not isinstance(value, dict):
+        raise RegistryError("{} must be a skills object".format(label))
+    for skill_id in value:
+        validate_skill_id(skill_id, "{} key".format(label))
+    return value
 
 
 def resolve_root(path: Path) -> Path:
@@ -199,8 +238,7 @@ def load_registry(registry_root: Path) -> Dict[str, Any]:
     path = registry_path(registry_root)
     registry = read_json(path)
     ensure_schema(registry, path)
-    if not isinstance(registry.get("skills"), dict):
-        raise RegistryError("{} must contain a skills object".format(path))
+    validate_skill_map(registry.get("skills"), "{} skills".format(path))
     return registry
 
 
@@ -208,14 +246,12 @@ def load_project(project_root: Path) -> Tuple[Path, Dict[str, Any], Path, Dict[s
     manifest_path = project_root / "skills.manifest.json"
     manifest = read_json(manifest_path)
     ensure_schema(manifest, manifest_path)
-    if not isinstance(manifest.get("skills"), dict):
-        raise RegistryError("{} must contain a skills object".format(manifest_path))
+    validate_skill_map(manifest.get("skills"), "{} skills".format(manifest_path))
     lock_path = project_root / "skills.lock.json"
     if lock_path.exists():
         lock = read_json(lock_path)
         ensure_schema(lock, lock_path)
-        if not isinstance(lock.get("skills"), dict):
-            raise RegistryError("{} must contain a skills object".format(lock_path))
+        validate_skill_map(lock.get("skills"), "{} skills".format(lock_path))
     else:
         lock = {"schema_version": SCHEMA_VERSION, "skills": {}}
     return manifest_path, manifest, lock_path, lock
@@ -236,6 +272,7 @@ def registry_release(
     skill_id: str,
     version: str,
 ) -> Tuple[Path, Mapping[str, Any]]:
+    skill_id = validate_skill_id(skill_id)
     skill_entry = registry["skills"].get(skill_id)
     if not isinstance(skill_entry, dict):
         raise RegistryError("Registry has no skill '{}'".format(skill_id))
@@ -265,6 +302,7 @@ def registry_release(
 def manifest_skill(
     manifest: Mapping[str, Any], skill_id: str
 ) -> MutableMapping[str, Any]:
+    skill_id = validate_skill_id(skill_id)
     value = manifest["skills"].get(skill_id)
     if not isinstance(value, dict):
         raise RegistryError("Manifest has no skill '{}'".format(skill_id))
@@ -399,9 +437,15 @@ def ensure_control_directory(project_root: Path) -> Path:
 
 
 def backup_destination(project_root: Path, skill_id: str, destination: Path) -> Path:
+    skill_id = validate_skill_id(skill_id)
     current_hash, _ = tree_snapshot(destination)
     stamp = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    backup_root = ensure_control_directory(project_root) / "backups" / skill_id
+    backup_root = resolve_within(
+        project_root,
+        ".skill-registry/backups/{}".format(skill_id),
+        "backup path for {}".format(skill_id),
+    )
+    ensure_control_directory(project_root)
     backup_root.mkdir(parents=True, exist_ok=True)
     backup = backup_root / "{}-{}".format(stamp, current_hash[:12])
     counter = 1
@@ -422,6 +466,7 @@ def sync_one(
     apply: bool,
     bootstrap: bool,
 ) -> Dict[str, Any]:
+    skill_id = validate_skill_id(skill_id)
     skill, version, destination, release_root, release = vendored_context(
         project_root, manifest, registry_root, registry, skill_id
     )
@@ -473,9 +518,18 @@ def sync_one(
         atomic_write_json(lock_path, lock)
         return preview
 
-    staging_root = ensure_control_directory(project_root) / "staging"
+    staging_root = resolve_within(
+        project_root,
+        ".skill-registry/staging",
+        "skill registry staging root",
+    )
+    ensure_control_directory(project_root)
     staging_root.mkdir(parents=True, exist_ok=True)
-    staging = staging_root / "{}-{}".format(skill_id, uuid.uuid4().hex)
+    staging = resolve_within(
+        project_root,
+        ".skill-registry/staging/{}-{}".format(skill_id, uuid.uuid4().hex),
+        "staging path for {}".format(skill_id),
+    )
     copy_skill_tree(release_root, staging)
     staged_hash, _ = tree_snapshot(staging)
     if staged_hash != release["sha256"]:
@@ -509,26 +563,27 @@ def sync_one(
 def command_release(args: argparse.Namespace) -> int:
     registry_root = resolve_root(Path(args.registry))
     registry = load_registry(registry_root)
+    skill_id = validate_skill_id(args.skill, "--skill")
     if not SEMVER_RE.match(args.version):
         raise RegistryError("Invalid semantic version: {}".format(args.version))
-    skill_entry = registry["skills"].get(args.skill)
+    skill_entry = registry["skills"].get(skill_id)
     if not isinstance(skill_entry, dict):
-        raise RegistryError("Registry has no skill '{}'".format(args.skill))
+        raise RegistryError("Registry has no skill '{}'".format(skill_id))
     source_value = skill_entry.get("source")
     if not isinstance(source_value, str):
-        raise RegistryError("Skill '{}' has no source path".format(args.skill))
+        raise RegistryError("Skill '{}' has no source path".format(skill_id))
     source = resolve_within(registry_root, source_value, "source path")
     source_hash, source_files = tree_snapshot(source)
-    release_relative = "releases/{}/{}".format(args.skill, args.version)
+    release_relative = "releases/{}/{}".format(skill_id, args.version)
     release_path = resolve_within(registry_root, release_relative, "release path")
     releases = skill_entry.setdefault("releases", {})
     if args.version in releases or release_path.exists():
         raise RegistryError(
-            "Release already exists: {} {}".format(args.skill, args.version)
+            "Release already exists: {} {}".format(skill_id, args.version)
         )
     result = {
         "action": "release",
-        "skill": args.skill,
+        "skill": skill_id,
         "version": args.version,
         "source": str(source),
         "release": str(release_path),
@@ -559,7 +614,7 @@ def command_release(args: argparse.Namespace) -> int:
             shutil.rmtree(str(temporary), ignore_errors=True)
         if release_path.exists() and args.version not in read_json(
             registry_path(registry_root)
-        ).get("skills", {}).get(args.skill, {}).get("releases", {}):
+        ).get("skills", {}).get(skill_id, {}).get("releases", {}):
             shutil.rmtree(str(release_path), ignore_errors=True)
         raise
     print_json(result)
@@ -652,13 +707,14 @@ def command_check(args: argparse.Namespace) -> int:
 
 def command_diff(args: argparse.Namespace) -> int:
     project_root, manifest, _, _, registry_root, registry = project_context(args)
+    skill_id = validate_skill_id(args.skill, "--skill")
     _, _, destination, release_root, _ = vendored_context(
-        project_root, manifest, registry_root, registry, args.skill
+        project_root, manifest, registry_root, registry, skill_id
     )
     if not destination.is_dir():
         print_json(
             {
-                "skill": args.skill,
+                "skill": skill_id,
                 "status": "missing",
                 "destination": str(destination),
             }
@@ -667,7 +723,7 @@ def command_diff(args: argparse.Namespace) -> int:
     result = compare_trees(release_root, destination)
     result.update(
         {
-            "skill": args.skill,
+            "skill": skill_id,
             "source": str(release_root),
             "destination": str(destination),
             "identical": result["source_hash"] == result["local_hash"],
@@ -681,6 +737,7 @@ def command_sync(args: argparse.Namespace) -> int:
     project_root, manifest, lock_path, lock, registry_root, registry = project_context(
         args
     )
+    skill_id = validate_skill_id(args.skill, "--skill")
     result = sync_one(
         project_root,
         manifest,
@@ -688,7 +745,7 @@ def command_sync(args: argparse.Namespace) -> int:
         lock,
         registry_root,
         registry,
-        args.skill,
+        skill_id,
         args.apply,
         args.bootstrap,
     )

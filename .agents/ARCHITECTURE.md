@@ -13,6 +13,9 @@ My_skills/
 |-- README.en.md
 |-- LICENSE
 |-- .gitignore
+|-- .github/
+|   `-- workflows/
+|       `-- ci.yml
 |-- .agents/
 |   |-- AGENTS.md
 |   |-- generated agent-context documents
@@ -94,6 +97,7 @@ My_skills/
 
 - `README.md`
 - `README.en.md`
+- `.github/workflows/ci.yml`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
 - `10-paper-build/README.md`
@@ -213,6 +217,10 @@ My_skills/
   by default and never authorizes a receiver to mutate or publish.
 - `skill-registry/sources/` is editable shared source; `skill-registry/releases/`
   is immutable; project copies are controlled by manifest and lock files.
+- `.github/workflows/ci.yml` owns repository CI. Windows is the required core
+  platform; Linux exercises cross-platform safety as an informational job, and
+  Gitleaks scans committed history. Repository integrity checks remain inline in
+  the workflow instead of creating a root `tests/` directory.
 - The Generator creates a missing context bundle once. Its retained forced-refresh
   path is explicitly authorized legacy recovery; ordinary updates belong to
   Neat-Freak. Do not regenerate the root `README.md` or `50-core-utils/`.
