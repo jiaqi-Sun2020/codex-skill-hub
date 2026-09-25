@@ -1718,7 +1718,7 @@ def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[
     return committed
 
 
-_OWNED_TEMP_FILES: dict[Path, tuple[int, int]] = {}
+_OWNED_TEMP_FILES: dict[Path, tuple[int, int, int]] = {}
 
 
 def _target_identity(path: Path) -> str:
@@ -1744,11 +1744,21 @@ def write_synced_temp(path: Path, content: bytes, label: str = "tmp") -> Path:
         except FileExistsError:
             continue
         opened_stat = os.fstat(fd)
-        _OWNED_TEMP_FILES[temp_path] = (opened_stat.st_dev, opened_stat.st_ino)
+        _OWNED_TEMP_FILES[temp_path] = (
+            opened_stat.st_dev,
+            opened_stat.st_ino,
+            opened_stat.st_ctime_ns,
+        )
         try:
             with os.fdopen(fd, "wb") as fh:
                 fh.write(content)
                 fh.flush()
+                written_stat = os.fstat(fh.fileno())
+                _OWNED_TEMP_FILES[temp_path] = (
+                    written_stat.st_dev,
+                    written_stat.st_ino,
+                    written_stat.st_ctime_ns,
+                )
                 os.fsync(fh.fileno())
         except Exception:
             try:
@@ -1770,8 +1780,7 @@ def _cleanup_owned_temp(temp_path: Path) -> bool:
         return False
     if is_link_like(temp_path) or not temp_path.is_file():
         raise RuntimeError(f"refusing to clean replaced or linked temporary file: {temp_path}")
-    stat = temp_path.stat()
-    if (stat.st_dev, stat.st_ino) != expected:
+    if _regular_file_token(temp_path) != expected:
         raise RuntimeError(f"refusing to clean temporary file with changed identity: {temp_path}")
     temp_path.unlink()
     return True
@@ -1791,12 +1800,12 @@ def _fsync_parent_directory(path: Path) -> None:
         os.close(fd)
 
 
-def _regular_file_token(path: Path) -> tuple[int, int]:
+def _regular_file_token(path: Path) -> tuple[int, int, int]:
     stat = path.stat()
-    return stat.st_dev, stat.st_ino
+    return stat.st_dev, stat.st_ino, stat.st_ctime_ns
 
 
-def _remove_owned_regular_file(path: Path, expected: tuple[int, int]) -> bool:
+def _remove_owned_regular_file(path: Path, expected: tuple[int, int, int]) -> bool:
     if not path.exists() or is_link_like(path) or not path.is_file():
         return False
     if _regular_file_token(path) != expected:
