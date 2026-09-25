@@ -28,6 +28,17 @@ type: project
 - Generator and Onboarding Pipeline are one-time onboarding components. Generator creates missing Agent scaffolding; forced refresh is break-glass recovery. Its restricted bootstrap-only path creates only missing managed startup files around one safe existing Agent bundle and requires a current hash-bound preview.
 - `neat-freak` owns routine post-onboarding project-information maintenance. It uses a hash-bound `plan` / `apply` flow and may repair only existing marked Bootstrap wiring with explicit authorization; it does not regenerate a framework.
 - `research-workspace-governance` owns domain-neutral asset roles, locations, SCI/STAT/ENG/GOV contracts, state axes, provenance, evidence, amendments, invalidation, migration, retention, deletion boundaries, project contracts, relocation maps, and derived traceability. It validates metadata and review boundaries without performing domain science.
+- Engineering repair remains a contract lane rather than a seventh project-build
+  Skill. Governance owns additive repair, execution-plan, execution-receipt, and
+  GitHub Actions evidence schemas; Management routes one next action; project
+  code or an authorized operator implements; Submission Audit independently
+  checks live Git/CI facts. Repair state and scientific-run authorization are
+  separate and never promote one another.
+- Atomic create-new writers use short identity-bound random siblings,
+  same-filesystem no-clobber publication, and exact ownership checks for cleanup
+  and rollback. Windows path budgets, stale/current/legacy transactions, links,
+  and external replacement races fail closed; long-path configuration is never
+  the sole mitigation.
 - Project contracts and topology declarations are untrusted data. Mandatory-policy topology binds canonical policy hashes to applicable execution roots through explicit references, verified loader evidence, or owner-approved isolation; Pipeline boundary-checks and Neat-Freak audits content.
 - Relocation maps preserve historical paths without rewriting history. Comparison semantics come from a domain Profile or authorized reviewer; governance preserves evidence, review, invalidation, allowed uses, and forbidden inferences.
 - `logic-chain-tutor` remains the single canonical personal Skill source under `90-personal/`.
@@ -78,6 +89,9 @@ type: project
 - `20-project-build/research-management-pipeline/SKILL.md`
 - `20-project-build/research-project-pipeline/SKILL.md`
 - `20-project-build/research-workspace-governance/SKILL.md`
+- `20-project-build/research-workspace-governance/references/engineering-repair-contract.md`
+- `20-project-build/research-workspace-governance/references/transaction-safety.md`
+- `20-project-build/research-management-pipeline/references/engineering-operations.md`
 - `20-project-build/project-agent-generator-skill/SKILL.md`
 - `50-core-utils/handoff/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
