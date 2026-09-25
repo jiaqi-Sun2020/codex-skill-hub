@@ -1829,11 +1829,15 @@ def _publish_new_no_clobber(temp_path: Path, path: Path) -> tuple[int, int]:
             raise FileExistsError(f"output target changed during commit: {path}") from exc
         raise OSError(f"atomic no-clobber publication is unavailable for {path}: {exc}") from exc
     published_token = _regular_file_token(path)
+    _OWNED_TEMP_FILES[temp_path] = published_token
     try:
         _fsync_parent_directory(path.parent)
         _cleanup_owned_temp(temp_path)
     except Exception:
-        _remove_owned_regular_file(path, published_token)
+        if _remove_owned_regular_file(path, published_token):
+            refreshed = _regular_file_token(temp_path)
+            if refreshed[:2] == published_token[:2]:
+                _OWNED_TEMP_FILES[temp_path] = refreshed
         raise
     return published_token
 

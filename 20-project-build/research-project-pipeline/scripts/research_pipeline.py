@@ -242,11 +242,15 @@ def _publish_new_no_clobber(temporary: Path, path: Path) -> None:
             raise FileExistsError(f"refusing to overwrite pipeline output: {path}") from exc
         raise OSError(f"atomic no-clobber publication is unavailable for {path}: {exc}") from exc
     published_token = _regular_file_token(path)
+    _OWNED_TEMP_FILES[temporary] = published_token
     try:
         _fsync_parent_directory(path.parent)
         _cleanup_owned_temp(temporary)
     except Exception:
-        _remove_owned_regular_file(path, published_token)
+        if _remove_owned_regular_file(path, published_token):
+            refreshed = _regular_file_token(temporary)
+            if refreshed[:2] == published_token[:2]:
+                _OWNED_TEMP_FILES[temporary] = refreshed
         raise
 
 
