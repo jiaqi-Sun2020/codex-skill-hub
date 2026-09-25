@@ -35,21 +35,37 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
+          $repoRoot = (Get-Location).Path
+          $externalCwd = Join-Path ([System.IO.Path]::GetTempPath()) ("skill-hub-tests-" + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $externalCwd | Out-Null
+          $beforeStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          $env:PYTHONPATH = ''
+          $env:PYTHONNOUSERSITE = '1'
+          $env:PYTHONHASHSEED = '0'
           $suites = @(
-            '.\10-paper-build\latex-paper-build-skill\tests',
-            '.\20-project-build\experiment-protocol-audit\tests',
-            '.\20-project-build\project-agent-generator-skill\tests',
-            '.\20-project-build\research-management-pipeline\tests',
-            '.\20-project-build\research-project-pipeline\tests',
-            '.\20-project-build\research-workspace-governance\tests',
-            '.\50-core-utils\neat-freak\tests',
-            '.\50-core-utils\skill-registry\tests'
+            (Join-Path $repoRoot '10-paper-build\latex-paper-build-skill\tests'),
+            (Join-Path $repoRoot '20-project-build\experiment-protocol-audit\tests'),
+            (Join-Path $repoRoot '20-project-build\project-agent-generator-skill\tests'),
+            (Join-Path $repoRoot '20-project-build\research-management-pipeline\tests'),
+            (Join-Path $repoRoot '20-project-build\research-project-pipeline\tests'),
+            (Join-Path $repoRoot '20-project-build\research-workspace-governance\tests'),
+            (Join-Path $repoRoot '50-core-utils\neat-freak\tests'),
+            (Join-Path $repoRoot '50-core-utils\skill-registry\tests')
           )
           $failedSuites = @()
-          foreach ($suite in $suites) {
-            python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
-            if ($LASTEXITCODE -ne 0) { $failedSuites += $suite }
+          Push-Location $externalCwd
+          try {
+            foreach ($iteration in 1..2) {
+              foreach ($suite in $suites) {
+                python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
+              }
+            }
+          } finally {
+            Pop-Location
           }
+          $afterStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          if ($afterStatus -ne $beforeStatus) { throw 'Unit suites changed the repository worktree' }
           if ($failedSuites.Count -gt 0) {
             Write-Host "Failed unit suites: $($failedSuites -join ', ')"
             exit 1
@@ -203,16 +219,39 @@ jobs:
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
-          foreach ($suite in @(
-            './20-project-build/project-agent-generator-skill/tests',
-            './50-core-utils/skill-registry/tests'
-          )) {
-            python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $repoRoot = (Get-Location).Path
+          $externalCwd = Join-Path ([System.IO.Path]::GetTempPath()) ("skill-hub-linux-tests-" + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $externalCwd | Out-Null
+          $beforeStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          $env:PYTHONPATH = ''
+          $env:PYTHONNOUSERSITE = '1'
+          $env:PYTHONHASHSEED = '0'
+          $projectSuites = Get-ChildItem (Join-Path $repoRoot '20-project-build') -Directory |
+            Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'tests') -PathType Container } |
+            ForEach-Object { Join-Path $_.FullName 'tests' }
+          $suites = @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
+          $failedSuites = @()
+          Push-Location $externalCwd
+          try {
+            foreach ($iteration in 1..2) {
+              foreach ($suite in $suites) {
+                python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
+              }
+            }
+            $readerTests = Get-ChildItem (Join-Path $repoRoot '50-core-utils/skill-registry/sources/reader-learner/tests') -Filter 'test_*.py' | Sort-Object Name
+            foreach ($test in $readerTests) {
+              python -X utf8 -B $test.FullName
+              if ($LASTEXITCODE -ne 0) { $failedSuites += $test.FullName }
+            }
+          } finally {
+            Pop-Location
           }
-          foreach ($test in (Get-ChildItem './50-core-utils/skill-registry/sources/reader-learner/tests' -Filter 'test_*.py' | Sort-Object Name)) {
-            python -X utf8 -B $test.FullName
-            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $afterStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          if ($afterStatus -ne $beforeStatus) { throw 'Compatibility suites changed the repository worktree' }
+          if ($failedSuites.Count -gt 0) {
+            Write-Host "Failed compatibility suites: $($failedSuites -join ', ')"
+            exit 1
           }
 
   secret-scan:

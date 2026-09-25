@@ -54,6 +54,68 @@ class ResearchPipelineTests(unittest.TestCase):
             code = pipeline.main(arguments)
         return code, stdout.getvalue(), stderr.getvalue()
 
+    def test_json_output_uses_short_identity_bound_sibling_temp(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            parent = Path(raw)
+            name_length = 241 - len(str(parent)) - 1
+            target = parent / ("x" * (name_length - 5) + ".json")
+            self.assertEqual(len(str(target)), 241)
+            legacy = target.with_name(target.name + ".tmp")
+            temporary = pipeline._create_synced_sibling_temp(target, b"{}\n", "json")
+            try:
+                self.assertEqual(temporary.parent, target.parent)
+                self.assertTrue(temporary.name.startswith(
+                    f".tmp-{pipeline._target_identity(target)[:16]}-"
+                ))
+                self.assertNotIn(target.name, temporary.name)
+                self.assertLess(len(str(temporary)), len(str(legacy)))
+                self.assertLess(len(temporary.name), 40)
+            finally:
+                pipeline._cleanup_owned_temp(temporary)
+
+    def test_json_output_preserves_legacy_temp_and_competing_target(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            target = root / "result.json"
+            legacy = target.with_name(target.name + ".tmp")
+            legacy.write_text("legacy owner\n", encoding="utf-8")
+            pipeline.write_json_new(target, {"ok": True}, compact=True)
+            self.assertEqual(legacy.read_text(encoding="utf-8"), "legacy owner\n")
+
+            raced = root / "raced.json"
+            real_link = pipeline.os.link
+
+            def create_competitor(src: object, dst: object) -> None:
+                Path(dst).write_text("external\n", encoding="utf-8")
+                real_link(src, dst)
+
+            with mock.patch.object(pipeline.os, "link", side_effect=create_competitor):
+                with self.assertRaises(FileExistsError):
+                    pipeline.write_json_new(raced, {"ours": True}, compact=True)
+            self.assertEqual(raced.read_text(encoding="utf-8"), "external\n")
+            self.assertEqual(list(root.glob(".tmp-*")), [])
+
+    def test_json_temp_cleanup_refuses_changed_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "result.json"
+            temporary = pipeline._create_synced_sibling_temp(target, b"ours", "json")
+            temporary.unlink()
+            temporary.write_bytes(b"external")
+            with self.assertRaisesRegex(RuntimeError, "changed identity"):
+                pipeline._cleanup_owned_temp(temporary)
+            self.assertEqual(temporary.read_bytes(), b"external")
+
+    def test_parent_sync_failure_rolls_back_only_new_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "result.json"
+            temporary = pipeline._create_synced_sibling_temp(target, b"ours\n", "json")
+            with mock.patch.object(pipeline, "_fsync_parent_directory", side_effect=OSError("sync failed")):
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    pipeline._publish_new_no_clobber(temporary, target)
+            self.assertFalse(target.exists())
+            self.assertTrue(temporary.exists())
+            pipeline._cleanup_owned_temp(temporary)
+
     def write_plan(self, project: Path, destination: Path) -> dict:
         code, stdout, stderr = self.run_main([
             "plan",

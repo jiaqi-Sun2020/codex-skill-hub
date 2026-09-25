@@ -72,6 +72,15 @@ Check only applicable lenses and say when one is not applicable:
 7. **Submission integrity** — reviewed content matches what will be submitted and all
    required checks are current for that content.
 
+For an engineering repair, independently compare the repair record, plan,
+operator/execution receipt, current Git objects and refs, and
+`github-actions-evidence/v1`. Require exact commit binding, complete Actions
+run/job/step evidence, and a current required-check policy. A receipt cannot
+override live Git or GitHub state. Keep commit creation, push acceptance, CI
+success, and scientific-run authorization as four independent facts. Stop after
+a protected-branch or non-fast-forward rejection; never switch to force push,
+per-ref push, policy changes, or PR creation without new authorization.
+
 When the change surface contains a research Project Contract, contract registry,
 Domain Profile/Protocol, amendment, governance state, validation record, claim
 review, or deliverable reference:

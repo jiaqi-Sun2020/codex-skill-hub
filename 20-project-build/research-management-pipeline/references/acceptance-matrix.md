@@ -1,6 +1,6 @@
 # Cross-Disciplinary Acceptance Matrix
 
-This matrix turns T01–T22 into generic failure hypotheses. Domain names and
+This matrix turns T01–T31 into generic failure hypotheses. Domain names and
 numbers below are counterexamples, not universal contracts. The core code must
 not branch on them.
 
@@ -28,6 +28,15 @@ not branch on them.
 | T20 | Routine changes rerun Generator or bypass the owning audit component. | Management has no scripts and routes Governance, Protocol Audit, Neat-Freak, and Submission Audit explicitly. |
 | T21 | Self-authored `approved=true` creates authority. | Authorization requires a distinct stable decision reference; self-assertion remains a gap. |
 | T22 | A simple project without version-control automation, randomness, specialized hardware, or an execution environment cannot be governed. | Minimal theoretical, qualitative, and review registries validate with only applicable contracts. |
+| T23 | A 241-character final path yields a 259-character legacy stage, or a JSON temporary repeats a long basename. | Boundary fixtures prove the old budget breach and the bounded identity sibling name. |
+| T24 | Single-experiment and campaign publication silently use different transaction rules. | Generic sibling/staging conformance tests cover both modes; each project publisher supplies its own non-scientific conformance test. |
+| T25 | A stale transaction, truncated-identity collision, or ambiguous legacy residual is reused or deleted. | Full-identity and attempt manifests fail closed; legacy names are detected but retained. |
+| T26 | A symlink, junction, reparse point, fault, or rollback escapes the authorized transaction. | Link-type injection and exact created-path ownership tests reject publication and cleanup. |
+| T27 | Tests pass only from a developer checkout or because prior state remains. | Windows and Linux run suites twice from an external random cwd with a minimal environment and unchanged-worktree check. |
+| T28 | Old prepare or canary evidence remains current after code/Profile/campaign/environment drift, or partial prepare output is ignored. | Invalidation marks dependent run evidence stale; incomplete cleanup blocks the next stage. |
+| T29 | A delegated task without a durable command/result/write receipt is reported as fixed, verified, pushed, or CI-passed. | Repair validation requires the bound execution/operator receipt at `fixed` and later states. |
+| T30 | Non-fast-forward or protected push falls back to force, atomic multi-ref push degrades, or combined status substitutes for all SHA-bound Actions runs. | Git contract stops; CI evidence requires complete head-SHA pagination and run/job/step facts. |
+| T31 | Portability, infrastructure, integrity, contract, and scientific failures are conflated. | Receipts classify them independently; a negative scientific result can coexist with successful engineering execution. |
 
 Acceptance requires both the stated assertion and the absence of a domain-specific
 branch in shared code. A passing process exit code alone is not evidence for any

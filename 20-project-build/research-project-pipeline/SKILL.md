@@ -45,6 +45,9 @@ orchestrator into a research-lifecycle executor.
 3. **Human review.** Present exact component actions, blockers, evidence,
    fingerprint, rollback, and a plain-language summary in the user's current
    language. No approval means no mutation.
+   Machine-readable plan and preview outputs use a short, identity-bound sibling
+   temporary and atomic no-clobber publication; a competing final target or an
+   unsafe link component stops the write without deleting external content.
 4. **Controlled change.** For the one-time initialization, delegate creation of a
    missing `.agents` framework and Hook only to the Generator. When a legacy bundle
    already exists but Bootstrap is incomplete, use the Generator's create-only,

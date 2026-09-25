@@ -157,6 +157,15 @@ amendments, dependency impact, and derived traceability. Instantiate only
 applicable contracts. Do not create a second hand-maintained matrix or infer a
 Domain Profile from the project name.
 
+For an implementation or infrastructure defect, read
+[references/engineering-repair-contract.md](references/engineering-repair-contract.md)
+and [references/transaction-safety.md](references/transaction-safety.md).
+Governance owns the repair, plan, receipt, and CI-evidence contracts and their
+state history. It validates and records them but never diagnoses by authority,
+edits project code, executes their command arrays, performs Git writes, or starts
+a scientific run. Repair state and run authorization are separate state
+machines; no test, commit, push, CI result, or repair closure promotes the latter.
+
 ### 5. Change only within authority
 
 - Before initialization or migration, show exact absolute targets, files/bytes,

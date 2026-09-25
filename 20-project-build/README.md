@@ -58,6 +58,30 @@ Management Pipeline 重复读取事实并路由下一步，但不执行 Adapter�
 `.agents`、选择领域方法或签发授权。`neat-freak` 和 `handoff` 位于
 `50-core-utils`，只作为明确的外部衔接点，不成为本目录的合同 owner。
 
+### 工程修复闭环
+
+本目录不新增 `project-engineering-repair` Skill。Workspace Governance 通过
+additive sidecar 合同拥有 `engineering-repair-record/v1`、
+`engineering-execution-plan/v1`、`engineering-execution-receipt/v1` 和
+`github-actions-evidence/v1`；Management Pipeline 只路由下一动作；项目代码或
+获授权 operator 复现、诊断和实施；Submission Audit 最终只读复核。execution
+receipt 的 `operator` 与 `delegation` 同时承担 operator receipt，避免重复事实源。
+
+```text
+工程修复：reported → reproduced → diagnosed → planned → approved → fixed
+          → locally_verified → ci_verified → closed
+运行授权：not_started → awaiting_authorization → prepared
+          → awaiting_authorization → canary_passed
+          → awaiting_authorization → full_authorized
+```
+
+两条状态机独立；`blocked`、`stale`、`rolled_back` 显式记录异常。单测、commit、
+push、CI 和修复关闭都不能自动授权 formal prepare、数据生成、canary 或完整实验。
+事务和 Windows 路径规则见
+[transaction safety](research-workspace-governance/references/transaction-safety.md)，
+Git/Actions 规则见
+[engineering operations](research-management-pipeline/references/engineering-operations.md)。
+
 | 当前情况 | 正确入口 |
 |---|---|
 | 新项目或尚未完成接入的遗留项目 | `research-project-pipeline` |
@@ -65,6 +89,7 @@ Management Pipeline 重复读取事实并路由下一步，但不执行 Adapter�
 | 已接入，合同、方法、证据或环境发生变化 | `research-management-pipeline` |
 | 需要独立核验显式领域协议和规范化证据 | `experiment-protocol-audit` |
 | 准备 commit、PR、release、交付或交接 | `project-submission-audit`，按需再使用 `handoff` |
+| 工程故障需要证据化修复与验证 | `research-management-pipeline` 路由，Governance 验证记录，获授权 operator 实施 |
 
 ## 组件与职责树
 
@@ -240,6 +265,16 @@ python -X utf8 -B $validator validate $projectRoot --registry $registry
 python -X utf8 -B $validator matrix $projectRoot --registry $registry
 python -X utf8 -B $validator impact $projectRoot --registry $registry --change-id 'change-001'
 ~~~
+
+工程修复 sidecar 记录使用独立的只读验证器；记录路径相对于项目根：
+
+~~~powershell
+$repairValidator = '.\20-project-build\research-workspace-governance\scripts\validate_engineering_records.py'
+python -X utf8 -B $repairValidator bundle $projectRoot --record '.agents/governance/repairs/ENG-001.json' --plan '.agents/governance/plans/ENG-001.json' --receipt '.agents/governance/receipts/ENG-001.json' --ci-evidence '.agents/governance/evidence/ENG-001-ci.json'
+~~~
+
+退出码 0 表示结构和交叉绑定完整，1 表示 incomplete、failed 或 stale，2 表示
+输入不安全或 invalid。输出始终声明 `commands_executed: false`。
 
 退出码 0 表示所请求的结构/追踪评估完整，1 表示评估完成但有不完整或失败发现，
 2 表示输入不安全或无法评估。任一结果都不授权执行、发布或科学结论。接口细节

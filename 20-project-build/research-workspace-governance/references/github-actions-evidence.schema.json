@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "github-actions-evidence.schema.json",
+  "title": "github-actions-evidence/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "evidence_sha256", "repository", "queried_at", "head_sha",
+    "api_query", "pagination_complete", "total_count", "runs", "required_check_policy_ref",
+    "status", "supplemental_legacy_statuses"
+  ],
+  "properties": {
+    "schema_version": {"const": "github-actions-evidence/v1"},
+    "evidence_sha256": {"$ref": "#/$defs/sha256"},
+    "repository": {"type": "string", "pattern": "^[^/]+/[^/]+$"},
+    "queried_at": {"type": "string", "format": "date-time"},
+    "head_sha": {"$ref": "#/$defs/object_id"},
+    "api_query": {
+      "type": "object", "additionalProperties": false,
+      "required": ["head_sha", "branch_filter", "pages_fetched"],
+      "properties": {
+        "head_sha": {"$ref": "#/$defs/object_id"},
+        "branch_filter": {"type": "null"},
+        "pages_fetched": {"type": "integer", "minimum": 1}
+      }
+    },
+    "pagination_complete": {"type": "boolean"},
+    "total_count": {"type": "integer", "minimum": 0},
+    "runs": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["run_id", "head_sha", "head_branch", "event", "workflow_id", "workflow_path", "run_attempt", "status", "conclusion", "jobs"],
+        "properties": {
+          "run_id": {"type": "integer", "minimum": 1},
+          "head_sha": {"$ref": "#/$defs/object_id"},
+          "head_branch": {"type": "string", "minLength": 1},
+          "event": {"type": "string", "minLength": 1},
+          "workflow_id": {"type": ["integer", "string"]},
+          "workflow_path": {"type": "string", "minLength": 1},
+          "run_attempt": {"type": "integer", "minimum": 1},
+          "status": {"type": "string", "minLength": 1},
+          "conclusion": {"type": ["string", "null"]},
+          "jobs": {
+            "type": "array", "minItems": 1,
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["job_id", "name", "status", "conclusion", "steps"],
+              "properties": {
+                "job_id": {"type": "integer", "minimum": 1},
+                "name": {"type": "string", "minLength": 1},
+                "status": {"type": "string", "minLength": 1},
+                "conclusion": {"type": ["string", "null"]},
+                "steps": {
+                  "type": "array",
+                  "items": {
+                    "type": "object", "additionalProperties": false,
+                    "required": ["number", "name", "status", "conclusion"],
+                    "properties": {
+                      "number": {"type": "integer", "minimum": 1},
+                      "name": {"type": "string", "minLength": 1},
+                      "status": {"type": "string", "minLength": 1},
+                      "conclusion": {"type": ["string", "null"]}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "required_check_policy_ref": {"$ref": "#/$defs/artifact_ref"},
+    "status": {"enum": ["passed", "failed", "pending", "incomplete"]},
+    "supplemental_legacy_statuses": {"type": "array", "items": {"type": "object"}}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "object_id": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "project_path": {"type": "string", "minLength": 1, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+    "artifact_ref": {"type": "object", "additionalProperties": false, "required": ["path", "sha256"], "properties": {"path": {"$ref": "#/$defs/project_path"}, "sha256": {"$ref": "#/$defs/sha256"}}}
+  }
+}

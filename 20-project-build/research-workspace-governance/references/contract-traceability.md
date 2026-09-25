@@ -29,6 +29,14 @@ evidence_state | claim_state | authorization_state
 contradicted, rejected, or unsupported needs a current independent review
 reference. Work completion and evidence admission do not create claim support.
 
+Engineering repair uses additive sidecar records and the existing registry
+fields: plans in `implementation_refs`, execution receipts in `work_refs`, local
+and CI checks in `verification_refs`, logs and failure material in
+`evidence_refs`, and decisions in `authorization_refs`. The registry schema does
+not change. Repair state and scientific-run authorization remain independent;
+neither is derived from the general axes or the other state machine. See
+[engineering-repair-contract.md](engineering-repair-contract.md).
+
 ## Amendments and invalidation
 
 An amendment names the old and new contract revision, reason, author, review or

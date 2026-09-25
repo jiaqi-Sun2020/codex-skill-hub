@@ -92,3 +92,10 @@ and `ENG-08.6` cross-environment reproducibility, repeatability, or comparabilit
 One fact has one normative owner. Other categories reference it. For example,
 SCI-03 defines what a measurement means, ENG-08.2 records the instrument state,
 and GOV-13 records the applicable approval. None duplicates the other two.
+
+Engineering repair records do not add another taxonomy. They normally reference
+the applicable identity, work, provenance, environment, recovery, logging,
+side-effect, and release contracts (`ENG-02`, `ENG-03`, `ENG-06`, `ENG-08`,
+`ENG-09`, `ENG-11`, `ENG-12`, `ENG-15`, `ENG-16`) together with stage,
+stopping, history, evidence, and invalidation governance (`GOV-04`, `GOV-07`,
+`GOV-08`, `GOV-10`, `GOV-12`). Instantiate only the IDs actually affected.

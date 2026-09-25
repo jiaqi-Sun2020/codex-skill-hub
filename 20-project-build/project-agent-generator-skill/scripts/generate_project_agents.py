@@ -1672,6 +1672,7 @@ def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[
     planned = [path for path in desired if actions.get(path.relative_to(root).as_posix()) == "create"]
     temp_paths: dict[Path, Path] = {}
     committed: list[Path] = []
+    committed_tokens: dict[Path, tuple[int, int]] = {}
     created_directories: list[Path] = []
     succeeded = False
     try:
@@ -1692,20 +1693,20 @@ def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[
         for path in planned:
             if path.exists() or path.is_symlink():
                 raise FileExistsError(f"bootstrap target changed during commit: {path}")
-            os.replace(temp_paths[path], path)
+            committed_tokens[path] = _publish_new_no_clobber(temp_paths[path], path)
             committed.append(path)
         succeeded = True
     except Exception:
         for path in reversed(committed):
             try:
-                path.unlink(missing_ok=True)
+                _remove_owned_regular_file(path, committed_tokens[path])
             except OSError:
                 pass
         raise
     finally:
         for temp_path in temp_paths.values():
             try:
-                temp_path.unlink(missing_ok=True)
+                _cleanup_owned_temp(temp_path)
             except OSError:
                 pass
         if not succeeded:
@@ -1717,24 +1718,115 @@ def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[
     return committed
 
 
+_OWNED_TEMP_FILES: dict[Path, tuple[int, int]] = {}
+
+
+def _target_identity(path: Path) -> str:
+    normalized = os.path.normcase(os.path.abspath(os.path.normpath(os.fspath(path))))
+    return hashlib.sha256(normalized.encode("utf-8", errors="surrogatepass")).hexdigest()
+
+
 def write_synced_temp(path: Path, content: bytes, label: str = "tmp") -> Path:
-    """Write one same-directory temporary file without tempfile's retry loop."""
-    temp_path = path.parent / f"{path.name}.{uuid.uuid4().hex}.{label}"
-    flags = os.O_CREAT | os.O_EXCL | os.O_WRONLY | getattr(os, "O_BINARY", 0)
-    fd = os.open(temp_path, flags, 0o600)
-    try:
-        with os.fdopen(fd, "wb") as fh:
-            fh.write(content)
-            fh.flush()
-            os.fsync(fh.fileno())
-    except Exception:
+    """Write one short, identity-bound same-directory temporary file."""
+    del label  # Preserve the call signature without expanding the path with a label.
+    identity = _target_identity(path)
+    flags = (
+        os.O_CREAT
+        | os.O_EXCL
+        | os.O_WRONLY
+        | getattr(os, "O_BINARY", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
+    for _attempt in range(16):
+        temp_path = path.parent / f".tmp-{identity[:16]}-{uuid.uuid4().hex[:12]}"
         try:
-            os.close(fd)
-        except OSError:
-            pass
-        temp_path.unlink(missing_ok=True)
+            fd = os.open(temp_path, flags, 0o600)
+        except FileExistsError:
+            continue
+        opened_stat = os.fstat(fd)
+        _OWNED_TEMP_FILES[temp_path] = (opened_stat.st_dev, opened_stat.st_ino)
+        try:
+            with os.fdopen(fd, "wb") as fh:
+                fh.write(content)
+                fh.flush()
+                os.fsync(fh.fileno())
+        except Exception:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+            try:
+                _cleanup_owned_temp(temp_path)
+            except (OSError, RuntimeError):
+                pass
+            raise
+        return temp_path
+    raise FileExistsError("could not allocate an exclusive sibling temporary file")
+
+
+def _cleanup_owned_temp(temp_path: Path) -> bool:
+    expected = _OWNED_TEMP_FILES.pop(temp_path, None)
+    if expected is None or not temp_path.exists():
+        return False
+    if is_link_like(temp_path) or not temp_path.is_file():
+        raise RuntimeError(f"refusing to clean replaced or linked temporary file: {temp_path}")
+    stat = temp_path.stat()
+    if (stat.st_dev, stat.st_ino) != expected:
+        raise RuntimeError(f"refusing to clean temporary file with changed identity: {temp_path}")
+    temp_path.unlink()
+    return True
+
+
+def _fsync_parent_directory(path: Path) -> None:
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    try:
+        fd = os.open(path, flags)
+    except OSError:
+        if os.name == "nt":
+            return
         raise
-    return temp_path
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _regular_file_token(path: Path) -> tuple[int, int]:
+    stat = path.stat()
+    return stat.st_dev, stat.st_ino
+
+
+def _remove_owned_regular_file(path: Path, expected: tuple[int, int]) -> bool:
+    if not path.exists() or is_link_like(path) or not path.is_file():
+        return False
+    if _regular_file_token(path) != expected:
+        return False
+    path.unlink()
+    return True
+
+
+def _publish_new_no_clobber(temp_path: Path, path: Path) -> tuple[int, int]:
+    if temp_path.parent != path.parent:
+        raise ValueError("temporary and final paths must share a parent directory")
+    linked = first_link_component(path.absolute())
+    if linked is not None:
+        raise ValueError(f"output path traverses a link or junction: {linked}")
+    try:
+        os.link(temp_path, path)
+    except FileExistsError:
+        raise FileExistsError(f"output target changed during commit: {path}") from None
+    except OSError as exc:
+        if path.exists() or path.is_symlink():
+            raise FileExistsError(f"output target changed during commit: {path}") from exc
+        raise OSError(f"atomic no-clobber publication is unavailable for {path}: {exc}") from exc
+    published_token = _regular_file_token(path)
+    try:
+        _fsync_parent_directory(path.parent)
+        _cleanup_owned_temp(temp_path)
+    except Exception:
+        _remove_owned_regular_file(path, published_token)
+        raise
+    return published_token
 
 
 def write_outputs(
@@ -1822,10 +1914,15 @@ def write_outputs(
     if not all_changes:
         return []
 
+    original_bytes: dict[Path, bytes | None] = {
+        path: path.read_bytes() if path.exists() else None for path in all_changes
+    }
+
     out_dir.mkdir(parents=True, exist_ok=True)
     temp_paths: dict[Path, Path] = {}
     backup_dir: Path | None = None
     committed: list[Path] = []
+    committed_tokens: dict[Path, tuple[int, int]] = {}
     extra_originals: dict[Path, bytes | None] = {
         path: path.read_bytes() if path.exists() else None for path in effective_extras
     }
@@ -1858,16 +1955,36 @@ def write_outputs(
                 shutil.copy2(path, backup_target)
 
         for target in all_changes:
-            os.replace(temp_paths[target], target)
+            original = original_bytes[target]
+            if original is None:
+                committed_tokens[target] = _publish_new_no_clobber(temp_paths[target], target)
+            else:
+                if (
+                    not target.exists()
+                    or is_link_like(target)
+                    or not target.is_file()
+                    or target.read_bytes() != original
+                ):
+                    raise RuntimeError(f"output target changed during commit: {target}")
+                os.replace(temp_paths[target], target)
+                _OWNED_TEMP_FILES.pop(temp_paths[target], None)
+                committed_tokens[target] = _regular_file_token(target)
             committed.append(target)
 
     except Exception:
         for target in reversed(committed):
             try:
+                if (
+                    not target.exists()
+                    or is_link_like(target)
+                    or not target.is_file()
+                    or _regular_file_token(target) != committed_tokens[target]
+                ):
+                    continue
                 if target in effective_extras:
                     original = extra_originals[target]
                     if original is None:
-                        target.unlink(missing_ok=True)
+                        _remove_owned_regular_file(target, committed_tokens[target])
                     else:
                         rollback = write_synced_temp(
                             target,
@@ -1879,16 +1996,15 @@ def write_outputs(
                     backed_up = backup_dir / target.name if backup_dir else None
                     if backed_up and backed_up.exists():
                         os.replace(backed_up, target)
-                    elif target.exists():
-                        target.unlink()
+                    else:
+                        _remove_owned_regular_file(target, committed_tokens[target])
             except OSError:
                 pass
         raise
     finally:
         for temp_path in temp_paths.values():
             try:
-                if temp_path.exists():
-                    temp_path.unlink()
+                _cleanup_owned_temp(temp_path)
             except OSError:
                 pass
 

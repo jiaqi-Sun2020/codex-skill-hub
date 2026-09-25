@@ -56,7 +56,14 @@ When the storage system does not provide atomic directory rename, write to a new
 
 Prevent duplicate writers with a mechanism appropriate to the execution system: exclusive create, transaction, lease with expiry and ownership, scheduler-level mutual exclusion, or an operating-system-held lock. A persistent lock filename alone is not proof that a process is active. Record run identity and writer ownership, and define safe stale-lock recovery.
 
-Atomic-write files such as `name.tmp.json` should be written, flushed as appropriate, and renamed over `name.json`. A leftover temporary is disposable only after confirming no writer is active and the stable target is complete or the interrupted attempt has been abandoned.
+Atomic-write files use a short identity-bound sibling such as
+`.tmp-<target-identity16>-<nonce>`; they must not repeat the full target name.
+Create the sibling exclusively, flush and sync it, then use a no-clobber atomic
+publication for create-new behavior. Overwrite-capable replacement requires an
+explicit replacement contract and backup. A leftover temporary is disposable
+only when its full identity, attempt ownership, safe non-link type, and abandoned
+state are all established. Read [transaction-safety.md](transaction-safety.md)
+for Windows path budgets, stale and legacy transactions, and bounded rollback.
 
 ## Cleanup decision test
 

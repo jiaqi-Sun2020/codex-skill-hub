@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import uuid
 
 
 SCHEMA_VERSION = "research-workspace-inventory/v2"
@@ -230,6 +231,137 @@ def first_link_component(path: Path) -> Path | None:
         if current.exists() and is_link_like(current):
             return current
     return None
+
+
+_OWNED_TEMP_FILES: dict[Path, tuple[int, int]] = {}
+
+
+def _target_identity(path: Path) -> str:
+    normalized = os.path.normcase(os.path.abspath(os.path.normpath(os.fspath(path))))
+    return hashlib.sha256(normalized.encode("utf-8", errors="surrogatepass")).hexdigest()
+
+
+def _create_safe_parent(path: Path) -> list[Path]:
+    linked = first_link_component(path.absolute())
+    if linked is not None:
+        raise ValueError(f"output path traverses a link or junction: {linked}")
+    missing: list[Path] = []
+    current = path
+    while not current.exists():
+        missing.append(current)
+        if current == current.parent:
+            break
+        current = current.parent
+    if current.exists() and (not current.is_dir() or is_link_like(current)):
+        raise ValueError(f"output parent is not a safe directory: {current}")
+    created: list[Path] = []
+    for directory in reversed(missing):
+        directory.mkdir()
+        if not directory.is_dir() or is_link_like(directory):
+            raise ValueError(f"created output parent is unsafe: {directory}")
+        created.append(directory)
+    return created
+
+
+def _create_synced_sibling_temp(path: Path, content: bytes, purpose: str = "write") -> Path:
+    del purpose
+    identity = _target_identity(path)
+    flags = (
+        os.O_CREAT
+        | os.O_EXCL
+        | os.O_WRONLY
+        | getattr(os, "O_BINARY", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
+    for _attempt in range(16):
+        temporary = path.parent / f".tmp-{identity[:16]}-{uuid.uuid4().hex[:12]}"
+        try:
+            fd = os.open(temporary, flags, 0o600)
+        except FileExistsError:
+            continue
+        opened_stat = os.fstat(fd)
+        _OWNED_TEMP_FILES[temporary] = (opened_stat.st_dev, opened_stat.st_ino)
+        try:
+            with os.fdopen(fd, "wb") as stream:
+                stream.write(content)
+                stream.flush()
+                os.fsync(stream.fileno())
+        except Exception:
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+            try:
+                _cleanup_owned_temp(temporary)
+            except (OSError, RuntimeError):
+                pass
+            raise
+        return temporary
+    raise FileExistsError("could not allocate an exclusive sibling temporary file")
+
+
+def _cleanup_owned_temp(temporary: Path) -> bool:
+    expected = _OWNED_TEMP_FILES.pop(temporary, None)
+    if expected is None or not temporary.exists():
+        return False
+    if is_link_like(temporary) or not temporary.is_file():
+        raise RuntimeError(f"refusing to clean replaced or linked temporary file: {temporary}")
+    stat = temporary.stat()
+    if (stat.st_dev, stat.st_ino) != expected:
+        raise RuntimeError(f"refusing to clean temporary file with changed identity: {temporary}")
+    temporary.unlink()
+    return True
+
+
+def _fsync_parent_directory(path: Path) -> None:
+    flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    try:
+        fd = os.open(path, flags)
+    except OSError:
+        if os.name == "nt":
+            return
+        raise
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+
+def _regular_file_token(path: Path) -> tuple[int, int]:
+    stat = path.stat()
+    return stat.st_dev, stat.st_ino
+
+
+def _remove_owned_regular_file(path: Path, expected: tuple[int, int]) -> bool:
+    if not path.exists() or is_link_like(path) or not path.is_file():
+        return False
+    if _regular_file_token(path) != expected:
+        return False
+    path.unlink()
+    return True
+
+
+def _publish_new_no_clobber(temporary: Path, path: Path) -> None:
+    if temporary.parent != path.parent:
+        raise ValueError("temporary and final paths must share a parent directory")
+    linked = first_link_component(path.absolute())
+    if linked is not None:
+        raise ValueError(f"output path traverses a link or junction: {linked}")
+    try:
+        os.link(temporary, path)
+    except FileExistsError:
+        raise FileExistsError(f"refusing to overwrite inventory output: {path}") from None
+    except OSError as exc:
+        if path.exists() or path.is_symlink():
+            raise FileExistsError(f"refusing to overwrite inventory output: {path}") from exc
+        raise OSError(f"atomic no-clobber publication is unavailable for {path}: {exc}") from exc
+    published_token = _regular_file_token(path)
+    try:
+        _fsync_parent_directory(path.parent)
+        _cleanup_owned_temp(temporary)
+    except Exception:
+        _remove_owned_regular_file(path, published_token)
+        raise
 
 
 def inspect_governance_layout(root: Path) -> dict[str, object]:
@@ -1164,27 +1296,34 @@ def build_inventory(root: Path, *, max_files: int = DEFAULT_MAX_FILES) -> dict[s
 
 
 def write_json_atomic(path: Path, value: dict[str, object], *, compact: bool) -> None:
-    path = path.expanduser().resolve(strict=False)
+    path = path.expanduser().absolute()
+    linked = first_link_component(path)
+    if linked is not None:
+        raise ValueError(f"inventory output traverses a link or junction: {linked}")
     if path.exists() or path.is_symlink():
         raise FileExistsError(f"refusing to overwrite inventory output: {path}")
-    path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_name(path.name + ".tmp")
-    if temporary.exists() or temporary.is_symlink():
-        raise FileExistsError(f"temporary output already exists: {temporary}")
+    created_directories = _create_safe_parent(path.parent)
     text = json.dumps(
         value,
         ensure_ascii=False,
         indent=None if compact else 2,
         separators=(",", ":") if compact else None,
     ) + "\n"
+    temporary: Path | None = None
+    published = False
     try:
-        with temporary.open("x", encoding="utf-8", newline="\n") as stream:
-            stream.write(text)
-            stream.flush()
-            os.fsync(stream.fileno())
-        os.replace(temporary, path)
+        temporary = _create_synced_sibling_temp(path, text.encode("utf-8"), "json")
+        _publish_new_no_clobber(temporary, path)
+        published = True
     finally:
-        temporary.unlink(missing_ok=True)
+        if temporary is not None:
+            _cleanup_owned_temp(temporary)
+        if not published:
+            for directory in reversed(created_directories):
+                try:
+                    directory.rmdir()
+                except OSError:
+                    pass
 
 
 def parse_args(argv: list[str]) -> argparse.Namespace:

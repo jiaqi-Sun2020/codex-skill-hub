@@ -65,6 +65,31 @@ does not execute Adapters, create `.agents`, choose a domain method, or grant
 authority. `neat-freak` and `handoff` live under `50-core-utils`; they are
 explicit external integration points, not contract owners in this directory.
 
+### Engineering repair loop
+
+This directory does not add a `project-engineering-repair` Skill. Workspace
+Governance owns the additive `engineering-repair-record/v1`,
+`engineering-execution-plan/v1`, `engineering-execution-receipt/v1`, and
+`github-actions-evidence/v1` sidecar contracts. The Management Pipeline only
+routes the next action; project code or an authorized operator reproduces,
+diagnoses, and implements; Submission Audit performs the final read-only check.
+The execution receipt's required `operator` and `delegation` objects also serve
+as the operator receipt, avoiding a duplicate source of truth.
+
+```text
+repair: reported → reproduced → diagnosed → planned → approved → fixed
+        → locally_verified → ci_verified → closed
+run:    not_started → awaiting_authorization → prepared
+        → awaiting_authorization → canary_passed
+        → awaiting_authorization → full_authorized
+```
+
+The state machines are independent; `blocked`, `stale`, and `rolled_back` record
+exceptions explicitly. Tests, commit, push, CI, and repair closure cannot
+authorize formal prepare, data generation, canary, or a full experiment. See
+[transaction safety](research-workspace-governance/references/transaction-safety.md)
+and [engineering operations](research-management-pipeline/references/engineering-operations.md).
+
 | Current situation | Correct entry |
 |---|---|
 | New project or legacy project not yet onboarded | `research-project-pipeline` |
@@ -72,6 +97,7 @@ explicit external integration points, not contract owners in this directory.
 | Contracts, methods, evidence, or environment changed after onboarding | `research-management-pipeline` |
 | Explicit domain protocol and normalized evidence need independent review | `experiment-protocol-audit` |
 | Preparing a commit, PR, release, delivery, or handoff | `project-submission-audit`, followed by `handoff` when needed |
+| An engineering failure needs an evidence-bound repair and verification | `research-management-pipeline` routes, Governance validates records, and an authorized operator implements |
 
 ## Component and ownership tree
 
@@ -261,6 +287,18 @@ python -X utf8 -B $validator validate $projectRoot --registry $registry
 python -X utf8 -B $validator matrix $projectRoot --registry $registry
 python -X utf8 -B $validator impact $projectRoot --registry $registry --change-id 'change-001'
 ~~~
+
+Engineering-repair sidecars use a separate read-only validator; record paths
+are relative to the project root:
+
+~~~powershell
+$repairValidator = '.\20-project-build\research-workspace-governance\scripts\validate_engineering_records.py'
+python -X utf8 -B $repairValidator bundle $projectRoot --record '.agents/governance/repairs/ENG-001.json' --plan '.agents/governance/plans/ENG-001.json' --receipt '.agents/governance/receipts/ENG-001.json' --ci-evidence '.agents/governance/evidence/ENG-001-ci.json'
+~~~
+
+Exit 0 means structure and cross-bindings are complete, 1 means incomplete,
+failed, or stale, and 2 means unsafe or invalid input. Output always declares
+`commands_executed: false`.
 
 Exit 0 means the requested structural/traceability assessment is complete, 1
 means assessment completed with incomplete or failed findings, and 2 means input

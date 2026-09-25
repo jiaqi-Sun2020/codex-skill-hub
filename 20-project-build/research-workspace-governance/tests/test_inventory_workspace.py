@@ -83,6 +83,56 @@ class InventoryWorkspaceTests(unittest.TestCase):
             self.assertTrue(output.exists())
             self.assertEqual(inventory.main([str(project), "--output", str(output)]), 2)
 
+    def test_inventory_json_temp_is_short_and_does_not_repeat_target_name(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            parent = Path(raw)
+            name_length = 241 - len(str(parent)) - 1
+            target = parent / ("x" * (name_length - 5) + ".json")
+            temporary = inventory._create_synced_sibling_temp(target, b"{}\n", "json")
+            try:
+                self.assertEqual(len(str(target)), 241)
+                self.assertEqual(temporary.parent, target.parent)
+                self.assertTrue(temporary.name.startswith(
+                    f".tmp-{inventory._target_identity(target)[:16]}-"
+                ))
+                self.assertNotIn(target.name, temporary.name)
+                self.assertLess(len(temporary.name), 40)
+            finally:
+                inventory._cleanup_owned_temp(temporary)
+
+    def test_inventory_publish_is_no_clobber_and_preserves_legacy_temp(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            target = root / "inventory.json"
+            legacy = target.with_name(target.name + ".tmp")
+            legacy.write_text("legacy owner\n", encoding="utf-8")
+            inventory.write_json_atomic(target, {"ok": True}, compact=True)
+            self.assertEqual(legacy.read_text(encoding="utf-8"), "legacy owner\n")
+
+            raced = root / "raced.json"
+            real_link = inventory.os.link
+
+            def create_competitor(src: object, dst: object) -> None:
+                Path(dst).write_text("external\n", encoding="utf-8")
+                real_link(src, dst)
+
+            with mock.patch.object(inventory.os, "link", side_effect=create_competitor):
+                with self.assertRaises(FileExistsError):
+                    inventory.write_json_atomic(raced, {"ours": True}, compact=True)
+            self.assertEqual(raced.read_text(encoding="utf-8"), "external\n")
+            self.assertEqual(list(root.glob(".tmp-*")), [])
+
+    def test_inventory_parent_sync_failure_rolls_back_owned_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "inventory.json"
+            temporary = inventory._create_synced_sibling_temp(target, b"ours\n", "json")
+            with mock.patch.object(inventory, "_fsync_parent_directory", side_effect=OSError("sync failed")):
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    inventory._publish_new_no_clobber(temporary, target)
+            self.assertFalse(target.exists())
+            self.assertTrue(temporary.exists())
+            inventory._cleanup_owned_temp(temporary)
+
     def test_governance_location_states_are_explicit(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             root = Path(raw)

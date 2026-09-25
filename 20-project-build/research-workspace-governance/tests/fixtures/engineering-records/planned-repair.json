@@ -1,0 +1,75 @@
+{
+  "schema_version": "engineering-repair-record/v1",
+  "issue_id": "ENG-REPAIR-2026-001",
+  "revision": 1,
+  "supersedes": null,
+  "record_sha256": "afe11604124ee83a316b8064037ab860beb1606610b6d42867563368b9637dd9",
+  "title": "Windows transaction staging exceeds path budget",
+  "classification": "portability",
+  "failure_signature": {
+    "code": "winerror-206",
+    "message_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "discovered_at": "2026-09-25T08:00:00Z",
+  "source_control": {
+    "base_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "head_sha": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "branch": "repair/windows-staging",
+    "remote": "origin",
+    "remote_ref": "refs/heads/repair/windows-staging"
+  },
+  "environment": {
+    "os": "windows",
+    "os_version": "11",
+    "runtime": "python-3.11",
+    "filesystem": "ntfs",
+    "cwd": ".",
+    "long_paths_enabled": false
+  },
+  "reproduction": {
+    "steps": ["run the bounded path fixture"],
+    "expected": "staging remains within the declared portable budget",
+    "actual": "legacy staging reaches 259 characters",
+    "exit_code": 1,
+    "evidence_refs": [{"path": "evidence/repro.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}]
+  },
+  "root_cause": {
+    "summary": "the legacy staging name repeats the final root basename",
+    "affected_files": ["project/operator.py"],
+    "affected_contracts": ["ENG-02", "ENG-11", "ENG-15"],
+    "scientific_contract_impact": "none"
+  },
+  "invalidation": {
+    "invalidated_gates": ["formal-prepare"],
+    "stale_evidence": [],
+    "required_revalidation": ["local-unit", "windows-ci"]
+  },
+  "repair_state": "planned",
+  "state_history": [
+    {"from": null, "to": "reported", "at": "2026-09-25T08:00:00Z", "actor": "operator", "evidence_refs": [{"path": "evidence/repro.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "decision_ref": null},
+    {"from": "reported", "to": "reproduced", "at": "2026-09-25T08:01:00Z", "actor": "operator", "evidence_refs": [{"path": "evidence/repro.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "decision_ref": null},
+    {"from": "reproduced", "to": "diagnosed", "at": "2026-09-25T08:02:00Z", "actor": "operator", "evidence_refs": [{"path": "evidence/root-cause.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "decision_ref": null},
+    {"from": "diagnosed", "to": "planned", "at": "2026-09-25T08:03:00Z", "actor": "operator", "evidence_refs": [{"path": "governance/repair-plan-001.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}], "decision_ref": {"path": "decisions/plan-review.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}}
+  ],
+  "run_authorization": {
+    "state": "awaiting_authorization",
+    "authorization_ref": null,
+    "evidence_refs": [],
+    "state_history": [
+      {"from": null, "to": "not_started", "at": "2026-09-25T08:00:00Z", "authorization_ref": null, "execution_receipt_ref": null, "evidence_refs": []},
+      {"from": "not_started", "to": "awaiting_authorization", "at": "2026-09-25T08:03:00Z", "authorization_ref": null, "execution_receipt_ref": null, "evidence_refs": []}
+    ]
+  },
+  "plan_ref": {"path": "governance/repair-plan-001.json", "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},
+  "authorization": {"state": "not_granted", "authorizer": null, "authorized_at": null, "scope": [], "decision_ref": null},
+  "implementation": {"changed_files": [], "commit_sha": null, "execution_receipt_refs": []},
+  "verification": {"test_layers": [], "artifact_safety": "not_evaluated", "rollback_strategy": "restore the reviewed base and retain failure evidence", "push_refs": [], "ci_evidence_ref": null},
+  "action_boundary": {"allowed_actions": ["read-only inspection", "review repair plan"], "forbidden_actions": ["modify code", "push", "formal prepare", "canary", "full experiment"]},
+  "residual_risks": ["network filesystems may reject no-clobber hard-link publication"],
+  "closure_evidence": null,
+  "closed_at": null,
+  "closed_by": null,
+  "blocked_from": null,
+  "blocker": null,
+  "unblock_condition": null
+}

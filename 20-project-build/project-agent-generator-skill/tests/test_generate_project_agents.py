@@ -94,6 +94,113 @@ class GeneratorSafetyTests(unittest.TestCase):
                 {"AGENTS.md"},
             )
 
+    def test_synced_temp_has_bounded_identity_name_at_long_path_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            parent = Path(raw)
+            name_length = 258 - len(str(parent)) - 1
+            target = parent / ("x" * (name_length - 3) + ".md")
+            legacy_length = len(str(target)) + 1 + 32 + 1 + len("rollback.tmp")
+            temporary = generator.write_synced_temp(target, b"safe\n", "rollback.tmp")
+            try:
+                self.assertEqual(len(str(target)), 258)
+                self.assertGreater(legacy_length, 259)
+                self.assertTrue(temporary.name.startswith(
+                    f".tmp-{generator._target_identity(target)[:16]}-"
+                ))
+                self.assertNotIn(target.name, temporary.name)
+                self.assertLess(len(temporary.name), 40)
+                self.assertLess(len(str(temporary)), len(str(target)))
+            finally:
+                generator._cleanup_owned_temp(temporary)
+
+    def test_create_only_publish_does_not_overwrite_competing_target(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            target = root / "AGENTS.md"
+            temporary = generator.write_synced_temp(target, b"ours\n")
+            target.write_bytes(b"external\n")
+            with self.assertRaises(FileExistsError):
+                generator._publish_new_no_clobber(temporary, target)
+            self.assertEqual(target.read_bytes(), b"external\n")
+            self.assertTrue(temporary.exists())
+            generator._cleanup_owned_temp(temporary)
+
+    def test_create_only_parent_sync_failure_rolls_back_owned_target(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "AGENTS.md"
+            temporary = generator.write_synced_temp(target, b"ours\n")
+            with mock.patch.object(generator, "_fsync_parent_directory", side_effect=OSError("sync failed")):
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    generator._publish_new_no_clobber(temporary, target)
+            self.assertFalse(target.exists())
+            self.assertTrue(temporary.exists())
+            generator._cleanup_owned_temp(temporary)
+
+    def test_temp_cleanup_refuses_replaced_file(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "AGENTS.md"
+            temporary = generator.write_synced_temp(target, b"ours\n")
+            temporary.unlink()
+            temporary.write_bytes(b"external\n")
+            with self.assertRaisesRegex(RuntimeError, "changed identity"):
+                generator._cleanup_owned_temp(temporary)
+            self.assertEqual(temporary.read_bytes(), b"external\n")
+
+    def test_temp_name_collision_retries_without_deleting_stale_file(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            target = Path(raw) / "AGENTS.md"
+            identity = generator._target_identity(target)
+            stale = target.parent / f".tmp-{identity[:16]}-{'1' * 12}"
+            stale.write_bytes(b"stale-owner\n")
+            values = [mock.Mock(hex="1" * 32), mock.Mock(hex="2" * 32)]
+            with mock.patch.object(generator.uuid, "uuid4", side_effect=values):
+                temporary = generator.write_synced_temp(target, b"ours\n")
+            try:
+                self.assertEqual(stale.read_bytes(), b"stale-owner\n")
+                self.assertNotEqual(temporary, stale)
+            finally:
+                generator._cleanup_owned_temp(temporary)
+
+    def test_fsync_failure_cleans_only_the_owned_temp(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            root = Path(raw)
+            target = root / "AGENTS.md"
+            unrelated = root / ".tmp-external"
+            unrelated.write_bytes(b"keep\n")
+            with mock.patch.object(generator.os, "fsync", side_effect=OSError("injected fsync failure")):
+                with self.assertRaisesRegex(OSError, "fsync failure"):
+                    generator.write_synced_temp(target, b"ours\n")
+            self.assertEqual(unrelated.read_bytes(), b"keep\n")
+            self.assertEqual(list(root.glob(f".tmp-{generator._target_identity(target)[:16]}-*")), [])
+
+    def test_fault_rollback_does_not_delete_externally_replaced_publication(self) -> None:
+        with tempfile.TemporaryDirectory() as raw:
+            project = self.make_project(Path(raw)).resolve()
+            out_dir = project / ".agents"
+            facts = generator.analyze_project(project, out_dir)
+            real_publish = generator._publish_new_no_clobber
+            first_target: Path | None = None
+            calls = 0
+
+            def publish_then_replace(temp_path: Path, target: Path) -> tuple[int, int]:
+                nonlocal calls, first_target
+                calls += 1
+                if calls == 2:
+                    raise OSError("injected publish failure")
+                token = real_publish(temp_path, target)
+                first_target = target
+                target.unlink()
+                target.write_bytes(b"external-writer\n")
+                return token
+
+            with mock.patch.object(generator, "_publish_new_no_clobber", side_effect=publish_then_replace):
+                with self.assertRaisesRegex(OSError, "publish failure"):
+                    generator.write_outputs(facts, out_dir, force=False, dry_run=False)
+
+            self.assertIsNotNone(first_target)
+            assert first_target is not None
+            self.assertEqual(first_target.read_bytes(), b"external-writer\n")
+
     def test_path_confinement_and_explicit_compatibility_flags(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw)).resolve()
@@ -407,16 +514,14 @@ class GeneratorSafetyTests(unittest.TestCase):
             self.assertNotIn("hookSpecificOutput", payload)
             self.assertIn("linked or junction-based", payload["stopReason"])
 
-    def test_generated_loader_matches_repository_loader(self) -> None:
+    def test_generated_loader_matches_skill_owned_template(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             project = self.make_project(Path(raw))
             self.assertEqual(generator.main([str(project)]), 0)
             generated = project / ".codex" / "hooks" / "load_project_agents.py"
-            repository_root = Path(__file__).resolve().parents[3]
-            repository_loader = repository_root / ".codex" / "hooks" / "load_project_agents.py"
             self.assertEqual(
                 generated.read_text(encoding="utf-8"),
-                repository_loader.read_text(encoding="utf-8"),
+                generator.CODEX_LOADER_TEMPLATE.replace("__AGENT_BUNDLE__", ".agents"),
             )
 
     def test_bootstrap_merges_existing_config_and_hooks(self) -> None:

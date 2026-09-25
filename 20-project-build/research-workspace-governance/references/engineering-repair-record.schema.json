@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "engineering-repair-record.schema.json",
+  "title": "engineering-repair-record/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "issue_id", "revision", "supersedes", "record_sha256",
+    "title", "classification", "failure_signature", "discovered_at",
+    "source_control", "environment", "reproduction", "root_cause",
+    "invalidation", "repair_state", "state_history", "run_authorization",
+    "plan_ref", "authorization", "implementation", "verification",
+    "action_boundary", "residual_risks", "closure_evidence", "closed_at", "closed_by",
+    "blocked_from", "blocker", "unblock_condition"
+  ],
+  "properties": {
+    "schema_version": {"const": "engineering-repair-record/v1"},
+    "issue_id": {"$ref": "#/$defs/stable_id"},
+    "revision": {"type": "integer", "minimum": 1},
+    "supersedes": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+    "record_sha256": {"$ref": "#/$defs/sha256"},
+    "title": {"type": "string", "minLength": 1, "maxLength": 300},
+    "classification": {
+      "enum": ["portability", "infrastructure", "artifact_integrity", "contract", "scientific"]
+    },
+    "failure_signature": {
+      "type": "object", "additionalProperties": false,
+      "required": ["code", "message_sha256"],
+      "properties": {
+        "code": {"$ref": "#/$defs/stable_id"},
+        "message_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "discovered_at": {"$ref": "#/$defs/timestamp"},
+    "source_control": {
+      "type": "object", "additionalProperties": false,
+      "required": ["base_sha", "head_sha", "branch", "remote", "remote_ref"],
+      "properties": {
+        "base_sha": {"$ref": "#/$defs/object_id"},
+        "head_sha": {"$ref": "#/$defs/object_id"},
+        "branch": {"type": "string", "minLength": 1},
+        "remote": {"type": "string", "minLength": 1},
+        "remote_ref": {"type": "string", "pattern": "^refs/"}
+      }
+    },
+    "environment": {
+      "type": "object", "additionalProperties": false,
+      "required": ["os", "os_version", "runtime", "filesystem", "cwd", "long_paths_enabled"],
+      "properties": {
+        "os": {"enum": ["windows", "linux", "macos", "other"]},
+        "os_version": {"type": "string", "minLength": 1},
+        "runtime": {"type": "string", "minLength": 1},
+        "filesystem": {"type": "string", "minLength": 1},
+        "cwd": {"$ref": "#/$defs/project_path"},
+        "long_paths_enabled": {"type": ["boolean", "null"]}
+      }
+    },
+    "reproduction": {
+      "type": "object", "additionalProperties": false,
+      "required": ["steps", "expected", "actual", "exit_code", "evidence_refs"],
+      "properties": {
+        "steps": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}},
+        "expected": {"type": "string", "minLength": 1},
+        "actual": {"type": "string", "minLength": 1},
+        "exit_code": {"type": ["integer", "null"]},
+        "evidence_refs": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/artifact_ref"}}
+      }
+    },
+    "root_cause": {
+      "type": "object", "additionalProperties": false,
+      "required": ["summary", "affected_files", "affected_contracts", "scientific_contract_impact"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "affected_files": {"type": "array", "items": {"$ref": "#/$defs/project_path"}},
+        "affected_contracts": {"type": "array", "items": {"$ref": "#/$defs/stable_id"}},
+        "scientific_contract_impact": {"enum": ["none", "possible", "confirmed", "unknown"]}
+      }
+    },
+    "invalidation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["invalidated_gates", "stale_evidence", "required_revalidation"],
+      "properties": {
+        "invalidated_gates": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "stale_evidence": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}},
+        "required_revalidation": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "repair_state": {"$ref": "#/$defs/repair_state"},
+    "state_history": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/state_event"}},
+    "run_authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state", "authorization_ref", "evidence_refs", "state_history"],
+      "properties": {
+        "state": {"enum": ["not_started", "stale", "awaiting_authorization", "prepared", "canary_passed", "full_authorized"]},
+        "authorization_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}},
+        "state_history": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/run_state_event"}}
+      }
+    },
+    "plan_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+    "authorization": {
+      "type": "object", "additionalProperties": false,
+      "required": ["state", "authorizer", "authorized_at", "scope", "decision_ref"],
+      "properties": {
+        "state": {"enum": ["not_granted", "granted", "expired", "revoked"]},
+        "authorizer": {"type": ["string", "null"]},
+        "authorized_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/timestamp"}]},
+        "scope": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "decision_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]}
+      }
+    },
+    "implementation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["changed_files", "commit_sha", "execution_receipt_refs"],
+      "properties": {
+        "changed_files": {"type": "array", "items": {"$ref": "#/$defs/project_path"}},
+        "commit_sha": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/object_id"}]},
+        "execution_receipt_refs": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}}
+      }
+    },
+    "verification": {
+      "type": "object", "additionalProperties": false,
+      "required": ["test_layers", "artifact_safety", "rollback_strategy", "push_refs", "ci_evidence_ref"],
+      "properties": {
+        "test_layers": {"type": "array", "items": {"type": "object"}},
+        "artifact_safety": {"enum": ["not_evaluated", "safe", "unsafe", "incomplete"]},
+        "rollback_strategy": {"type": "string", "minLength": 1},
+        "push_refs": {"type": "array", "items": {"type": "object"}},
+        "ci_evidence_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]}
+      }
+    },
+    "action_boundary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["allowed_actions", "forbidden_actions"],
+      "properties": {
+        "allowed_actions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+        "forbidden_actions": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "residual_risks": {"type": "array", "items": {"type": "string", "minLength": 1}},
+    "closure_evidence": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+    "closed_at": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/timestamp"}]},
+    "closed_by": {"type": ["string", "null"]},
+    "blocked_from": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/repair_state"}]},
+    "blocker": {"type": ["string", "null"]},
+    "unblock_condition": {"type": ["string", "null"]}
+  },
+  "$defs": {
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "object_id": {"type": "string", "pattern": "^(?:[0-9a-f]{40}|[0-9a-f]{64})$"},
+    "stable_id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/#-]{0,255}$"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "project_path": {"type": "string", "minLength": 1, "pattern": "^(?![A-Za-z]:)(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"},
+    "repair_state": {"enum": ["reported", "reproduced", "diagnosed", "planned", "approved", "fixed", "locally_verified", "ci_verified", "closed", "blocked", "stale", "rolled_back"]},
+    "artifact_ref": {
+      "type": "object", "additionalProperties": false,
+      "required": ["path", "sha256"],
+      "properties": {"path": {"$ref": "#/$defs/project_path"}, "sha256": {"$ref": "#/$defs/sha256"}}
+    },
+    "state_event": {
+      "type": "object", "additionalProperties": false,
+      "required": ["from", "to", "at", "actor", "evidence_refs", "decision_ref"],
+      "properties": {
+        "from": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/repair_state"}]},
+        "to": {"$ref": "#/$defs/repair_state"},
+        "at": {"$ref": "#/$defs/timestamp"},
+        "actor": {"type": "string", "minLength": 1},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}},
+        "decision_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]}
+      }
+    },
+    "run_state_event": {
+      "type": "object", "additionalProperties": false,
+      "required": ["from", "to", "at", "authorization_ref", "execution_receipt_ref", "evidence_refs"],
+      "properties": {
+        "from": {"type": ["string", "null"], "enum": [null, "not_started", "stale", "awaiting_authorization", "prepared", "canary_passed", "full_authorized"]},
+        "to": {"enum": ["not_started", "stale", "awaiting_authorization", "prepared", "canary_passed", "full_authorized"]},
+        "at": {"$ref": "#/$defs/timestamp"},
+        "authorization_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+        "execution_receipt_ref": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/artifact_ref"}]},
+        "evidence_refs": {"type": "array", "items": {"$ref": "#/$defs/artifact_ref"}}
+      }
+    }
+  }
+}

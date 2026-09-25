@@ -214,6 +214,11 @@ parse the legacy text output in a pipeline.
 - Bootstrap-only is create-only: exact managed files may be left unchanged,
   missing files may be created, and every differing existing target is a hard
   conflict. It never edits `.agents` knowledge or replaces an owner file.
+- All prepared files use short identity-bound random sibling names and exclusive
+  creation. Create-only publication is atomic and no-clobber; it never falls
+  back to overwrite-capable replacement. `--force` replacement retains its
+  explicit backup, unchanged-target check, and identity-bounded rollback. A
+  stale or externally replaced temporary/target is retained rather than deleted.
 - Do not force `CLAUDE.md` and `AGENTS.md` to be symlinks or copies. Preserve the repository's established platform-specific layout.
 - Do not create or modify a root `AGENTS.md`. This project architecture requires
   the project bootstrap or caller to load `<out-dir>/AGENTS.md` explicitly.
