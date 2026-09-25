@@ -1672,7 +1672,7 @@ def apply_bootstrap_only(root: Path, manifest: dict[str, object], desired: dict[
     planned = [path for path in desired if actions.get(path.relative_to(root).as_posix()) == "create"]
     temp_paths: dict[Path, Path] = {}
     committed: list[Path] = []
-    committed_tokens: dict[Path, tuple[int, int]] = {}
+    committed_tokens: dict[Path, tuple[int, int, int]] = {}
     created_directories: list[Path] = []
     succeeded = False
     try:
@@ -1947,6 +1947,9 @@ def write_outputs(
             temp_paths[path] = write_synced_temp(path, content.encode("utf-8"))
             if path.exists():
                 shutil.copymode(path, temp_paths[path])
+                _OWNED_TEMP_FILES[temp_paths[path]] = _regular_file_token(
+                    temp_paths[path]
+                )
 
         changed_existing = [path for path in existing if path in generated_changes]
         changed_existing.extend(
