@@ -110,3 +110,17 @@ Verify that:
 - visible caption text is not clipped, does not cover data, and is split rather than reduced below the declared editing-size minimum;
 - the visible explanation, `caption.md`, and speaker notes do not contradict each other;
 - single-metric threshold crossings are not described as joint acceptance unless every formal criterion passes at the same candidate value.
+
+## Stable Surface Identity
+
+For `academic-figure-contract/v1` figures, keep `caption.md` as the portable
+human-readable caption source and bind each scientific visual element to a
+stable element ID. The contract maps that ID to the plot or diagram source,
+PPT main object, component-board object, visible explanation, notes anchor,
+caption anchor, and manifest object as applicable.
+
+Record the SHA-256 of `caption.md` and of the caption copied into speaker notes.
+The hashes must match for a verified PPT package. A matching hash proves that
+the text was transferred consistently; it does not prove that the text is a
+valid scientific interpretation. Review values, scope, exclusions,
+uncertainty, and conclusions manually.

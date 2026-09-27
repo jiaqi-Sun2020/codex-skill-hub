@@ -68,6 +68,38 @@ Open decisions:
   review state. Claim support is decided by the relevant research analysis or
   human scientific review, not by this figure workflow.
 
+## Machine-Readable Contract
+
+For new or materially revised complex figures, instantiate
+`assets/figure_contract.template.json` as `figure_contract.json`. It is the
+single machine-readable identity and lineage record for the figure. Do not
+copy style tokens or complete layout geometry into it; reference the locked
+style manifest and shared layout contract instead.
+
+Use conditional sections only when applicable:
+
+- data-backed panels declare stable `source`, `display`, `fit`, `statistical`,
+  and `sensitivity` population roles when those sets differ;
+- each population records its count, selector reference, evidence references,
+  and its relationship to the displayed population;
+- each display population explains its relationship to rendered rows; only an
+  explicit one-to-one relationship permits a mechanical row-count comparison,
+  because aggregated plots need not have one mark per research unit;
+- uncertainty records the method, meaning, unit of analysis, and prohibited
+  inference, or an explicit reason that it is not applicable;
+- every meaningful element has one stable ID and one surface binding;
+- architecture figures may add nodes, edges, dimensions, evidence references,
+  and a protected template baseline;
+- rebuild information records the working directory, hashed inputs, expected
+  outputs, and either an argv-style command or a manual instruction reference
+  for genuinely hand-edited sources;
+- a revision that changes populations, exclusions, transformations,
+  uncertainty, claims, nodes, edges, or dimensions must list the affected
+  outputs in `revision.invalidated_outputs`.
+
+The validator checks consistency and traceability. It cannot decide whether a
+scientific method or conclusion is correct.
+
 ## Quality Gate
 
 | Gate | Pass condition |
@@ -82,8 +114,8 @@ Open decisions:
 
 When maintaining this skills repository or checking a figure package, use:
 
-```bash
-python scripts/figure_package_check.py --package figures --captions captions.md --output-md figure_package_check.md
+```powershell
+python -X utf8 -B scripts/validate_figure_contract.py --contract figure_contract.json
 ```
 
 Treat missing editable sources, missing exports, and captions without claim anchors as issues to resolve or explicitly waive.

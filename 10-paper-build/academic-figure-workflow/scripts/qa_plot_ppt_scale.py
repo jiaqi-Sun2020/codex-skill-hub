@@ -15,6 +15,7 @@ NUMBER = r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?"
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--layout", type=Path, required=True, help="Shared plot/PPT layout JSON")
+    parser.add_argument("--figure-contract", type=Path, help="Optional academic-figure-contract/v1 record")
     parser.add_argument(
         "--report",
         type=Path,
@@ -59,6 +60,28 @@ def main() -> int:
     )
     issues: list[str] = []
     panels: dict[str, dict] = {}
+    figure_contract = None
+    if args.figure_contract:
+        contract_path = args.figure_contract.resolve(strict=True)
+        figure_contract = json.loads(contract_path.read_text(encoding="utf-8-sig"))
+        if figure_contract.get("schema_version") != "academic-figure-contract/v1":
+            issues.append("figure contract: unsupported schema_version")
+        contract_panel_ids = {
+            str(panel.get("panel_id"))
+            for panel in figure_contract.get("panels", [])
+            if isinstance(panel, dict) and panel.get("panel_id")
+        }
+        layout_panel_ids = {str(panel_id) for panel_id in layout.get("panels", {})}
+        if contract_panel_ids != layout_panel_ids:
+            issues.append(
+                "figure contract: panel ids differ from layout "
+                f"contract={sorted(contract_panel_ids)} layout={sorted(layout_panel_ids)}"
+            )
+        layout_ref = figure_contract.get("layout_ref")
+        if isinstance(layout_ref, str) and layout_ref.strip():
+            declared_layout = (contract_path.parent / layout_ref).resolve(strict=False)
+            if declared_layout != layout_path:
+                issues.append("figure contract: layout_ref does not resolve to --layout")
     typography_contract = layout.get("typography_final_pt", {})
     visual_grammar = layout.get("visual_grammar", {})
     required_visual_keys = {
@@ -181,6 +204,7 @@ def main() -> int:
         "typography_contract": typography_contract,
         "visual_grammar": visual_grammar,
         "visual_grammar_required": args.require_visual_grammar,
+        "figure_contract": str(args.figure_contract.resolve()) if args.figure_contract else None,
         "issues": issues,
     }
     payload = json.dumps(report, ensure_ascii=False, indent=2) + "\n"

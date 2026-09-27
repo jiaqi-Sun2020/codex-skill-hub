@@ -107,6 +107,10 @@ Read [figure-method-selection.md](references/figure-method-selection.md) when mo
 16. Treat plot legends, markers, direct labels, annotations, and fonts as one visual grammar. Remove redundant encodings, use markers only for declared sample or event meanings, and keep peer typography locked at final size without altering scientific content.
 17. Every academic PPT figure kit defaults to three caption surfaces: portable `caption.md`, publication-slide speaker notes, and native editable panel-mapped visible explanation sections on a supporting slide or reserved column. Keep the publication artwork clean. A notes-only or single-slide exception requires an explicit user request and a manifest record.
 18. For editable PPT model or neural-network figures, use the bundled default model-diagram template only when the user has not supplied a reference PPTX and the project has no locked user-approved model template. The template contributes layout and visual grammar, never scientific content. Replace every example-specific label, tensor dimension, branch, operator, caption, and source with evidence from the target project.
+19. For a new or materially revised data-backed, code-backed, architecture, multi-surface, or submission-bound figure, create one `academic-figure-contract/v1` record from `assets/figure_contract.template.json`. Use it as the stable identity and lineage layer; keep the style manifest as the sole appearance layer and the layout contract as the sole geometry layer.
+20. Distinguish source, displayed, fitted, statistical, and sensitivity populations whenever they differ. A visually unchanged figure is scientifically stale when a selector, exclusion, aggregation, fit domain, uncertainty definition, or architecture topology changes without invalidating dependent outputs.
+21. Synchronize source objects, publication artwork, component boards, visible explanations, speaker notes, `caption.md`, and manifests with stable element IDs. Machine checks establish identity, coverage, hashes, and traceability; a researcher must still review scientific meaning.
+22. Treat user-approved templates and user-edited revisions as protected baselines. Record hashes and allowed deviations, produce a cleanup preview before deletion, and never infer approval from a filename or modification time.
 
 ## Workflow Router
 
@@ -135,7 +139,8 @@ Read [figure-method-selection.md](references/figure-method-selection.md) when mo
     symbols, substituted glyphs, changed notation, or broken references.
 14. Apply [rendered-figure-qa.md](references/rendered-figure-qa.md) to every submission-quality figure and the additional PPT QA in [pptx-figure-assembly.md](references/pptx-figure-assembly.md).
 15. After validation, apply [figure-package-hygiene.md](references/figure-package-hygiene.md). Remove transient files only after their final outputs and source traces are verified.
-16. Deliver editable sources, exports, caption draft, placement recommendation, evidence/code/data trace, style-manifest path, validation summary, editability report, and unresolved issues.
+16. Validate an applicable Figure Contract with `scripts/validate_figure_contract.py`. When comparing revisions, pass the previous contract so scientific changes cannot be mislabeled as visual-only or delivered without explicit invalidation.
+17. Deliver editable sources, exports, caption draft, placement recommendation, evidence/code/data trace, style-manifest path, Figure Contract path and hash when applicable, validation summary, editability report, rebuild command, protected baselines, and unresolved issues.
 
 ## Validation
 
@@ -180,3 +185,5 @@ Before finishing:
 - `scripts/build_figure_pptx.mjs`: assemble a hybrid editable PPTX, component board, manifest, and previews with the currently supported presentation backend.
 - `scripts/qa_pptx_package.py`: verify PPTX structure, native text, slide bounds, SVG media hashes, and documented raster fallbacks.
 - `scripts/qa_plot_ppt_scale.py`: compare SVG viewBoxes with declared PPT slots and enforce final-size font/stroke contract values.
+- `scripts/validate_figure_contract.py`: read-only validation of scientific populations, uncertainty, stable element IDs, surface coverage, architecture topology, revision invalidation, paths, hashes, and rebuild records.
+- `assets/figure_contract.template.json`: minimal conditional template for `academic-figure-contract/v1`; never use the template itself as a delivery contract.

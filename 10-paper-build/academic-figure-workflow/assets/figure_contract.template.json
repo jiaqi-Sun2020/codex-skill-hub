@@ -1,0 +1,94 @@
+{
+  "schema_version": "academic-figure-contract/v1",
+  "template": true,
+  "figure_id": "fig01_example",
+  "status": "draft",
+  "claim_anchors": [
+    "claim-example"
+  ],
+  "panels": [
+    {
+      "panel_id": "a",
+      "claim_anchor": "claim-example",
+      "evidence_refs": [
+        "source/evidence-record.json"
+      ],
+      "populations": [
+        {
+          "population_id": "a-source",
+          "role": "source",
+          "count": 10,
+          "selector_ref": "source/evidence-record.json#source-population",
+          "evidence_refs": [
+            "source/evidence-record.json"
+          ]
+        },
+        {
+          "population_id": "a-display",
+          "role": "display",
+          "count": 10,
+          "selector_ref": "source/evidence-record.json#display-population",
+          "relationship_to_rendered_rows": "one_to_one",
+          "evidence_refs": [
+            "source/evidence-record.json"
+          ]
+        }
+      ],
+      "uncertainty": {
+        "applicability": "not_applicable",
+        "reason": "The example panel makes no uncertainty claim."
+      },
+      "elements": [
+        {
+          "element_id": "a.primary-marks",
+          "kind": "data_marks",
+          "evidence_refs": [
+            "source/evidence-record.json"
+          ]
+        }
+      ]
+    }
+  ],
+  "surfaces": {
+    "caption_md": "caption.md",
+    "ppt": {
+      "required": false,
+      "visible_explanations_required": false,
+      "visible_override": null
+    },
+    "bindings": [
+      {
+        "element_id": "a.primary-marks",
+        "source": "panel-a-primary-marks",
+        "manifest": "panel-a-primary-marks",
+        "caption": "panel-a-primary-marks"
+      }
+    ]
+  },
+  "baseline": {
+    "current_revision": "draft-1",
+    "protected_user_revisions": []
+  },
+  "rebuild": {
+    "mode": "command",
+    "working_directory": ".",
+    "command": [
+      "python",
+      "source/build_figure.py"
+    ],
+    "inputs": [
+      {
+        "path": "source/evidence-record.json",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    ],
+    "outputs": [
+      "exports/fig01_example.svg"
+    ]
+  },
+  "revision": {
+    "change_class": "initial",
+    "changed_refs": [],
+    "invalidated_outputs": []
+  }
+}

@@ -43,6 +43,7 @@ jobs:
           $env:PYTHONNOUSERSITE = '1'
           $env:PYTHONHASHSEED = '0'
           $suites = @(
+            (Join-Path $repoRoot '10-paper-build\academic-figure-workflow\tests'),
             (Join-Path $repoRoot '10-paper-build\latex-paper-build-skill\tests'),
             (Join-Path $repoRoot '20-project-build\experiment-protocol-audit\tests'),
             (Join-Path $repoRoot '20-project-build\project-agent-generator-skill\tests'),
@@ -229,7 +230,9 @@ jobs:
           $projectSuites = Get-ChildItem (Join-Path $repoRoot '20-project-build') -Directory |
             Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'tests') -PathType Container } |
             ForEach-Object { Join-Path $_.FullName 'tests' }
-          $suites = @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
+          $suites = @(
+            (Join-Path $repoRoot '10-paper-build/academic-figure-workflow/tests')
+          ) + @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
           $failedSuites = @()
           Push-Location $externalCwd
           try {

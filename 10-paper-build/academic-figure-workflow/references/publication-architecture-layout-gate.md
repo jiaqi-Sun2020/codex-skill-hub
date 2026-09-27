@@ -28,6 +28,14 @@ Reject the layout when essential text falls below the selected publication stand
 
 Derive the graph from code, equations, data transformations, or manuscript evidence before arranging blocks.
 
+For a contract-backed architecture figure, assign every node and edge a stable
+ID and at least one evidence reference. Record tensor or vector dimensions
+when the source defines them; use an explicit unresolved state rather than a
+plausible-looking inferred dimension. Every edge endpoint must resolve to a
+declared node. A change to a node, edge, dimension, branch, merge, or residual
+relationship is a scientific change and invalidates dependent exports,
+captions, and PPT surfaces until rebuilt and reviewed.
+
 - Split branches at the point where their real transformations diverge.
 - Do not place branch-specific features downstream of a shared preprocessing block unless the source implements that shared dependency.
 - Distinguish raw measurements, normalized tensors, engineered features, learned features, and predictions.

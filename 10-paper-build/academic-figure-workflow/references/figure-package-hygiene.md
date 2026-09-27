@@ -37,6 +37,16 @@ Do not mix Figure 1 and Figure 2 sources, exports, manifests, or QA remnants in 
 
 ## Classification
 
+Classify versioned assets before cleanup:
+
+- `current`: the revision selected for active delivery;
+- `user_approved`: a protected editable or rendered baseline;
+- `historical`: retained because it explains a prior decision or result;
+- `transient`: reproducible scratch output with no independent review value.
+
+Do not infer these roles from filenames, timestamps, or directory order. Store
+the current revision and protected user revisions in the Figure Contract.
+
 Keep as final deliverables:
 
 - requested PPTX, SVG, PDF, PNG, TIFF, or Draw.io files;
@@ -66,6 +76,11 @@ Treat as transient unless the user requests retention:
 6. Delete only the explicit transient list. Do not use an unresolved wildcard or a recursive delete against the workspace root.
 7. Re-list the final project tree, open the final PPTX, and verify that every manifest path still resolves.
 8. Report what was deleted and whether any retained intermediate is still required for reproducibility.
+
+Automation may generate a cleanup preview and a manifest-derived keep list,
+but it must not delete files merely because they are absent from the current
+manifest. User-approved revisions, user-edited sources, unknown files, raw
+data, and evidence remain protected until explicitly classified and approved.
 
 ## Default Retention
 

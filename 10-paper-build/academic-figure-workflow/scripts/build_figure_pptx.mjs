@@ -43,6 +43,7 @@ Options:
   --output PATH           Output PPTX path (required).
   --manifest PATH         Output ppt_manifest.json path.
   --caption PATH          Figure caption Markdown/text; embedded in publication-slide notes.
+  --figure-contract PATH  Optional academic-figure-contract/v1 JSON record.
   --preview-dir PATH      Retained preview directory; used only with --retain-previews.
   --retain-previews       Keep slide PNG/layout previews after QA (default: delete them).
   --demo                  Build a two-slide self-contained smoke-test kit.
@@ -125,6 +126,44 @@ function contentTypeFor(filePath) {
 
 function hash(bytes) {
   return crypto.createHash("sha256").update(bytes).digest("hex");
+}
+
+async function canonicalPath(filePath) {
+  let resolved;
+  try {
+    resolved = await fs.realpath(filePath);
+  } catch {
+    resolved = path.resolve(filePath);
+  }
+  return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+}
+
+function validateContractForAssembly(contract) {
+  const errors = [];
+  const elementIds = new Set();
+  for (const panel of Array.isArray(contract.panels) ? contract.panels : []) {
+    for (const element of Array.isArray(panel.elements) ? panel.elements : []) {
+      if (typeof element.element_id === "string" && element.element_id) elementIds.add(element.element_id);
+    }
+  }
+  const surfaces = contract.surfaces && typeof contract.surfaces === "object" ? contract.surfaces : {};
+  const bindings = Array.isArray(surfaces.bindings) ? surfaces.bindings : [];
+  const boundIds = new Set(bindings.map((item) => item?.element_id).filter(Boolean));
+  for (const elementId of elementIds) if (!boundIds.has(elementId)) errors.push(`missing surface binding for ${elementId}`);
+  for (const elementId of boundIds) if (!elementIds.has(elementId)) errors.push(`surface binding references unknown element ${elementId}`);
+  const ppt = surfaces.ppt && typeof surfaces.ppt === "object" ? surfaces.ppt : {};
+  for (const binding of bindings) {
+    if (ppt.required === true && (!binding.ppt_main || !binding.notes)) {
+      errors.push(`PPT delivery binding ${binding.element_id} requires ppt_main and notes`);
+    }
+    if (ppt.visible_explanations_required === true && (!binding.component_board || !binding.visible_explanation)) {
+      errors.push(`visible explanation binding ${binding.element_id} requires component_board and visible_explanation`);
+    }
+  }
+  if (ppt.visible_explanations_required === true && (!Array.isArray(ppt.visible_caption_slides) || ppt.visible_caption_slides.length === 0)) {
+    errors.push("visible PPT explanations require visible_caption_slides");
+  }
+  if (errors.length) throw new Error(`Figure contract assembly preflight failed: ${errors.join("; ")}`);
 }
 
 function styleTokens(style) {
@@ -264,6 +303,15 @@ async function main() {
   const specPath = args.spec ? path.resolve(args.spec) : "";
   const spec = args.demo ? demoSpec(style) : await readJsonCompatible(specPath, "Assembly spec");
   if (!Array.isArray(spec.slides) || spec.slides.length === 0) throw new Error("Assembly spec needs at least one slide");
+  const contractPath = args.figure_contract ? path.resolve(args.figure_contract) : "";
+  const figureContract = contractPath ? await readJsonCompatible(contractPath, "Figure contract") : null;
+  if (figureContract && figureContract.schema_version !== "academic-figure-contract/v1") {
+    throw new Error("Figure contract must use academic-figure-contract/v1");
+  }
+  if (figureContract?.template === true) throw new Error("A template figure contract cannot be used for delivery");
+  if (figureContract) validateContractForAssembly(figureContract);
+  const contractSurfaces = figureContract?.surfaces || {};
+  const surfaceBindings = Array.isArray(contractSurfaces.bindings) ? contractSurfaces.bindings : [];
 
   const outputPath = path.resolve(args.output);
   const outputDir = path.dirname(outputPath);
@@ -272,10 +320,24 @@ async function main() {
   const previewDir = retainPreviews
     ? path.resolve(args.preview_dir || path.join(outputDir, "preview"))
     : path.join(outputDir, `.figure-build-preview-${process.pid}`);
-  const captionPath = args.caption
+  const explicitCaptionPath = args.caption
     ? path.resolve(args.caption)
     : (spec.caption ? path.resolve(specPath ? path.dirname(specPath) : process.cwd(), spec.caption) : "");
+  const contractCaptionPath = contractPath && typeof contractSurfaces.caption_md === "string"
+    ? path.resolve(path.dirname(contractPath), contractSurfaces.caption_md)
+    : "";
+  if (explicitCaptionPath && contractCaptionPath) {
+    const [explicitCanonical, contractCanonical] = await Promise.all([
+      canonicalPath(explicitCaptionPath),
+      canonicalPath(contractCaptionPath),
+    ]);
+    if (explicitCanonical !== contractCanonical) {
+      throw new Error("Caption path disagrees with figure contract surfaces.caption_md");
+    }
+  }
+  const captionPath = explicitCaptionPath || contractCaptionPath;
   const captionText = captionPath ? (await fs.readFile(captionPath, "utf8")).trim() : "";
+  const captionSha256 = captionPath ? hash(await fs.readFile(captionPath)) : null;
   await fs.mkdir(outputDir, { recursive: true });
   await fs.mkdir(previewDir, { recursive: true });
 
@@ -297,8 +359,35 @@ async function main() {
   const manifest = {
     style_manifest: path.relative(path.dirname(manifestPath), stylePath).replaceAll("\\", "/"),
     assembly_spec: specPath ? path.relative(path.dirname(manifestPath), specPath).replaceAll("\\", "/") : "internal-demo",
-    backend: { name: "@oai/artifact-tool", mode: spec.mode || "hybrid", rendered_preview: true },
+    backend: {
+      name: "@oai/artifact-tool",
+      mode: spec.mode || "hybrid",
+      rendered_preview: true,
+      capabilities: {
+        native_shapes: true,
+        native_text: true,
+        svg_placement: true,
+        pptx_export: true,
+        rendered_preview_export: true,
+      },
+    },
+    figure_contract: contractPath ? path.relative(path.dirname(manifestPath), contractPath).replaceAll("\\", "/") : null,
+    figure_contract_sha256: contractPath ? hash(await fs.readFile(contractPath)) : null,
     caption: captionPath ? path.relative(path.dirname(manifestPath), captionPath).replaceAll("\\", "/") : null,
+    caption_delivery: {
+      caption_md: captionPath ? path.relative(path.dirname(manifestPath), captionPath).replaceAll("\\", "/") : null,
+      caption_sha256: captionSha256,
+      speaker_notes: Boolean(captionText),
+      speaker_notes_caption_sha256: captionSha256,
+      visible_caption_slides: Array.isArray(contractSurfaces.ppt?.visible_caption_slides) ? contractSurfaces.ppt.visible_caption_slides : [],
+      visible_override: contractSurfaces.ppt?.visible_override || null,
+      panel_annotation_map: Object.fromEntries(
+        surfaceBindings
+          .filter((item) => item && item.element_id && item.visible_explanation)
+          .map((item) => [item.element_id, item.visible_explanation]),
+      ),
+    },
+    surface_bindings: surfaceBindings,
     slide_size: { width: Number(slideSize.width), height: Number(slideSize.height), unit: "backend_px" },
     slides: [], assets: [], source_trace: {},
     editability: { native_ppt_objects: 0, vector_svg_objects: 0, raster_objects: 0, external_editable_source_files: [] },
@@ -370,6 +459,32 @@ async function main() {
       if (object.editability === "A") manifest.editability.native_ppt_objects += 1;
       else if (object.editability === "B") manifest.editability.vector_svg_objects += 1;
       else if (object.editability === "C") manifest.editability.raster_objects += 1;
+    }
+  }
+  if (figureContract) {
+    const idsByKind = new Map();
+    for (const slideInfo of manifest.slides) {
+      if (!idsByKind.has(slideInfo.kind)) idsByKind.set(slideInfo.kind, new Set());
+      for (const object of slideInfo.objects) idsByKind.get(slideInfo.kind).add(object.id);
+    }
+    const assemblyIds = idsByKind.get("figure_assembly") || new Set();
+    const boardIds = idsByKind.get("component_board") || new Set();
+    const explanationIds = new Set([
+      ...(idsByKind.get("caption_interpretation") || new Set()),
+      ...boardIds,
+    ]);
+    const pptRequired = contractSurfaces.ppt?.required === true;
+    const visibleRequired = contractSurfaces.ppt?.visible_explanations_required === true;
+    for (const binding of surfaceBindings) {
+      if (pptRequired && binding.ppt_main && !assemblyIds.has(binding.ppt_main)) {
+        manifest.unresolved_issues.push(`Contract element ${binding.element_id}: missing PPT main object ${binding.ppt_main}`);
+      }
+      if (visibleRequired && binding.component_board && !boardIds.has(binding.component_board)) {
+        manifest.unresolved_issues.push(`Contract element ${binding.element_id}: missing component-board object ${binding.component_board}`);
+      }
+      if (visibleRequired && binding.visible_explanation && !explanationIds.has(binding.visible_explanation)) {
+        manifest.unresolved_issues.push(`Contract element ${binding.element_id}: missing visible explanation object ${binding.visible_explanation}`);
+      }
     }
   }
   const sourceFiles = new Set();

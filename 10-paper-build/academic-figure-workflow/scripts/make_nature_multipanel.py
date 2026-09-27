@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any
 
 import nature_mpl_style as nstyle
+from validate_figure_contract import load_contract, sha256_file, validate_contract
 
 
 @dataclass
@@ -164,9 +165,43 @@ def role_colour(role: str) -> str:
     return nstyle.role_colour(role)
 
 
-def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[str], dict[str, Any]]:
+def populations_for_role(contract_panel: dict[str, Any] | None, role: str) -> list[dict[str, Any]]:
+    if not contract_panel:
+        return []
+    return [
+        population
+        for population in contract_panel.get("populations", [])
+        if population.get("role") == role
+    ]
+
+
+def plot_panel(
+    ax,
+    panel: PanelSpec,
+    data_root: Path,
+    plt_module,
+    contract_panel: dict[str, Any] | None = None,
+) -> tuple[list[str], dict[str, Any]]:
     issues: list[str] = []
-    audit: dict[str, Any] = {"panel": panel.panel, "data": panel.data, "columns": [], "row_count": 0, "missing_values": {}, "groups": []}
+    audit: dict[str, Any] = {
+        "panel": panel.panel,
+        "data": panel.data,
+        "columns": [],
+        "input_row_count": 0,
+        "plotted_row_count": 0,
+        "skipped_row_count": 0,
+        "missing_values": {},
+        "groups": [],
+        "declared_populations": [
+            {
+                "population_id": population.get("population_id"),
+                "role": population.get("role"),
+                "count": population.get("count"),
+                "relationship_to_rendered_rows": population.get("relationship_to_rendered_rows"),
+            }
+            for population in (contract_panel or {}).get("populations", [])
+        ],
+    }
     nstyle.style_axes(ax)
     nstyle.add_panel_label(ax, panel.panel)
     ax.set_title(panel.title or panel.claim[:48])
@@ -182,6 +217,7 @@ def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[
                 ax.text(0.5, 0.5, "image not found", ha="center", va="center")
             else:
                 image = plt_module.imread(str(image_path))
+                audit["source_sha256"] = sha256_file(image_path)
                 ax.imshow(image)
                 ax.set_xticks([])
                 ax.set_yticks([])
@@ -209,7 +245,8 @@ def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[
         return issues, audit
 
     audit["columns"] = sorted({str(column) for row in rows for column in row})
-    audit["row_count"] = len(rows)
+    audit["input_row_count"] = len(rows)
+    audit["source_sha256"] = sha256_file(data_path)
     audit["missing_values"] = {
         column: sum(row.get(column) is None or row.get(column) == "" for row in rows)
         for column in audit["columns"]
@@ -240,6 +277,8 @@ def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[
     if len(groups) > 1 and len(requested_roles) not in {1, len(groups)}:
         issues.append(f"{panel.panel}: grouped plot needs one shared color_role or one role per group")
 
+    total_skipped_rows = 0
+    total_plotted_rows = 0
     for group_index, (group_name, group_rows) in enumerate(groups.items()):
         label = group_name or None
         selected_role = requested_roles[min(group_index, len(requested_roles) - 1)] if requested_roles else "treatment"
@@ -281,6 +320,8 @@ def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[
                 yerr_numeric.append(error_value)
         if skipped_rows:
             issues.append(f"{panel.panel}: group {group_name or 'all'} skipped {skipped_rows} rows with missing/non-numeric plotted values")
+        total_skipped_rows += skipped_rows
+        total_plotted_rows += len(x_numeric) if plot_type == "hist" else len(y_numeric)
 
         if plot_type == "scatter":
             ax.scatter(x_numeric, y_numeric, s=float(nstyle.chart_token("scatter_size_pt2", 12)), marker=marker, color=colour, label=label)
@@ -319,6 +360,21 @@ def plot_panel(ax, panel: PanelSpec, data_root: Path, plt_module) -> tuple[list[
     audit["y_unit"] = panel.y_unit
     audit["metric_definition"] = panel.metric_definition
     audit["error_source"] = panel.error_source
+    audit["plotted_row_count"] = total_plotted_rows
+    audit["skipped_row_count"] = total_skipped_rows
+    display_populations = populations_for_role(contract_panel, "display")
+    if (
+        len(display_populations) == 1
+        and display_populations[0].get("relationship_to_rendered_rows") == "one_to_one"
+    ):
+        declared_display = display_populations[0].get("count")
+        audit["display_population_check"] = "one_to_one"
+        if total_plotted_rows != declared_display:
+            issues.append(
+                f"{panel.panel}: plotted row count {total_plotted_rows} != contract display population {declared_display}"
+            )
+    elif display_populations:
+        audit["display_population_check"] = "recorded_not_mechanically_compared"
     return issues, audit
 
 
@@ -415,6 +471,11 @@ def main() -> int:
     parser.add_argument("--cjk-serif", action="store_true", help="Prefer serif CJK fonts for Chinese thesis/journal figures")
     parser.add_argument("--copy-script", action="store_true", help="Copy this generator next to outputs for provenance")
     parser.add_argument("--style-manifest", type=Path, help="Paper-wide style_manifest.yaml")
+    parser.add_argument(
+        "--figure-contract",
+        type=Path,
+        help="Optional academic-figure-contract/v1 record for panel lineage and surface identity",
+    )
     args = parser.parse_args()
 
     matplotlib, plt, mtext = require_matplotlib()
@@ -426,6 +487,26 @@ def main() -> int:
     )
 
     panels = load_panel_specs(args.spec)
+    figure_contract: dict[str, Any] | None = None
+    contract_report: dict[str, Any] | None = None
+    contract_panels: dict[str, dict[str, Any]] = {}
+    if args.figure_contract:
+        contract_path = args.figure_contract.resolve(strict=True)
+        figure_contract = load_contract(contract_path)
+        contract_errors, _, contract_report = validate_contract(figure_contract, contract_path)
+        if contract_errors:
+            raise SystemExit(
+                "Figure contract validation failed: " + "; ".join(contract_errors)
+            )
+        contract_panels = {
+            str(item["panel_id"]): item for item in figure_contract.get("panels", [])
+        }
+        spec_panel_ids = {panel.panel for panel in panels}
+        if spec_panel_ids != set(contract_panels):
+            raise SystemExit(
+                "Panel spec and figure contract panel ids differ: "
+                f"spec={sorted(spec_panel_ids)} contract={sorted(contract_panels)}"
+            )
     args.output_dir.mkdir(parents=True, exist_ok=True)
     output_stem = args.output_dir / args.stem
 
@@ -440,7 +521,9 @@ def main() -> int:
     data_audit: list[dict[str, Any]] = []
     for index, panel in enumerate(panels):
         ax = axes[index // cols][index % cols]
-        panel_issues, panel_audit = plot_panel(ax, panel, args.data_root, plt)
+        panel_issues, panel_audit = plot_panel(
+            ax, panel, args.data_root, plt, contract_panels.get(panel.panel)
+        )
         issues.extend(panel_issues)
         data_audit.append(panel_audit)
     for index in range(len(panels), rows * cols):
@@ -469,6 +552,9 @@ def main() -> int:
         "matplotlib_version": getattr(matplotlib, "__version__", ""),
         "style_diagnostics": style_diagnostics,
         "style_manifest": str(args.style_manifest.resolve()) if args.style_manifest else "",
+        "figure_contract": str(args.figure_contract.resolve()) if args.figure_contract else "",
+        "figure_contract_sha256": sha256_file(args.figure_contract.resolve()) if args.figure_contract else "",
+        "figure_contract_validation": contract_report,
         "data_audit": data_audit,
         "panel_count": len(panels),
         "figure_size_inches": [width, height],

@@ -74,6 +74,13 @@ The current backend accepts a JSON assembly specification. Keep backend options 
 
 Each object needs a stable `id`, explicit bounds or a documented auto-layout rule, editability level, asset path where relevant, and source trace.
 
+When a Figure Contract is present, the assembly object ID must match the
+corresponding surface binding rather than relying on slide order or visible
+labels. Record the contract path and hash in `ppt_manifest.json`. The same
+binding identifies the publication object, component-board copy, visible
+explanation, caption anchor, notes anchor, and manifest object. Missing or
+orphan bindings block verified delivery.
+
 ## Data-Plot Rule
 
 For experimental plots, preserve:
@@ -131,6 +138,10 @@ Before building:
 3. do not silently install large dependencies;
 4. keep the assembly spec and scientific source trace backend-neutral;
 5. use a graceful fallback and record every reduced-editability decision.
+
+Record detected backend capabilities in the manifest: native shapes, native
+text, SVG placement, PPTX export, and rendered-preview export. Do not infer
+capability from the backend name alone.
 
 The bundled `build_figure_pptx.mjs` uses the Codex presentation runtime when available. Runtime paths are environment-specific and must not be hard-coded into the scientific protocol.
 

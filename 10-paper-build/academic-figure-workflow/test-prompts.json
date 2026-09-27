@@ -133,5 +133,35 @@
     "id": 27,
     "prompt": "使用默认模型图模板，把我代码里的双分支网络整理成可编辑 PPT；不要沿用模板中的 InceptionTime、256 点或温度回归内容。",
     "expected": "Uses the bundled default model-diagram PPTX only because no higher-priority user or project template was supplied; clones and edits inherited native objects; preserves the approved layout, tensor/vector grammar, semantic colours, connector contrast, component board, and final-size gate; replaces every example-specific network label, dimension, branch, operator, caption, and source with code-backed target-project evidence; and runs template, architecture, editability, and rendered QA."
+  },
+  {
+    "id": 28,
+    "prompt": "一张图展示全部观测，但拟合和统计只使用经过审核的子集。请建立通用图件合同，不要把项目样本数写成默认规则。",
+    "expected": "Creates one academic-figure-contract/v1 record with distinct source, display, fit and statistical populations, selectors, counts, evidence and relationships; does not infer exclusions or hard-code project-specific values."
+  },
+  {
+    "id": 29,
+    "prompt": "我只调整了字体和布局，没有改数据；请判断哪些结果需要重新计算。",
+    "expected": "Classifies the revision as visual-only, preserves the scientific semantic fingerprint, reruns visual and final-size QA, and does not invalidate scientific outputs solely because style changed."
+  },
+  {
+    "id": 30,
+    "prompt": "我修改了排除规则但图看起来一样，可以直接沿用原拟合、图注和 PPT 吗？",
+    "expected": "Rejects reuse without recomputation; records a scientific revision, propagates invalidation to dependent fit/statistics/exports/caption/PPT surfaces, and requires renewed scientific review."
+  },
+  {
+    "id": 31,
+    "prompt": "检查主图、组件板、PPT 可见解释、speaker notes、caption.md 和 manifest 是否同步。",
+    "expected": "Uses stable element IDs and surface bindings, verifies complete coverage and caption/notes hashes, reports orphan or missing objects, and keeps semantic correctness as a separate human review."
+  },
+  {
+    "id": 32,
+    "prompt": "用户批准的网络图模板被重新保存过，节点和张量维度也有变化。请判断是否仍可直接交付。",
+    "expected": "Checks the protected template hash and allowed deviations, validates node/edge endpoints, dimensions and evidence references, treats topology or dimension changes as scientific changes, and blocks unreviewed delivery."
+  },
+  {
+    "id": 33,
+    "prompt": "准备清理图件目录，只保留当前版本；目录里还有用户手工修改的旧 PPT 和未知文件。",
+    "expected": "Produces a cleanup preview and keep list, protects user-approved, user-edited, historical, unknown and evidence files, deletes nothing without explicit classification and approval, and revalidates rebuild references afterward."
   }
 ]

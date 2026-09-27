@@ -128,5 +128,12 @@ In addition to the normal architecture and PPT QA, verify:
 
 ## Bundled Files
 
+Before delivery, record a user- or project-approved template as a protected
+baseline in the Figure Contract: resolved path, SHA-256, approval status, and
+allowed deviations. Do not replace that baseline because another file is
+newer or appears more complete. A hash change outside the approved deviation
+list requires review. The bundled template is only a fallback layout baseline
+and never carries scientific approval into a new project.
+
 - `assets/model-diagram/default-model-diagram-template.pptx`: editable two-slide template.
 - `assets/model-diagram/default-model-diagram-template.json`: provenance, checksum, editability, and locked-template metadata.
