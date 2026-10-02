@@ -2,9 +2,9 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具和个人教学能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具、实时视觉计算和个人教学能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
 
-本仓库当前直接维护 20 个活动 Skill：`10-paper-build` 9 个、`20-project-build` 6 个、`50-core-utils` 4 个、`90-personal` 1 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
+本仓库当前直接维护 21 个活动 Skill：`10-paper-build` 9 个、`20-project-build` 6 个、`50-core-utils` 4 个、`60-visual-computing` 1 个、`90-personal` 1 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
@@ -14,6 +14,7 @@
 首次项目接入与持续治理   → 20-project-build
 研究成果到论文交付       → 10-paper-build
 跨项目维护与质量工具     → 50-core-utils
+实时网页视觉计算         → 60-visual-computing
 个人学习与教学           → 90-personal
 外部与兼容入口           → 30-papertrace / 40-skill-registry
 待审核与历史材料         → 98-inbox / 99-archive
@@ -34,13 +35,14 @@
 | `30-papertrace` | 外部导航 | 指向 PaperTrace 项目拥有的阅读、教学和资讯 Skill | [PaperTrace 入口](30-papertrace/README.md) |
 | `40-skill-registry` | 兼容导航 | 指向仓库内唯一 Skill Registry 源码 | [Registry 入口](40-skill-registry/README.md) |
 | `50-core-utils` | 活动源码与基础设施 | 项目信息维护、交接、Skill 审计、训练代码架构和版本治理 | [核心工具](50-core-utils/README.md) |
+| `60-visual-computing` | 活动源码 | 网页实时视觉计算、渲染表示、动画、性能与验证 | [实时视觉计算](60-visual-computing/README.md) |
 | `90-personal` | 活动源码 | 面向个人学习方式的教学 Skill | [个人 Skill](90-personal/README.md) |
 | `98-inbox` | 未审核暂存 | 保存尚未批准应用的补丁、计划和候选文档 | [暂存规则](98-inbox/README.md) |
 | `99-archive` | 历史归档 | 保存不参与当前发现和运行的历史材料 | [归档规则](99-archive/README.md) |
 
 `.agents/` 保存项目 Agent 上下文与长期知识，`.codex/` 保存项目级启动加载。二者不是人类总览的替代品，也不会在根目录生成另一份 `AGENTS.md`。
 
-## 20 个活动 Skill
+## 21 个活动 Skill
 
 | 分类 | Skill | 一句话职责 |
 |---|---|---|
@@ -63,6 +65,7 @@
 | 核心工具 | `handoff` | 生成紧凑、证据链接明确的后续任务交接 |
 | 核心工具 | `skill-audit-refactor` | 审核、精简、拆分或重构已有 Skill |
 | 核心工具 | `training-code-architecture` | 将训练脚本提炼为配置驱动的可复用工程架构 |
+| 实时视觉计算 | `celestial-body-formation-skill` | 构建、改进或审核网页中的实时天体视觉效果 |
 | 个人教学 | `logic-chain-tutor` | 从当前卡点建立前置知识到目标概念的逻辑链 |
 
 ## 我应该从哪里开始
@@ -74,6 +77,7 @@
 | 把已有研究成果整理成论文 | 从 [10-paper-build](10-paper-build/README.md) 当前最早缺失的阶段进入 |
 | 更新已初始化项目的 README、`.agents` 或长期知识 | 使用 [50-core-utils](50-core-utils/README.md) 中的持续维护工具 |
 | 审核一个 Skill 或整理训练代码 | 从核心工具分类选择对应 Skill |
+| 构建或审核网页中的实时天体视觉效果 | 使用 [60-visual-computing](60-visual-computing/README.md) 的渲染与验证入口 |
 | 准备提交、交付或换会话 | 分别使用提交审计与任务交接，不把二者视为自动提交授权 |
 | 学习陌生概念、公式或论文方法 | 使用 [90-personal](90-personal/README.md) 中的教学入口 |
 

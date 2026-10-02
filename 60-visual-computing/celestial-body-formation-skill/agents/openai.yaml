@@ -1,0 +1,4 @@
+interface:
+  display_name: "Celestial-body-formation-skill"
+  short_description: "根据第一性原理构建与审计天体实时渲染，兼顾材质、动画和计算预算"
+  default_prompt: "使用 $celestial-body-formation-skill，根据当前工程与参考画面构建或审核天体实时视觉效果，先明确表示和保护范围，再验证画质、运动与性能。"

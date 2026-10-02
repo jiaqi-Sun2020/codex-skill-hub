@@ -2,9 +2,9 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
+`codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, real-time visual computing, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 20 active Skills: nine under `10-paper-build`, six under `20-project-build`, four under `50-core-utils`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 21 active Skills: nine under `10-paper-build`, six under `20-project-build`, four under `50-core-utils`, one under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -14,6 +14,7 @@ The repository directly maintains 20 active Skills: nine under `10-paper-build`,
 Initial onboarding and ongoing governance → 20-project-build
 Research results to paper delivery         → 10-paper-build
 Cross-project maintenance and quality      → 50-core-utils
+Real-time web visual computing             → 60-visual-computing
 Personal learning and teaching             → 90-personal
 External and compatibility entry points    → 30-papertrace / 40-skill-registry
 Unreviewed and historical material         → 98-inbox / 99-archive
@@ -34,13 +35,14 @@ The three documentation layers have distinct responsibilities:
 | `30-papertrace` | External navigation | Point to reader, teaching, and briefing Skills owned by PaperTrace | [PaperTrace entry](30-papertrace/README.en.md) |
 | `40-skill-registry` | Compatibility navigation | Point to the repository's one canonical Skill Registry source | [Registry entry](40-skill-registry/README.en.md) |
 | `50-core-utils` | Active source and infrastructure | Project-information maintenance, handoff, Skill audits, training architecture, and version governance | [Core utilities](50-core-utils/README.en.md) |
+| `60-visual-computing` | Active source | Real-time web visual computing, rendering representation, animation, performance, and verification | [Real-time visual computing](60-visual-computing/README.en.md) |
 | `90-personal` | Active source | Teaching Skills adapted to personal learning | [Personal Skills](90-personal/README.en.md) |
 | `98-inbox` | Unreviewed staging | Hold patches, plans, and candidate documents that have not been approved | [Staging rules](98-inbox/README.en.md) |
 | `99-archive` | Historical archive | Hold historical material excluded from current discovery and execution | [Archive rules](99-archive/README.en.md) |
 
 `.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
 
-## Twenty active Skills
+## Twenty-one active Skills
 
 | Category | Skill | One-line responsibility |
 |---|---|---|
@@ -63,6 +65,7 @@ The three documentation layers have distinct responsibilities:
 | Core utility | `handoff` | Produce a compact, evidence-linked continuation handoff |
 | Core utility | `skill-audit-refactor` | Audit, simplify, split, or refactor an existing Skill |
 | Core utility | `training-code-architecture` | Turn training scripts into reusable, configuration-driven architecture |
+| Real-time visual computing | `celestial-body-formation-skill` | Build, improve, or audit real-time celestial visuals on the web |
 | Personal teaching | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
 
 ## Where should I start?
@@ -74,6 +77,7 @@ The three documentation layers have distinct responsibilities:
 | Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |
+| Build or audit real-time celestial visuals on the web | Use the rendering and verification entry in [60-visual-computing](60-visual-computing/README.en.md) |
 | Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
 | Learn an unfamiliar concept, formula, or paper method | Use the teaching entry in [90-personal](90-personal/README.en.md) |
 

@@ -7,11 +7,11 @@ type: project
 ## Durable decisions
 
 - `My_skills` is the canonical local source and navigation hub for reusable Codex Skills. Its public repository is `jiaqi-Sun2020/codex-skill-hub`.
-- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the eight numbered categories, index all twenty active Skills whose canonical source is stored here, and route readers to category documentation.
-- Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` and `90-personal` describe active local sources; `98-inbox` and `99-archive` define staging and archive safety.
+- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the nine numbered categories, index all twenty-one active Skills whose canonical source is stored here, and route readers to category documentation.
+- Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` owns reusable maintenance utilities and Registry infrastructure; `60-visual-computing` owns reusable real-time web visual-computing sources; `90-personal` describes active local teaching sources; `98-inbox` and `99-archive` define staging and archive safety.
 - Category READMEs are human-facing maps. Each Skill's `SKILL.md` remains its formal execution contract. README acknowledgements identify confirmed open-source influences with author or maintainer, project link, scope of influence, and license when known. Do not infer unrecorded provenance.
 - Original or otherwise relicensable hub content is MIT licensed. Third-party license, copyright, and notice obligations remain in force.
-- The hub directly maintains nine paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, four reusable core Skills under `50-core-utils/`, and `logic-chain-tutor` under `90-personal/`.
+- The hub directly maintains nine paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, four reusable core Skills under `50-core-utils/`, `celestial-body-formation-skill` under `60-visual-computing/`, and `logic-chain-tutor` under `90-personal/`.
 - The nine paper-build Skills are `academic-figure-workflow`, `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `prl-manuscript-polisher`, and `interactive-skill-builder`.
 - On 2026-09-24, eight paper-build Skills were imported as a source snapshot from `S_paper_skills` commit `dcd573b1768e48e794975100f8548dc0f1bcb50e`. The old directory typo `data-analsys-skill/` is normalized to `data-analysis/`; the old wrapper and `util_skills/` layer are not retained. The old repository's full refs are preserved in an external verified bundle with SHA-256 `261B5C3496DABC7BBE3087F40B626C0499606827672E3458599E619B7BE0C521` before retirement.
 - The imported paper-build Skills are direct hub source, not immutable Skill Registry releases and not components of the six-Skill `20-project-build/` architecture.
@@ -28,33 +28,19 @@ type: project
 - Generator and Onboarding Pipeline are one-time onboarding components. Generator creates missing Agent scaffolding; forced refresh is break-glass recovery. Its restricted bootstrap-only path creates only missing managed startup files around one safe existing Agent bundle and requires a current hash-bound preview.
 - `neat-freak` owns routine post-onboarding project-information maintenance. It uses a hash-bound `plan` / `apply` flow and may repair only existing marked Bootstrap wiring with explicit authorization; it does not regenerate a framework.
 - `research-workspace-governance` owns domain-neutral asset roles, locations, SCI/STAT/ENG/GOV contracts, state axes, provenance, evidence, amendments, invalidation, migration, retention, deletion boundaries, project contracts, relocation maps, and derived traceability. It validates metadata and review boundaries without performing domain science.
-- Engineering repair remains a contract lane rather than a seventh project-build
-  Skill. Governance owns additive repair, execution-plan, execution-receipt, and
-  GitHub Actions evidence schemas; Management routes one next action; project
-  code or an authorized operator implements; Submission Audit independently
-  checks live Git/CI facts. Repair state and scientific-run authorization are
-  separate and never promote one another.
-- Atomic create-new writers use short identity-bound random siblings,
-  same-filesystem no-clobber publication, and exact ownership checks for cleanup
-  and rollback. Windows path budgets, stale/current/legacy transactions, links,
-  and external replacement races fail closed; long-path configuration is never
-  the sole mitigation.
+- Engineering repair remains a contract lane rather than a seventh project-build Skill. Governance owns additive repair, execution-plan, execution-receipt, and GitHub Actions evidence schemas; Management routes one next action; project code or an authorized operator implements; Submission Audit independently checks live Git/CI facts. Repair state and scientific-run authorization are separate and never promote one another.
+- Atomic create-new writers use short identity-bound random siblings, same-filesystem no-clobber publication, and exact ownership checks for cleanup and rollback. Windows path budgets, stale/current/legacy transactions, links, and external replacement races fail closed; long-path configuration is never the sole mitigation.
 - Project contracts and topology declarations are untrusted data. Mandatory-policy topology binds canonical policy hashes to applicable execution roots through explicit references, verified loader evidence, or owner-approved isolation; Pipeline boundary-checks and Neat-Freak audits content.
 - Relocation maps preserve historical paths without rewriting history. Comparison semantics come from a domain Profile or authorized reviewer; governance preserves evidence, review, invalidation, allowed uses, and forbidden inferences.
+- `celestial-body-formation-skill` is canonical under `60-visual-computing/`. It governs the construction, improvement, and review of real-time web visuals for planets, stars, black holes, their surface and emission structures, and motion. Its public source keeps generic rendering and verification references only; project-specific cases, machine paths, internal build evidence, and conversation material remain outside the hub.
 - `logic-chain-tutor` remains the single canonical personal Skill source under `90-personal/`.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it at supported lifecycle events; do not add a root `AGENTS.md`.
-- The Skill Registry accepts only portable 1–64 character lowercase identifiers
-  with single `.`, `_`, or `-` separators and rejects Windows reserved basenames;
-  all identifier-bearing inputs are validated before filesystem side effects,
-  while every derived filesystem path remains independently root-confined.
-- Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are
-  required, Linux compatibility is informational, action dependencies are pinned
-  by commit SHA, and Gitleaks scans committed history. Integrity assertions stay
-  inline; do not add a root `tests/` directory merely to hold repository checks.
+- The Skill Registry accepts only portable 1–64 character lowercase identifiers with single `.`, `_`, or `-` separators and rejects Windows reserved basenames; all identifier-bearing inputs are validated before filesystem side effects, while every derived filesystem path remains independently root-confined.
+- Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are required, Linux compatibility is informational, action dependencies are pinned by commit SHA, and Gitleaks scans committed history. Integrity assertions stay inline; do not add a root `tests/` directory merely to hold repository checks.
 
 ### Publication contract
 
-- Before publishing, validate all twenty active Skills, compile relevant Python scripts, smoke-test documented entry points, check links and unique Skill names, scan tracked files for secrets and machine-specific paths, run Neat-Freak and Bootstrap audits, run the Registry check and tests, and perform a read-only submission audit.
+- Before publishing, validate all twenty-one active Skills, compile relevant Python scripts, smoke-test documented entry points, check links and unique Skill names, scan tracked files for secrets and machine-specific paths, run Neat-Freak and Bootstrap audits, run the Registry check and tests, and perform a read-only submission audit.
 - Compare linked external projects against fetched upstream before committing; never force-push.
 - Keep generated backups, local inbox material, shortcut files, caches, credentials, private environment files, and migration bundles out of the public repository.
 - Do not delete a migrated remote or local source until the hub commit is pushed, new public paths are verified, and a complete external bundle is verified.
@@ -76,6 +62,9 @@ type: project
 - `40-skill-registry/README.en.md`
 - `50-core-utils/README.md`
 - `50-core-utils/README.en.md`
+- `60-visual-computing/README.md`
+- `60-visual-computing/README.en.md`
+- `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `90-personal/README.md`
 - `90-personal/README.en.md`
 - `98-inbox/README.md`
