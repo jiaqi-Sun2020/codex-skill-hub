@@ -8,12 +8,12 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates twenty directly maintained active Skills, versioned shared
+skills. It separates twenty-one directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the twenty Skills stored in this repository
-and route readers to eight numbered categories. Each numbered category has a
+The bilingual root READMEs document the twenty-one Skills stored in this repository
+and route readers to nine numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
 contracts.
@@ -41,7 +41,8 @@ independent state axes, without duplicating the repository overview.
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
 - Numbered category README pairs under `30-papertrace/`, `40-skill-registry/`,
-  `50-core-utils/`, `90-personal/`, `98-inbox/`, and `99-archive/`
+  `50-core-utils/`, `60-visual-computing/`, `90-personal/`, `98-inbox/`, and
+  `99-archive/`
 - `50-core-utils/skill-registry/README.md`
 - `.gitignore`
 - `.agents/memory/MEMORY.md`
@@ -61,17 +62,22 @@ independent state axes, without duplicating the repository overview.
   the single Registry source under `50-core-utils/skill-registry/`.
 - `50-core-utils/README.md` and `README.en.md`: reusable utility and Registry
   infrastructure map.
+- `60-visual-computing/README.md` and `README.en.md`: real-time web visual-computing
+  Skill map and public-boundary statement.
 - `90-personal/README.md` and `README.en.md`: personal teaching Skill map.
 - `98-inbox/README.md` and `README.en.md`: untrusted staging-area safety rules.
 - `99-archive/README.md` and `README.en.md`: inactive archive safety rules.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
 - `10-paper-build/*/SKILL.md`, `20-project-build/*/SKILL.md`,
-  `50-core-utils/*/SKILL.md`, and `90-personal/*/SKILL.md`: active Skill entry
-  points grouped by paper-build, project-build, reusable-utility, or personal ownership.
+  `50-core-utils/*/SKILL.md`, `60-visual-computing/*/SKILL.md`, and
+  `90-personal/*/SKILL.md`: active Skill entry points grouped by paper-build,
+  project-build, reusable-utility, visual-computing, or personal ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
 - `10-paper-build/`: nine centrally stored peer paper-building Skills and their
   bilingual category map.
+- `60-visual-computing/celestial-body-formation-skill/SKILL.md`: centrally stored
+  real-time visual-computing Skill.
 - `90-personal/logic-chain-tutor/SKILL.md`: central personal teaching Skill.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
@@ -119,6 +125,10 @@ independent state axes, without duplicating the repository overview.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
   does not own experiment execution, runners, adapters, or runtime gates.
+- `celestial-body-formation-skill` is stored under `60-visual-computing/`. It
+  covers real-time web visuals for planets, stars, black holes, their surfaces,
+  emission structures, and motion. Its public source excludes project-specific
+  cases, machine paths, internal build evidence, and conversation material.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
   personal Skill and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized

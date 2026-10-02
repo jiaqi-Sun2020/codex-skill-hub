@@ -141,6 +141,12 @@
   This documentation change does not add an active Skill, move a source, or make
   shortcut, inbox, or archive content canonical.
 
+- 2026-10-02: Add `celestial-body-formation-skill` as the canonical source under
+  `60-visual-computing/`, expanding the hub to nine categories and twenty-one
+  active Skills. The public integration retains generic rendering and verification
+  material, while project-specific cases, machine paths, internal build evidence,
+  and conversation material remain outside the repository.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

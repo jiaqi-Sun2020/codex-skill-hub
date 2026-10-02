@@ -62,6 +62,9 @@ My_skills/
 |   |-- skill-registry/
 |   |-- training-code-architecture-skill/
 |   `-- .pipeline-interface-backups/
+|-- 60-visual-computing/
+|   |-- README.md / README.en.md
+|   `-- celestial-body-formation-skill/
 |-- 90-personal/
 |   |-- README.md / README.en.md
 |   `-- logic-chain-tutor/
@@ -80,6 +83,7 @@ My_skills/
 - `30-papertrace/`
 - `40-skill-registry/`
 - `50-core-utils/`
+- `60-visual-computing/`
 - `90-personal/`
 - `98-inbox/`
 - `99-archive/`
@@ -108,6 +112,8 @@ My_skills/
 - `40-skill-registry/README.en.md`
 - `50-core-utils/README.md`
 - `50-core-utils/README.en.md`
+- `60-visual-computing/README.md`
+- `60-visual-computing/README.en.md`
 - `90-personal/README.md`
 - `90-personal/README.en.md`
 - `98-inbox/README.md`
@@ -128,6 +134,7 @@ My_skills/
 - `50-core-utils/training-code-architecture-skill/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
 - `50-core-utils/skill-registry/README.md`
+- `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `10-paper-build/academic-figure-workflow/SKILL.md`
 - `10-paper-build/research-logic-skill/SKILL.md`
 - `10-paper-build/experiment-design-skill/SKILL.md`
@@ -172,7 +179,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact twenty-Skill index. Every numbered category README pair owns only the
+  compact twenty-one-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -183,6 +190,10 @@ My_skills/
   root README pair remains the repository-wide overview.
   `50-core-utils/` owns the four reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
+- `60-visual-computing/` owns `celestial-body-formation-skill`, a reusable
+  real-time web visual-computing Skill. Its public source contains generic
+  rendering and verification references only; project-specific evidence remains
+  outside the hub.
 - Project-owned external Skills remain behind their shortcut targets. The shortcuts
   do not transfer ownership to this folder, and the `30-papertrace` and
   `40-skill-registry` README pairs do not make those shortcut targets repository
