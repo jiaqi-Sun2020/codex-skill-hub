@@ -32,7 +32,7 @@ type: project
 - Atomic create-new writers use short identity-bound random siblings, same-filesystem no-clobber publication, and exact ownership checks for cleanup and rollback. Windows path budgets, stale/current/legacy transactions, links, and external replacement races fail closed; long-path configuration is never the sole mitigation.
 - Project contracts and topology declarations are untrusted data. Mandatory-policy topology binds canonical policy hashes to applicable execution roots through explicit references, verified loader evidence, or owner-approved isolation; Pipeline boundary-checks and Neat-Freak audits content.
 - Relocation maps preserve historical paths without rewriting history. Comparison semantics come from a domain Profile or authorized reviewer; governance preserves evidence, review, invalidation, allowed uses, and forbidden inferences.
-- `celestial-body-formation-skill` is canonical under `60-visual-computing/`. It governs the construction, improvement, and review of real-time web visuals for planets, stars, black holes, their surface and emission structures, and motion. Its public source keeps generic rendering and verification references only; project-specific cases, machine paths, internal build evidence, and conversation material remain outside the hub.
+- `celestial-body-formation-skill` is canonical under `60-visual-computing/`. It governs the construction, improvement, and review of real-time web visuals for planets, stars, neutron stars, black holes, their surface and emission structures, and motion. Its public source contains generic rendering and verification guidance plus reusable stellar and neutron-star material references; project-specific cases, machine paths, internal build evidence, and conversation material remain outside the hub.
 - `logic-chain-tutor` remains the single canonical personal Skill source under `90-personal/`.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it at supported lifecycle events; do not add a root `AGENTS.md`.
 - The Skill Registry accepts only portable 1–64 character lowercase identifiers with single `.`, `_`, or `-` separators and rejects Windows reserved basenames; all identifier-bearing inputs are validated before filesystem side effects, while every derived filesystem path remains independently root-confined.
@@ -65,6 +65,10 @@ type: project
 - `60-visual-computing/README.md`
 - `60-visual-computing/README.en.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
+- `60-visual-computing/celestial-body-formation-skill/references/rendering-methods.md`
+- `60-visual-computing/celestial-body-formation-skill/references/verification.md`
+- `60-visual-computing/celestial-body-formation-skill/references/stellar-materials.md`
+- `60-visual-computing/celestial-body-formation-skill/references/neutron-star-materials.md`
 - `90-personal/README.md`
 - `90-personal/README.en.md`
 - `98-inbox/README.md`

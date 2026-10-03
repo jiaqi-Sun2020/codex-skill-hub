@@ -11,13 +11,13 @@ questions, scientific modelling, or domain conclusions for a particular project.
 
 | Skill | Purpose | Boundary |
 |---|---|---|
-| `celestial-body-formation-skill` | Build, improve, or audit real-time web visuals for planets, stars, black holes, their surfaces, and emitting structures from first principles of geometry, energy, time, and sampling. | Not for astronomy Q&A, and never present a visual approximation as a scientific simulation of celestial formation or evolution. |
+| `celestial-body-formation-skill` | Build, improve, or audit real-time web visuals for planets, stars, neutron stars, black holes, their surfaces, and emitting structures from first principles of geometry, energy, time, and sampling. | Not for astronomy Q&A, and never present a visual approximation as a scientific simulation of celestial formation or evolution. |
 
 ## Use and boundary
 
 Read [`celestial-body-formation-skill/SKILL.md`](celestial-body-formation-skill/SKILL.md) first. It binds spatial, energy, temporal, and sampling relations to the actual entry point, device, and evidence. Visual approval, runtime evidence, and scientific conclusions remain independent facts.
 
-The Skill's public references describe general rendering choices and adversarial verification. Project-specific cases, machine paths, internal build records, and conversation material are intentionally excluded from this category and must not be restored to the public repository. Trace a particular project only inside its authorized workspace.
+The Skill's public references describe general rendering choices and adversarial verification. The stellar-prominence and neutron-star material pages provide reusable rendering representations, generation order, and verification boundaries only; they do not turn a visual reference into a scientific model. Project-specific cases, machine paths, internal build records, and conversation material are intentionally excluded from this category and must not be restored to the public repository. Trace a particular project only inside its authorized workspace.
 
 ## Sources and license
 

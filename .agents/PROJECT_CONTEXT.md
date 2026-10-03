@@ -126,9 +126,11 @@ independent state axes, without duplicating the repository overview.
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
   does not own experiment execution, runners, adapters, or runtime gates.
 - `celestial-body-formation-skill` is stored under `60-visual-computing/`. It
-  covers real-time web visuals for planets, stars, black holes, their surfaces,
-  emission structures, and motion. Its public source excludes project-specific
-  cases, machine paths, internal build evidence, and conversation material.
+  covers real-time web visuals for planets, stars, neutron stars, black holes,
+  their surfaces, emission structures, and motion. Its generic material
+  references include stellar/prominence and neutron-star workflows; public
+  source excludes project-specific cases, machine paths, internal build
+  evidence, and conversation material.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
   personal Skill and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized
