@@ -8,11 +8,11 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates twenty-one directly maintained active Skills, versioned shared
+skills. It separates twenty-nine directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the twenty-one Skills stored in this repository
+The bilingual root READMEs document the twenty-nine Skills stored in this repository
 and route readers to nine numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
@@ -76,8 +76,10 @@ independent state axes, without duplicating the repository overview.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
 - `10-paper-build/`: nine centrally stored peer paper-building Skills and their
   bilingual category map.
-- `60-visual-computing/celestial-body-formation-skill/SKILL.md`: centrally stored
-  real-time visual-computing Skill.
+- `60-visual-computing/`: nine centrally stored visual-computing Skills:
+  `celestial-body-formation-skill` plus `gsap-core`, `gsap-timeline`,
+  `gsap-scrolltrigger`, `gsap-plugins`, `gsap-utils`, `gsap-react`,
+  `gsap-performance`, and `gsap-frameworks`.
 - `90-personal/logic-chain-tutor/SKILL.md`: central personal teaching Skill.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
@@ -131,6 +133,11 @@ independent state axes, without duplicating the repository overview.
   references include stellar/prominence and neutron-star workflows; public
   source excludes project-specific cases, machine paths, internal build
   evidence, and conversation material.
+- Eight official GreenSock GSAP Skill contracts are stored alongside the celestial
+  Skill: core API, timelines, ScrollTrigger, plugins, utilities, React, performance,
+  and other-framework lifecycle guidance. They retain the upstream MIT notice in
+  `60-visual-computing/GSAP_SKILLS_LICENSE`; they do not include the GSAP runtime
+  or override a project-selected animation library.
 - `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
   personal Skill and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized

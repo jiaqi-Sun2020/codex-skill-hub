@@ -147,6 +147,12 @@
   material, while project-specific cases, machine paths, internal build evidence,
   and conversation material remain outside the repository.
 
+- 2026-10-04: With owner confirmation, import the eight official GreenSock
+  `gsap-skills` contracts into `60-visual-computing/`. Keep the upstream MIT
+  notice in `GSAP_SKILLS_LICENSE`, document its source, and keep GSAP runtime
+  licensing and project dependency selection outside this repository. The active
+  Skill total becomes twenty-nine.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

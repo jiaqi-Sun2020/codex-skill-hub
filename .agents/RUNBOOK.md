@@ -13,7 +13,7 @@
 | `Get-ChildItem ".\50-core-utils\skill-registry\sources\reader-learner\tests" -Filter "test_*.py" \| Sort-Object Name \| ForEach-Object { python -X utf8 -B $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }` | run from repository root; direct Reader-Learner source smoke tests | verified |
 | `python -X utf8 -B -m unittest discover -s ".\20-project-build\project-agent-generator-skill\tests" -p "test_*.py"` | run from repository root; includes Hook event, encoding, size, link/junction, and drift coverage | verified |
 | `git diff --check` | run from repository root; whitespace and conflict-marker check | verified |
-| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 21 directly maintained Skills | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 29 directly maintained Skills | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\20-project-build\project-submission-audit"` | run from repository root; new submission-audit Skill structure | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\handoff"` | run from repository root; new handoff Skill structure | verified |
 | `python -X utf8 -B ".\tools\skill_registry.py" registry-check --registry .` | `50-core-utils/skill-registry/README.md`; run from the registry directory | verified |

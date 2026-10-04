@@ -64,7 +64,16 @@ My_skills/
 |   `-- .pipeline-interface-backups/
 |-- 60-visual-computing/
 |   |-- README.md / README.en.md
-|   `-- celestial-body-formation-skill/
+|   |-- GSAP_SKILLS_LICENSE
+|   |-- celestial-body-formation-skill/
+|   |-- gsap-core/
+|   |-- gsap-timeline/
+|   |-- gsap-scrolltrigger/
+|   |-- gsap-plugins/
+|   |-- gsap-utils/
+|   |-- gsap-react/
+|   |-- gsap-performance/
+|   `-- gsap-frameworks/
 |-- 90-personal/
 |   |-- README.md / README.en.md
 |   `-- logic-chain-tutor/
@@ -135,6 +144,15 @@ My_skills/
 - `50-core-utils/neat-freak/SKILL.md`
 - `50-core-utils/skill-registry/README.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
+- `60-visual-computing/gsap-core/SKILL.md`
+- `60-visual-computing/gsap-timeline/SKILL.md`
+- `60-visual-computing/gsap-scrolltrigger/SKILL.md`
+- `60-visual-computing/gsap-plugins/SKILL.md`
+- `60-visual-computing/gsap-utils/SKILL.md`
+- `60-visual-computing/gsap-react/SKILL.md`
+- `60-visual-computing/gsap-performance/SKILL.md`
+- `60-visual-computing/gsap-frameworks/SKILL.md`
+- `60-visual-computing/GSAP_SKILLS_LICENSE`
 - `10-paper-build/academic-figure-workflow/SKILL.md`
 - `10-paper-build/research-logic-skill/SKILL.md`
 - `10-paper-build/experiment-design-skill/SKILL.md`
@@ -179,7 +197,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact twenty-one-Skill index. Every numbered category README pair owns only the
+  compact twenty-nine-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -190,10 +208,12 @@ My_skills/
   root README pair remains the repository-wide overview.
   `50-core-utils/` owns the four reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
-- `60-visual-computing/` owns `celestial-body-formation-skill`, a reusable
-  real-time web visual-computing Skill. Its public source contains generic
-  rendering and verification references only; project-specific evidence remains
-  outside the hub.
+- `60-visual-computing/` owns `celestial-body-formation-skill` plus eight
+  GreenSock GSAP Skill contracts for core animation, timelines, scroll, plugins,
+  utilities, React, performance, and other frameworks. Celestial sources retain
+  generic rendering and verification references only; GSAP contracts retain their
+  upstream MIT notice and neither set replaces a project-selected library or
+  project-specific evidence.
 - Project-owned external Skills remain behind their shortcut targets. The shortcuts
   do not transfer ownership to this folder, and the `30-papertrace` and
   `40-skill-registry` README pairs do not make those shortcut targets repository
