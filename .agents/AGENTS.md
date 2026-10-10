@@ -61,10 +61,10 @@ codex-skill-hub/
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
 - Maintain the nine paper-build Skill sources under `10-paper-build/`, the six
-  project-build core Skill sources under `20-project-build/`, the four reusable
+  project-build core Skill sources under `20-project-build/`, the five reusable
   core Skill sources under `50-core-utils/`, the nine real-time visual-computing Skills
   under `60-visual-computing/`, and the personal teaching Skill under `90-personal/`;
-  these twenty-nine active Skills remain canonical at their designated paths.
+  these thirty active Skills remain canonical at their designated paths.
 - Keep the paper-build Skills as direct hub source, not Registry releases. Preserve
   `experiment-design` as an evidence-planning Skill: it defines required tests,
   evidence gaps, controls, and claim boundaries without implementing execution or

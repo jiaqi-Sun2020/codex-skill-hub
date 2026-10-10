@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`50-core-utils/` stores four active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
+`50-core-utils/` stores five active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
 
 ## Overall framework
 
@@ -12,6 +12,7 @@ One-time framework generation completed
 neat-freak: repeated project-information and loading maintenance
   ├─ skill-audit-refactor: audit or refactor a Skill
   ├─ training-code-architecture: reorganize training engineering
+  ├─ find-skills: discover and inspect external Skill candidates
   └─ handoff: pause, transfer, or change sessions
 
 Central Skill version governance
@@ -26,13 +27,15 @@ Central Skill version governance
 | [`handoff`](handoff/SKILL.md) | Active Skill | Produce a compact, evidence-linked continuation handoff | Proving task completion or expanding the next Agent's authority |
 | [`skill-audit-refactor`](skill-audit-refactor/SKILL.md) | Active Skill | Audit Skill triggering, scope, resources, duplication, and safety, then make the smallest refactor | Expanding capability without evidence or removing necessary safety gates |
 | [`training-code-architecture`](training-code-architecture-skill/SKILL.md) | Active Skill | Extract configuration, factories, adapters, training loops, and reproducible outputs from existing training scripts | Hard-coding one dataset, model, or metric as a universal standard |
-| [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Acting as a fifth active Skill or overwriting project-owned forks |
+| [`find-skills`](find-skills/SKILL.md) | Active Skill | Find, inspect, and recommend external Skills; help install only after explicit user approval | Automatically installing candidates, replacing human safety judgment, or adding outside Skills to this Hub |
+| [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Acting as a sixth active Skill or overwriting project-owned forks |
 
 ## When to use
 
 - The Agent framework exists and code, directories, or decisions changed: use `neat-freak`.
 - An existing Skill may be too long, overlapping, or missing validation: use `skill-audit-refactor`.
 - Existing machine-learning training code needs a reusable architecture: use `training-code-architecture`.
+- External Skills need to be discovered, inspected, or compared: use `find-skills`; it reads local locations, the AI Roasting library, skills.sh, and GitHub, and still requires explicit approval before candidate installation.
 - Work is paused, context is compacted, or another session will continue: use `handoff`.
 - Registry-managed versions need checking, publishing, or synchronization: use the `skill-registry` tools.
 
@@ -46,6 +49,7 @@ When `.agents` is missing, use `20-project-build/project-agent-generator-skill` 
 - Project-owned forks are not silently overwritten from central historical releases.
 - Handoff writes to the operating-system temporary directory by default and does not copy secrets or full conversations.
 - Training architecture extracts stable interfaces; data, loss, shape, and domain rules remain in project Adapters.
+- Find Skills uses network search only to collect candidates and evidence; a discovery result never modifies local Skills, user-level Codex configuration, or this Hub.
 
 ## Verification
 
@@ -62,4 +66,4 @@ The corresponding `SKILL.md` or Registry README remains authoritative for comman
 
 ## Provenance and license
 
-The local `neat-freak` draws on KKKKhazix's [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md) (MIT) for knowledge organization and workspace-consistency ideas, and extends them with `.agents/memory/`, hash-bound updates, and Codex startup-loading audits. The local `handoff` draws on Matt Pocock's [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT) for temporary-directory defaults, existing-evidence references, and sensitive-information cleanup. These acknowledgements do not imply endorsement; third-party obligations remain in effect.
+The local `neat-freak` draws on KKKKhazix's [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md) (MIT) for knowledge organization and workspace-consistency ideas, and extends them with `.agents/memory/`, hash-bound updates, and Codex startup-loading audits. The local `handoff` draws on Matt Pocock's [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT) for temporary-directory defaults, existing-evidence references, and sensitive-information cleanup. [`find-skills`](https://github.com/airoasting/find-skills) is an AI ROASTING MIT-licensed fixed snapshot (v1.2.1, commit `55aba1789fe0504734964d98ae1ccd39e2fefea0`); its original execution contract, license, and provenance record are retained, while this Hub includes only the files needed for Codex execution and offline regression. These acknowledgements do not imply endorsement; third-party obligations remain in effect.

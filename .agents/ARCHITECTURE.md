@@ -56,6 +56,7 @@ My_skills/
 |   `-- skill-registry.lnk
 |-- 50-core-utils/
 |   |-- README.md / README.en.md
+|   |-- find-skills/
 |   |-- handoff/
 |   |-- neat-freak/
 |   |-- skill-audit-refactor/
@@ -142,6 +143,8 @@ My_skills/
 - `50-core-utils/skill-audit-refactor/SKILL.md`
 - `50-core-utils/training-code-architecture-skill/SKILL.md`
 - `50-core-utils/neat-freak/SKILL.md`
+- `50-core-utils/find-skills/SKILL.md`
+- `50-core-utils/find-skills/UPSTREAM.md`
 - `50-core-utils/skill-registry/README.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `60-visual-computing/gsap-core/SKILL.md`
@@ -197,7 +200,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact twenty-nine-Skill index. Every numbered category README pair owns only the
+  compact thirty-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -206,8 +209,11 @@ My_skills/
   Its bilingual README pair is a local technical map of those components, their
   four contract categories, independent state axes, and lifecycle routing; the
   root README pair remains the repository-wide overview.
-  `50-core-utils/` owns the four reusable core Skills plus the non-Skill
+  `50-core-utils/` owns the five reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
+  `find-skills` is a fixed MIT-licensed upstream snapshot: it discovers and
+  inspects external candidates but does not install them without explicit user
+  approval or create a user-level Codex copy.
 - `60-visual-computing/` owns `celestial-body-formation-skill` plus eight
   GreenSock GSAP Skill contracts for core animation, timelines, scroll, plugins,
   utilities, React, performance, and other frameworks. Celestial sources retain

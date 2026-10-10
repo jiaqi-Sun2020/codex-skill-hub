@@ -153,6 +153,14 @@
   licensing and project dependency selection outside this repository. The active
   Skill total becomes twenty-nine.
 
+- 2026-10-10: Import AI ROASTING's MIT-licensed `find-skills` as the fifth
+  direct `50-core-utils` Skill, fixed to upstream commit
+  `55aba1789fe0504734964d98ae1ccd39e2fefea0` (v1.2.1). Preserve its execution
+  contract, license, provenance record, selected runtime files, and offline
+  regression test; exclude its website and Claude plugin packaging. The source
+  is a Hub-managed snapshot only, so it does not install itself or become a
+  user-level Codex Skill. The active Skill total becomes thirty.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

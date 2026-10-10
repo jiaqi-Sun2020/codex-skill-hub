@@ -8,11 +8,11 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates twenty-nine directly maintained active Skills, versioned shared
+skills. It separates thirty directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the twenty-nine Skills stored in this repository
+The bilingual root READMEs document the thirty Skills stored in this repository
 and route readers to nine numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution

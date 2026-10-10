@@ -53,6 +53,9 @@ jobs:
             (Join-Path $repoRoot '50-core-utils\neat-freak\tests'),
             (Join-Path $repoRoot '50-core-utils\skill-registry\tests')
           )
+          $standaloneScripts = @(
+            (Join-Path $repoRoot '50-core-utils\find-skills\evals\test_inspect_patterns.py')
+          )
           $failedSuites = @()
           Push-Location $externalCwd
           try {
@@ -60,6 +63,10 @@ jobs:
               foreach ($suite in $suites) {
                 python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
                 if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
+              }
+              foreach ($script in $standaloneScripts) {
+                python -X utf8 -B $script
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$script" }
               }
             }
           } finally {
@@ -128,7 +135,7 @@ jobs:
           $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {
             $_.Name -ne 'skill-registry' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md'))
           }
-          if ($active.Count -ne 29) { throw "Expected 29 active Skills, found $($active.Count)" }
+          if ($active.Count -ne 30) { throw "Expected 30 active Skills, found $($active.Count)" }
 
           $rootReadmes = (Get-Content -Raw 'README.md') + "`n" + (Get-Content -Raw 'README.en.md')
           foreach ($skill in $active) {
@@ -233,6 +240,9 @@ jobs:
           $suites = @(
             (Join-Path $repoRoot '10-paper-build/academic-figure-workflow/tests')
           ) + @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
+          $standaloneScripts = @(
+            (Join-Path $repoRoot '50-core-utils/find-skills/evals/test_inspect_patterns.py')
+          )
           $failedSuites = @()
           Push-Location $externalCwd
           try {
@@ -240,6 +250,10 @@ jobs:
               foreach ($suite in $suites) {
                 python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
                 if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
+              }
+              foreach ($script in $standaloneScripts) {
+                python -X utf8 -B $script
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$script" }
               }
             }
             $readerTests = Get-ChildItem (Join-Path $repoRoot '50-core-utils/skill-registry/sources/reader-learner/tests') -Filter 'test_*.py' | Sort-Object Name

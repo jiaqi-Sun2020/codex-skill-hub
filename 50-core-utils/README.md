@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`50-core-utils/` 保存四个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
+`50-core-utils/` 保存五个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
 
 ## 整体框架
 
@@ -12,6 +12,7 @@
 neat-freak：重复维护项目信息与加载一致性
   ├─ skill-audit-refactor：审核或重构 Skill
   ├─ training-code-architecture：整理训练工程
+  ├─ find-skills：发现并审查外部 Skill 候选
   └─ handoff：暂停、转交或切换会话
 
 中央 Skill 版本治理
@@ -26,13 +27,15 @@ neat-freak：重复维护项目信息与加载一致性
 | [`handoff`](handoff/SKILL.md) | 活动 Skill | 生成紧凑、证据链接明确的后续任务交接 | 证明任务完成或扩大下一位 Agent 的授权 |
 | [`skill-audit-refactor`](skill-audit-refactor/SKILL.md) | 活动 Skill | 审核 Skill 的触发、范围、资源、重复和安全边界，并做最小重构 | 无依据地扩张能力或删除必要安全门 |
 | [`training-code-architecture`](training-code-architecture-skill/SKILL.md) | 活动 Skill | 将已有训练脚本提炼为配置、factory、adapter、训练循环和可复现输出架构 | 把特定数据集、模型或指标硬编码为所有项目标准 |
-| [`skill-registry`](skill-registry/README.md) | 基础设施 | 维护可编辑源码、版本元数据、不可变发布快照和消费关系 | 充当第五个活动 Skill 或覆盖项目拥有的 fork |
+| [`find-skills`](find-skills/SKILL.md) | 活动 Skill | 发现、检查并推荐外部 Skill；仅在用户明确同意后协助安装 | 自动安装候选、替代人工安全判断或把外部 Skill 纳入本 Hub |
+| [`skill-registry`](skill-registry/README.md) | 基础设施 | 维护可编辑源码、版本元数据、不可变发布快照和消费关系 | 充当第六个活动 Skill 或覆盖项目拥有的 fork |
 
 ## 何时使用
 
 - 项目已经存在 Agent 框架，代码、目录或决定发生变化：使用 `neat-freak`。
 - 需要判断一个 Skill 是否过长、职责重叠或缺少验证：使用 `skill-audit-refactor`。
 - 需要把现有机器学习训练代码整理为可复用模板：使用 `training-code-architecture`。
+- 需要寻找、检查或比较外部 Skill：使用 `find-skills`；它读取本机、AI Roasting 目录、skills.sh 与 GitHub，安装候选前必须取得明确授权。
 - 任务暂停、压缩上下文或交给后续会话：使用 `handoff`。
 - 需要检查、发布或同步 Registry 管理的版本：使用 `skill-registry` 工具。
 
@@ -46,6 +49,7 @@ neat-freak：重复维护项目信息与加载一致性
 - 项目拥有的 fork 不从中央历史发布静默覆盖。
 - Handoff 默认写到系统临时目录，不把敏感信息或完整聊天复制进去。
 - 训练架构只抽取稳定接口；具体数据、损失、形状和领域规则留在项目 Adapter。
+- Find Skills 的网络检索只收集候选和证据；不因发现结果修改本机 Skill、用户级 Codex 配置或本 Hub。
 
 ## 验证
 
@@ -62,4 +66,4 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 
 ## 来源与许可
 
-本地 `neat-freak` 借鉴了 KKKKhazix 的 [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)（MIT）对知识整理和工作区一致性的思路，并扩展了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。本地 `handoff` 借鉴了 Matt Pocock 的 [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)（MIT）关于临时目录、现有证据引用和敏感信息清理的原则。借鉴不表示原作者对本项目背书，第三方义务继续有效。
+本地 `neat-freak` 借鉴了 KKKKhazix 的 [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)（MIT）对知识整理和工作区一致性的思路，并扩展了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。本地 `handoff` 借鉴了 Matt Pocock 的 [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)（MIT）关于临时目录、现有证据引用和敏感信息清理的原则。[`find-skills`](https://github.com/airoasting/find-skills) 是 AI ROASTING 的 MIT 许可固定快照（v1.2.1，提交 `55aba1789fe0504734964d98ae1ccd39e2fefea0`），保留其原始执行契约、许可证和来源记录；本地只纳入 Codex 所需的执行与离线回归文件。借鉴不表示原作者对本项目背书，第三方义务继续有效。

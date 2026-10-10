@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, real-time visual computing, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 29 active Skills: nine under `10-paper-build`, six under `20-project-build`, four under `50-core-utils`, nine under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 30 active Skills: nine under `10-paper-build`, six under `20-project-build`, five under `50-core-utils`, nine under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -34,7 +34,7 @@ The three documentation layers have distinct responsibilities:
 | `20-project-build` | Active source | Initial onboarding, governance contracts, repeated research management, protocol audits, and submission audits | [Project-build framework](20-project-build/README.en.md) |
 | `30-papertrace` | External navigation | Point to reader, teaching, and briefing Skills owned by PaperTrace | [PaperTrace entry](30-papertrace/README.en.md) |
 | `40-skill-registry` | Compatibility navigation | Point to the repository's one canonical Skill Registry source | [Registry entry](40-skill-registry/README.en.md) |
-| `50-core-utils` | Active source and infrastructure | Project-information maintenance, handoff, Skill audits, training architecture, and version governance | [Core utilities](50-core-utils/README.en.md) |
+| `50-core-utils` | Active source and infrastructure | Project-information maintenance, Skill discovery and review, handoff, Skill audits, training architecture, and version governance | [Core utilities](50-core-utils/README.en.md) |
 | `60-visual-computing` | Active source | Real-time web graphics, GSAP interaction animation, rendering representation, performance, and verification | [Real-time visual computing](60-visual-computing/README.en.md) |
 | `90-personal` | Active source | Teaching Skills adapted to personal learning | [Personal Skills](90-personal/README.en.md) |
 | `98-inbox` | Unreviewed staging | Hold patches, plans, and candidate documents that have not been approved | [Staging rules](98-inbox/README.en.md) |
@@ -42,7 +42,7 @@ The three documentation layers have distinct responsibilities:
 
 `.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
 
-## Twenty-nine active Skills
+## Thirty active Skills
 
 | Category | Skill | One-line responsibility |
 |---|---|---|
@@ -65,6 +65,7 @@ The three documentation layers have distinct responsibilities:
 | Core utility | `handoff` | Produce a compact, evidence-linked continuation handoff |
 | Core utility | `skill-audit-refactor` | Audit, simplify, split, or refactor an existing Skill |
 | Core utility | `training-code-architecture` | Turn training scripts into reusable, configuration-driven architecture |
+| Core utility | `find-skills` | Find candidate Skills from local, curated, and public sources; inspect them before helping install with user approval |
 | Real-time visual computing | `celestial-body-formation-skill` | Build, improve, or audit real-time celestial visuals on the web |
 | Real-time visual computing | `gsap-core` | Use the GSAP core tween, easing, stagger, and responsive-animation APIs |
 | Real-time visual computing | `gsap-timeline` | Sequence multi-step animation and playback with GSAP timelines |
@@ -85,6 +86,7 @@ The three documentation layers have distinct responsibilities:
 | Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |
+| Find, verify, or compare an external Skill | Use `find-skills` in [50-core-utils](50-core-utils/README.en.md); candidate installation still needs explicit authorization |
 | Build real-time web graphics, or use GSAP for interaction, scroll, or framework animation | Use the graphics and animation entry in [60-visual-computing](60-visual-computing/README.en.md) |
 | Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
 | Learn an unfamiliar concept, formula, or paper method | Use the teaching entry in [90-personal](90-personal/README.en.md) |
