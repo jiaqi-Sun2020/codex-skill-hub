@@ -11,13 +11,18 @@ This directory contains agent-facing context for `My_skills`.
 root `README.md` and `README.en.md` are the canonical Chinese and English
 repository overviews and inventories. Every numbered category has its own
 bilingual README pair for human navigation, while each Skill's `SKILL.md`
-remains the formal execution contract. Nine paper-build Skills live in
+remains the formal execution contract. Twelve paper-build Skills live in
 `10-paper-build/`, six project-build core Skills live in `20-project-build/`,
 five reusable core Skills and the versioned skill registry live in
 `50-core-utils/`, nine real-time visual-computing Skills live in
 `60-visual-computing/`, and one personal teaching Skill lives in `90-personal/`.
 The root is the public `jiaqi-Sun2020/codex-skill-hub` monorepo. Agent context
 remains in `.agents/` and project-scoped startup configuration remains in `.codex/`.
+
+`paper-project-initializer` owns minimal paper entry discovery, preview,
+create-only publication and same-plan recovery. It reuses the sole goal protocol
+and paper renderer; Agent/memory/Hook need scoped approval. Routine information
+updates remain with Neat-Freak. See `10-paper-build/paper-project-initializer/SKILL.md`.
 
 Recommended reading order:
 

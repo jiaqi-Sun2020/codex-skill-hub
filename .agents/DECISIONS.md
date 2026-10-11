@@ -161,6 +161,21 @@
   is a Hub-managed snapshot only, so it does not install itself or become a
   user-level Codex Skill. The active Skill total becomes thirty.
 
+- 2026-10-10: Approved two pinned MIT literature Skills under `10-paper-build/`.
+  Literature Review owns discovery/appraisal/synthesis; Literature Triage Matrix
+  compares known sources. Brainstorming and Critical Thinking inform existing
+  stage owners, not extra Skills. The paper count is eleven and hub count
+  thirty-two. Literature artifacts are lazy; registration, statement support,
+  coverage and author approval remain separate. No mandatory dependencies,
+  paid generators, external-project changes or user-level installation.
+  Existing CLI, numbered stages, paper_config and figure contracts are preserved.
+
+- 2026-10-10: Approved `paper-project-initializer`, the twelfth paper Skill;
+  active inventory becomes thirty-three. Default: two create-only entries,
+  shared goal protocol and existing paper renderer. Agent/memory/Hook need
+  traceable project-scoped approval. Generator remains unchanged; entry completion
+  grants no research, scientific or publication authority.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

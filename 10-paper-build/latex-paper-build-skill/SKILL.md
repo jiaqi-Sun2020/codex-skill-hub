@@ -15,10 +15,28 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
 
 ## Workflow
 
+For paper initialization, onboarding checks or interrupted initialization, read
+[paper-project-initializer](../paper-project-initializer/SKILL.md). It previews
+and creates only minimal entries under scoped permission, then returns here at
+the selected stage. Ordinary text, figure or manuscript edits do not take this
+detour. Full eight-stage generation below remains explicit opt-in; minimal
+entries need no paper_config until manuscript metadata is required.
+
+For each request, first check available goals, materials and action authority
+lightly; do not force an interview. Read
+[references/goal-clarification.md](references/goal-clarification.md) when the user
+asks for deeper clarification, a consequential ambiguity blocks the next action,
+or a material change calls an existing decision/review into question. This is
+the sole shared protocol, including exit checks, reentry and local reopening.
+This skill owns activation and return routing; `research-logic` owns scientific
+questions only. Resolve the blocker through the needed available stage Skill,
+then return to the requested stage, not automatically to Stage 0. Do not run the
+generator to update old goal records; generator changes affect new templates only.
+
 1. Discover the paper context before editing.
    - Find the main `.tex`, `.bib`, figure directories, compiled PDFs/logs, and venue class.
    - Prefer `rg --files`, then inspect `\documentclass`, packages, `\title`, `\section`, `\includegraphics`, `\bibliographystyle`, and `\bibliography`.
-   - Treat `.bib` files as the sole literature source for generated frameworks, and plan to consolidate manuscript images under one `figures/` folder.
+   - Treat the existing active `.bib` as the manuscript citation-key source, not the sole source of literature evidence. Source passages and review protocols remain separate. Plan to consolidate manuscript images under one `figures/` folder.
    - If figure packages already exist, inventory editable sources, exports,
      captions, evidence traces, style manifests, and unresolved QA separately
      from the manuscript's use of those figures.
@@ -27,7 +45,7 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
    - If the paper needs authors, affiliations, corresponding address, contact email, keywords, venue, or acknowledgments configured centrally, read `references/paper-config.md`.
    - If the user asks for a complete standalone `main.tex`, a fresh QCT/QWCT framework, or a manuscript based on `QCT_run_all` experiment outputs, read `references/qct-standalone-maintex.md`.
    - If drafting or revising the QCT/QWCT abstract, introduction, contribution, results framing, terminology, or claim boundary, read `references/qct-writing-methodology.md`.
-   - If the user reports that the main line is repeatedly interrupted by self-limiting caveats, that results only list numbers, or that figures/tables carry evidence the main text does not read, read `references/qct-writing-methodology.md` even if the visible task is a LaTeX scaffold or `main.tex` rebuild.
+   - If narrative evidence is weak, inspect claim continuity, result interpretation and figure-reading prose. Read `references/qct-writing-methodology.md` for QCT/QWCT only; do not impose that profile's scientific distinctions on other domains.
 
 2. Choose the operation.
    - Full paper pipeline: read `references/paper-pipeline.md` and use the sibling skills listed there when available.
@@ -40,13 +58,16 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
 
 3. Generate the framework non-destructively.
    - Never overwrite the original manuscript unless the user explicitly asks.
+   - The Pipeline generator rejects linked/reparse output roots and existing
+     stage content before writing. Existing frontmatter/preamble are preserved
+     without `--force`; preview explicit replacement before using that option.
    - Create a new output directory such as `<paper>_latex_framework`.
    - Keep root-level `paper_config.json` as the source of truth for title, authors, affiliations, correspondence address/email, keywords, venue, acknowledgments, and author-review abstract.
    - Keep one source of truth for packages in `preamble.tex`.
    - Keep title/authors/abstract in `frontmatter.tex`.
    - Keep each top-level section in `sections/NN_slug.tex`.
    - Exception: when a complete standalone `main.tex` is explicitly requested, keep all editable manuscript content in `main.tex` and place it in a new directory such as `05_manuscript_qct/`.
-   - Manage all literature through `.bib` files. Create or copy the active `.bib` file into `references/` and use `\bibliographystyle` plus `\bibliography`; do not emit inline `thebibliography` in generated frameworks.
+   - Manage manuscript bibliography through `.bib` files. Reuse the active database and preserve keys; use `\bibliographystyle` plus `\bibliography`, not inline `thebibliography`. Review evidence is not a second bibliography.
    - Move/copy cited `.bib` files into `references/` and update `\bibliography{references/<stem>}`.
    - Keep all manuscript images in a single `figures/` folder. After copying referenced graphics, rewrite `\includegraphics` paths to `figures/<file>` and avoid new `fig/`, `images/`, or source-local image roots.
    - Copy only referenced figures into `figures/` unless the user asks for the whole asset tree.
@@ -124,7 +145,10 @@ Borrow the staged-writing discipline from `alfonso0512/research-writing-skill`: 
 
 When this skill lives inside a skill hub such as `10-paper-build`, treat sibling skills as pipeline stages rather than duplicated content. Read only the sibling `SKILL.md` needed for the active stage:
 
-- `../research-logic-skill/SKILL.md` for contribution logic and mechanism-level claims.
+- `../paper-project-initializer/SKILL.md` for bounded project initialization and recovery.
+- `../research-logic-skill/SKILL.md` for question ideation, logic challenge and conditional method integration.
+- `../literature-review/SKILL.md` for optional discovery, screening, evidence appraisal and thematic synthesis.
+- `../literature-triage-matrix/SKILL.md` for optional comparison of a known source set.
 - `../experiment-design-skill/SKILL.md` for paper-grade validation plans.
 - `../data-analysis/SKILL.md` for data integrity, statistical analysis,
   uncertainty, and claim-support assessment before quantitative figure work.
@@ -138,6 +162,13 @@ When this skill lives inside a skill hub such as `10-paper-build`, treat sibling
 - `references/qct-writing-methodology.md` for reusable QCT/QWCT abstract, introduction, contribution, result-framing, terminology, and claim-boundary methodology.
 
 Do not copy all sibling skill instructions into context by default. Use `references/paper-pipeline.md` as the routing contract.
+
+The literature lane is lazy under `00_research_logic/literature/`. Standalone
+literature use can remain inline or use an existing owner-selected location.
+The generator creates scaffolding and routes only; agents invoke the two
+literature Skills on demand. It does not execute searches or source appraisal.
+DOI registration, citation support, literature coverage and author approval are
+independent. Do not require new experiments for direct theoretical or review work.
 
 This skill orchestrates figure work but does not implement drawing, plotting,
 style migration, or figure-package QA. It owns manuscript placement,

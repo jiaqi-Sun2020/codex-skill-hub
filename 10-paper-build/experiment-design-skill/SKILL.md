@@ -1,13 +1,13 @@
 ---
 name: experiment-design
-description: Use when Codex needs to turn a research model idea, algorithmic contribution, or architecture prototype into a paper-grade experimental validation plan; define research questions, hypotheses, datasets, baselines, ablations, metrics, mechanism checks, failure cases, claim boundaries, and experiment tables. Use for ML, graph learning, dynamic graph, physics-inspired models, and method papers where the user asks whether an idea can support a publication or how to design convincing experiments.
+description: Turn a scoped research claim into an evidence plan with rival explanations, discriminating observations or proof obligations, applicable controls and analysis, failure cases, and claim boundaries. Use before evidence production across empirical, theoretical, qualitative, simulation, and method research; not for executing studies, running adapters, or granting authorization.
 ---
 
 # Experiment Design
 
 ## Purpose
 
-Use this skill to convert a promising research idea into a rigorous experimental plan that can support a paper. Focus on evidence design, not implementation details.
+Use this skill to convert a promising research idea into a rigorous evidence plan that can support a paper. Focus on evidence design, not implementation details.
 
 The goal is to answer:
 
@@ -22,16 +22,19 @@ Do not start from "what can we run easily." Start from the claim.
 Use this chain:
 
 ```text
-claim -> hypothesis -> evidence needed -> datasets -> baselines -> ablations -> metrics -> analysis -> claim boundary
+claim -> rival explanations -> discriminating evidence -> applicable design -> analysis -> claim boundary
 ```
 
-If the experiments do not distinguish the proposed mechanism from simpler alternatives, the design is weak.
+For a mechanism claim, evidence should distinguish it from simpler explanations. Theory can use proof obligations or counterexamples; qualitative work can use sampling, triangulation and rival interpretations. Do not force new experiments onto a literature-only or theoretical question.
 
 ## Workflow
 
+Apply only the modules needed by the study type. Datasets, training seeds,
+baselines, ablations, numerical metrics and plots are not universal gates.
+
 ### 1. State the Central Claim
 
-Rewrite the model idea as one precise claim.
+State the scoped research question and one precise claim; distinguish descriptive, predictive and causal intent. If unresolved, keep candidate hypotheses rather than invent a favored mechanism.
 
 Use:
 
@@ -39,7 +42,7 @@ Use:
 This paper claims that ___ improves/changes ___ because ___.
 ```
 
-Prefer mechanism-level claims:
+For a method paper that actually claims a mechanism, an example is:
 
 ```text
 We introduce ___ as a structured transition mechanism for ___, addressing ___.
@@ -47,7 +50,7 @@ We introduce ___ as a structured transition mechanism for ___, addressing ___.
 
 ### 2. Define Research Questions
 
-Create 3-5 research questions:
+Choose only the research questions needed for the claim; there is no fixed count. These are optional method-paper examples:
 
 ```text
 RQ1 Performance: Does the proposed method outperform strong baselines?
@@ -59,19 +62,19 @@ RQ5 Interpretability: Does the learned mechanism behave as intended?
 
 ### 3. Choose Datasets by Claim Coverage
 
-Select datasets that stress the claimed weakness of prior methods. For each dataset, specify task type, why it matches the claim, split protocol, metrics, expected difficulty, and limitations.
+When datasets are applicable, select those that stress the claimed weakness of prior methods. For each dataset, specify task type, why it matches the claim, split protocol, metrics, expected difficulty, and limitations.
 
-Do not use only synthetic data unless the paper is explicitly theoretical or diagnostic.
+Simulation-only evidence is valid for an explicitly scoped simulation question; explain transfer limits rather than requiring real data for every project.
 
 ### 4. Select Baselines
 
-Include strong task baselines, simple neural baselines, mechanism-neighbor baselines, and parameter-matched or complexity-matched baselines when possible.
+When claiming comparative performance or a unique mechanism, justify relevant strong/simple alternatives and suitable capacity or resource controls; neural baselines are not universal requirements.
 
-For physics-inspired or structured models, always include a non-physics alternative with similar capacity.
+For a physics-inspired superiority claim, consider a comparable non-physics alternative when it tests the claimed explanation. State why a proposed comparison is applicable or not.
 
 ### 5. Design Ablations
 
-Ablations should isolate the actual contribution:
+When removal/replacement is meaningful, ablations can isolate the contribution. They are not mandatory for theoretical, qualitative, or literature work:
 
 ```text
 Full model: ...
@@ -82,7 +85,7 @@ Static vs dynamic version: ...
 Parameter/capacity control: ...
 ```
 
-For CTQW + dynamic graph ideas, consider:
+Conditional example for CTQW + dynamic graph ideas only:
 
 ```text
 Full: Hamiltonian inter-event evolution + event update
@@ -127,9 +130,22 @@ If only ___ improves, we can only claim ___.
 If ablations show ___, the mechanism claim is unsupported.
 ```
 
+## Design-validity checks
+
+Before advancing the plan, identify the independent sampling/experimental unit,
+technical versus independent repetitions, selection/measurement/confounding risks,
+missingness handling and dependence where applicable. Predeclare outcomes and
+analysis decisions for confirmatory work before inspecting outcomes. Record
+amendments, reasons and which outcomes were already known; post-outcome changes
+remain disclosed and exploratory, never retroactively preregistered.
+
+For every consequential concern state the object/source, uncertainty, implication
+for the claim, smallest design repair, and how it could be checked. A design
+cannot grant execution, ethics, publication, or scientific claim approval.
+
 ## Recommended Output Format
 
-When applying this skill, answer in this order:
+Use applicable sections only. The following model-experiment format is optional; theoretical/qualitative projects can instead organize proof obligations or source/sampling/interpretation evidence:
 
 1. **Central Claim**
 2. **Research Questions**
@@ -150,4 +166,6 @@ Use $experiment-design. Turn my model idea into a paper-grade experimental valid
 
 ## One-Sentence Summary
 
-A publishable experiment plan does not merely show that a model works; it shows why the claimed mechanism is necessary, when it helps, and what claims the evidence truly supports.
+A defensible evidence plan specifies what could support or challenge the scoped claim and which conclusions would remain unjustified.
+
+Evidence appraisal adaptations: [third-party notices](../THIRD_PARTY_NOTICES.md).

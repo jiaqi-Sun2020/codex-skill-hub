@@ -7,12 +7,12 @@ type: project
 ## Durable decisions
 
 - `My_skills` is the canonical local source and navigation hub for reusable Codex Skills. Its public repository is `jiaqi-Sun2020/codex-skill-hub`.
-- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the nine numbered categories, index all thirty active Skills whose canonical source is stored here, and route readers to category documentation.
+- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the nine numbered categories, index all thirty-three active Skills whose canonical source is stored here, and route readers to category documentation.
 - Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` owns reusable maintenance utilities and Registry infrastructure; `60-visual-computing` owns reusable real-time web visual-computing sources; `90-personal` describes active local teaching sources; `98-inbox` and `99-archive` define staging and archive safety.
 - Category READMEs are human-facing maps. Each Skill's `SKILL.md` remains its formal execution contract. README acknowledgements identify confirmed open-source influences with author or maintainer, project link, scope of influence, and license when known. Do not infer unrecorded provenance.
 - Original or otherwise relicensable hub content is MIT licensed. Third-party license, copyright, and notice obligations remain in force.
-- The hub directly maintains nine paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, five reusable core Skills under `50-core-utils/`, nine visual-computing Skills under `60-visual-computing/`, and `logic-chain-tutor` under `90-personal/`.
-- The nine paper-build Skills are `academic-figure-workflow`, `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `prl-manuscript-polisher`, and `interactive-skill-builder`.
+- The hub directly maintains twelve paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, five reusable core Skills under `50-core-utils/`, nine visual-computing Skills under `60-visual-computing/`, and `logic-chain-tutor` under `90-personal/`.
+- The twelve paper-build Skills are `academic-figure-workflow`, `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `prl-manuscript-polisher`, `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
 - On 2026-09-24, eight paper-build Skills were imported as a source snapshot from `S_paper_skills` commit `dcd573b1768e48e794975100f8548dc0f1bcb50e`. The old directory typo `data-analsys-skill/` is normalized to `data-analysis/`; the old wrapper and `util_skills/` layer are not retained. The old repository's full refs are preserved in an external verified bundle with SHA-256 `261B5C3496DABC7BBE3087F40B626C0499606827672E3458599E619B7BE0C521` before retirement.
 - The imported paper-build Skills are direct hub source, not immutable Skill Registry releases and not components of the six-Skill `20-project-build/` architecture.
 - `experiment-design` owns research questions, hypotheses, evidence gaps, datasets, baselines, ablations, metrics, controls, and claim boundaries. It does not implement experiment execution, runners, adapters, or runtime gates and grants no execution or publication authority.
@@ -40,9 +40,11 @@ type: project
 - The Skill Registry accepts only portable 1–64 character lowercase identifiers with single `.`, `_`, or `-` separators and rejects Windows reserved basenames; all identifier-bearing inputs are validated before filesystem side effects, while every derived filesystem path remains independently root-confined.
 - Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are required, Linux compatibility is informational, action dependencies are pinned by commit SHA, and Gitleaks scans committed history. Integrity assertions stay inline; do not add a root `tests/` directory merely to hold repository checks.
 
+- On 2026-10-10, the approved paper Pipeline expansion imported Literature Triage Matrix from Research Hub commit `cfc40cc27d45a78783266f9f4312290778ae6f5e` and Literature Review from K-Dense commit `92ace75ac21efe19a620434e0ca4e356081fe807`. MIT notices and adaptation scope are in `10-paper-build/THIRD_PARTY_NOTICES.md`. Brainstorming and Critical Thinking inform existing stage owners, not new Skills; optional literature artifacts are lazy, and DOI registration, source support, coverage and author approval remain separate. Offline record processing and optional metadata checks do not add mandatory dependencies or user-level installs.
+
 ### Publication contract
 
-- Before publishing, validate all thirty active Skills, compile relevant Python scripts, smoke-test documented entry points, check links and unique Skill names, scan tracked files for secrets and machine-specific paths, run Neat-Freak and Bootstrap audits, run the Registry check and tests, and perform a read-only submission audit.
+- Before publishing, validate all thirty-three active Skills, compile relevant Python scripts, smoke-test documented entry points, check links and unique Skill names, scan tracked files for secrets and machine-specific paths, run Neat-Freak and Bootstrap audits, run the Registry check and tests, and perform a read-only submission audit.
 - Compare linked external projects against fetched upstream before committing; never force-push.
 - Keep generated backups, local inbox material, shortcut files, caches, credentials, private environment files, and migration bundles out of the public repository.
 - Do not delete a migrated remote or local source until the hub commit is pushed, new public paths are verified, and a complete external bundle is verified.
@@ -55,6 +57,9 @@ type: project
 - `10-paper-build/README.md`
 - `10-paper-build/README.en.md`
 - `10-paper-build/S_PAPER_SKILLS_LICENSE`
+- `10-paper-build/THIRD_PARTY_NOTICES.md`
+- `10-paper-build/literature-review/SKILL.md`
+- `10-paper-build/literature-triage-matrix/SKILL.md`
 - `10-paper-build/experiment-design-skill/SKILL.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
@@ -102,3 +107,7 @@ type: project
 - `50-core-utils/find-skills/SKILL.md`
 - `50-core-utils/find-skills/UPSTREAM.md`
 - `90-personal/logic-chain-tutor/SKILL.md`
+
+`paper-project-initializer` creates only approved minimal paper entries and
+returns to the selected stage. Agent/memory/Hook need scoped approval;
+routine updates stay with Neat-Freak. See the paper Skill's source contract.

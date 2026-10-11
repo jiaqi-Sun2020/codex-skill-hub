@@ -48,7 +48,7 @@ paper_latex_framework/
 - Keep source prose unchanged when splitting.
 - Keep labels unchanged unless fixing duplicates with explicit user approval.
 - Keep citation keys unchanged.
-- Manage all literature in `.bib` files, typically under `references/`; do not emit inline `thebibliography`.
+- Manage the manuscript bibliography in the existing active `.bib`, typically under `references/`; preserve keys and do not emit inline `thebibliography`. Source passages and literature-review evidence remain separate from bibliography metadata.
 - Rewrite bibliography paths only when the generated file layout requires it.
 - Put every copied figure or image under `figures/` and rewrite figure paths only when the corresponding file has been copied.
 - Do not create empty style manifests or figure packages for a figure-free

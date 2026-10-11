@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具、实时视觉计算和个人教学能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
 
-本仓库当前直接维护 30 个活动 Skill：`10-paper-build` 9 个、`20-project-build` 6 个、`50-core-utils` 5 个、`60-visual-computing` 9 个、`90-personal` 1 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
+本仓库当前直接维护 33 个活动 Skill：`10-paper-build` 12 个、`20-project-build` 6 个、`50-core-utils` 5 个、`60-visual-computing` 9 个、`90-personal` 1 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
@@ -42,11 +42,14 @@
 
 `.agents/` 保存项目 Agent 上下文与长期知识，`.codex/` 保存项目级启动加载。二者不是人类总览的替代品，也不会在根目录生成另一份 `AGENTS.md`。
 
-## 30 个活动 Skill
+## 33 个活动 Skill
 
 | 分类 | Skill | 一句话职责 |
 |---|---|---|
-| 论文构建 | `research-logic` | 建立机制级研究逻辑和可守住的贡献主张 |
+| 论文构建 | `paper-project-initializer` | 预览并在授权内初始化最小论文入口 |
+| 论文构建 | `literature-review` | 发现、筛选、评价和主题综合文献，披露覆盖与证据边界 |
+| 论文构建 | `literature-triage-matrix` | 对已有文献集合建立来源可追踪的比较矩阵 |
+| 论文构建 | `research-logic` | 形成研究问题、挑战逻辑并按需分析方法融合 |
 | 论文构建 | `experiment-design` | 从主张推导证据缺口、对照、消融和结论边界 |
 | 论文构建 | `data-analysis` | 检查数据完整性并给出统计、区间和可复核解释 |
 | 论文构建 | `research-html-report` | 将研究逻辑与证据计划整理为独立 HTML 报告 |
@@ -81,8 +84,10 @@
 
 | 当前目标 | 入口 |
 |---|---|
+| 初始化或检查论文项目入口 | 使用 [paper-project-initializer](10-paper-build/paper-project-initializer/SKILL.md)；Agent／记忆／Hook 需专项授权 |
 | 新研究项目或尚未接入的遗留项目 | 从 [20-project-build](20-project-build/README.md) 的一次性接入流程开始 |
 | 已接入项目的合同、证据或状态发生变化 | 使用项目构建框架中的重复研究管理流程 |
+| 寻找研究背景或比较已有文献 | 使用 [10-paper-build](10-paper-build/README.md) 的文献发现或矩阵入口 |
 | 把已有研究成果整理成论文 | 从 [10-paper-build](10-paper-build/README.md) 当前最早缺失的阶段进入 |
 | 更新已初始化项目的 README、`.agents` 或长期知识 | 使用 [50-core-utils](50-core-utils/README.md) 中的持续维护工具 |
 | 审核一个 Skill 或整理训练代码 | 从核心工具分类选择对应 Skill |

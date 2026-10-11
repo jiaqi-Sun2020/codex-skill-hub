@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, real-time visual computing, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 30 active Skills: nine under `10-paper-build`, six under `20-project-build`, five under `50-core-utils`, nine under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 33 active Skills: twelve under `10-paper-build`, six under `20-project-build`, five under `50-core-utils`, nine under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -42,11 +42,14 @@ The three documentation layers have distinct responsibilities:
 
 `.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
 
-## Thirty active Skills
+## Thirty-three active Skills
 
 | Category | Skill | One-line responsibility |
 |---|---|---|
-| Paper build | `research-logic` | Build mechanism-level research logic and defensible contribution claims |
+| Paper build | `paper-project-initializer` | Preview and initialize minimal paper entries under scoped permission |
+| Paper build | `literature-review` | Discover, screen, appraise and synthesize literature with coverage and evidence limits |
+| Paper build | `literature-triage-matrix` | Compare a known source set in a traceable literature matrix |
+| Paper build | `research-logic` | Form questions, challenge reasoning, and analyze method integration when applicable |
 | Paper build | `experiment-design` | Derive evidence gaps, controls, ablations, and claim boundaries from a claim |
 | Paper build | `data-analysis` | Check data integrity and produce statistics, intervals, and reviewable interpretation |
 | Paper build | `research-html-report` | Package research logic and evidence plans as a standalone HTML report |
@@ -81,8 +84,10 @@ The three documentation layers have distinct responsibilities:
 
 | Current goal | Entry point |
 |---|---|
+| Initialize or check a paper-project entry | Use [paper-project-initializer](10-paper-build/paper-project-initializer/SKILL.md); Agent/memory/Hook need scoped approval |
 | New research project or a legacy project not yet onboarded | Start with the one-time onboarding flow in [20-project-build](20-project-build/README.en.md) |
 | Contracts, evidence, or state changed in an onboarded project | Use the repeated research-management flow in the project-build framework |
+| Discover research context or compare known papers | Use the literature-review or matrix entry in [10-paper-build](10-paper-build/README.en.md) |
 | Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |

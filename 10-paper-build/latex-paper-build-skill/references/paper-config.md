@@ -48,7 +48,7 @@ Use a root-level `paper_config.json` file in every generated pipeline. Prefer JS
 
 - Treat `paper_config.json` as the source of truth for title, authors, affiliations, correspondence email/address, keywords, and acknowledgments.
 - Generate `frontmatter.tex` from the config when creating a new template pipeline.
-- When scaffolding from an existing manuscript, preserve the manuscript body but regenerate `frontmatter.tex` from `paper_config.json` if the user provided or requested config-driven metadata.
+- When scaffolding from an existing manuscript, preserve the manuscript body and render newly created `frontmatter.tex` from `paper_config.json`. If output frontmatter/preamble already exists, the Pipeline generator preserves it without `--force`; preview replacement and explicitly authorize `--force` for a config refresh instead of silently overwriting owner edits.
 - Keep private or uncertain information as `TODO` rather than inventing names, addresses, funding, or emails.
 - Do not store secrets in `paper_config.json`; contact email and public affiliation are acceptable manuscript metadata.
 - For APS/REVTeX output, map authors to repeated `\author`, optional `\email`, and `\affiliation` commands.

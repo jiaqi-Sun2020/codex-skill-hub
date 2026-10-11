@@ -8,18 +8,18 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates thirty directly maintained active Skills, versioned shared
+skills. It separates thirty-three directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the thirty Skills stored in this repository
+The bilingual root READMEs document the thirty-three Skills stored in this repository
 and route readers to nine numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
 contracts.
 
 The bilingual `10-paper-build` READMEs define the paper lifecycle and optional
-figure-evidence lane for nine peer Skills. The bilingual `20-project-build`
+literature and figure-evidence lanes for twelve peer Skills. The bilingual `20-project-build`
 READMEs define one-time onboarding and repeated research management for six
 project-build Skills, including SCI/STAT/ENG/GOV contract responsibilities and
 independent state axes, without duplicating the repository overview.
@@ -74,7 +74,7 @@ independent state axes, without duplicating the repository overview.
   `90-personal/*/SKILL.md`: active Skill entry points grouped by paper-build,
   project-build, reusable-utility, visual-computing, or personal ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
-- `10-paper-build/`: nine centrally stored peer paper-building Skills and their
+- `10-paper-build/`: twelve centrally stored peer paper-building Skills and their
   bilingual category map.
 - `60-visual-computing/`: nine centrally stored visual-computing Skills:
   `celestial-body-formation-skill` plus `gsap-core`, `gsap-timeline`,
@@ -118,11 +118,12 @@ independent state axes, without duplicating the repository overview.
 - Optional policy-topology declarations are boundary-checked by the Pipeline and
   audited for content only by `neat-freak`, which also owns narrowly scoped repair
   of existing marked Bootstrap wiring after explicit authorization.
-- Nine peer paper-building Skills are stored directly under `10-paper-build/`:
+- Twelve peer paper-building Skills are stored directly under `10-paper-build/`:
   `academic-figure-workflow`, `research-logic`, `experiment-design`,
   `data-analysis`, `research-html-report`, `latex-paper-build-skill`,
   `paper-polishing-skill`, `prl-manuscript-polisher`, and
-  `interactive-skill-builder`. They are separate from the ten core Skills and
+  `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
+  They are separate from the ten core Skills and
   are maintained as hub source rather than Registry releases.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
@@ -173,3 +174,7 @@ independent state axes, without duplicating the repository overview.
 
 - Decide whether central utilities should later receive user-level global discovery
   links; project-level copies remain prohibited.
+
+`paper-project-initializer` creates only approved minimal paper entries and
+returns to the selected stage. Agent/memory/Hook need scoped approval;
+routine updates stay with Neat-Freak. See the paper Skill's source contract.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Project Initializer"
+  short_description: "Initialize paper entry points with reviewed, scoped writes."
+  default_prompt: "Use $paper-project-initializer to inspect my paper project, preview the smallest initialization, and hand off the next stage."

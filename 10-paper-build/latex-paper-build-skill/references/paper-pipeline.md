@@ -7,8 +7,8 @@ This pipeline borrows the staged-writing discipline of `alfonso0512/research-wri
 ## Pipeline Stages
 
 ```text
-0. Intake, project inventory, and paper_config.json
-1. Research logic
+0. Intake and project inventory; manuscript config only when needed
+1. Research logic, with optional literature discovery/comparison and question revision
 2. Experiment and evidence design, including optional figure intent
 3. Evidence production, result integrity, and data analysis
 4. Research HTML report
@@ -17,7 +17,9 @@ This pipeline borrows the staged-writing discipline of `alfonso0512/research-wri
 7. Post-approval English polishing and submission checks
 ```
 
-Each stage should produce a durable artifact. Avoid treating chat-only reasoning as complete unless the user explicitly wants a discussion rather than a managed project.
+Active managed stages reuse a durable artifact. Optional/inapplicable stages
+do not create empty files. Inline reasoning is allowed for a discussion rather
+than a managed project.
 
 The academic-figure path is optional and cross-cutting rather than a mandatory
 numbered stage. `latex-paper-build-skill` decides when to route into it and owns
@@ -29,7 +31,30 @@ these states may be inferred from another: visual QA does not prove a
 scientific claim, and a scientifically reviewed result does not prove the
 export is readable or submission-ready.
 
+## Repeatable Goal-Clarification Lane
+
+At any stage, lightly inspect the requested next action and available decisions.
+For explicit deeper questioning, a consequential blocker or a material change,
+read [goal-clarification.md](goal-clarification.md). It alone defines the
+interaction, authority, persistence, exit and local-reopening rules. This lane
+is optional, has no stage number and creates no separate artifacts.
+
+The Pipeline activates and bounds the lane, calls only the needed specialist,
+and returns to the requested stage once the blocker is resolved. Scientific
+questions belong to `research-logic`; format/delivery choices do not automatically
+route there. An affected dependency may reopen an earlier review, not the whole
+pipeline. Old workspaces are read compatibly without regeneration or field insertion.
+
 ## Stage 0: Intake, Inventory, And Config
+
+For initialization/onboarding/recovery, read
+[paper-project-initializer](../../paper-project-initializer/SKILL.md), then return
+to the selected stage (not necessarily Stage 0). Default authorized initialization
+creates only `00_research_logic/intake.md` and `pipeline_context.md`, or references
+existing equivalents. No empty stages/config/literature/figures. Agent framework,
+memory baseline and persistent Hook activation are separately disclosed/approved.
+Use full `create_paper_pipeline.py` only for an explicit complete-workspace request;
+its old CLI/layout remains compatible and is not the minimal helper's transaction.
 
 Goal: identify what already exists, what is missing, and what stable manuscript metadata should drive generated frontmatter.
 
@@ -44,6 +69,8 @@ Inspect:
 
 Recommended artifacts:
 
+For complete manuscript work, not prerequisites for minimal initialization:
+
 ```text
 paper_config.json
 00_research_logic/intake.md
@@ -52,10 +79,16 @@ paper_config.json
 Minimum contents:
 
 - one-sentence project identity;
+- work goal, audience, non-goals, acceptance and the source of applicable action
+  authority; point to an approved formal goal contract when one exists;
 - current source assets;
 - missing decisions;
 - target pipeline stage;
 - metadata TODOs that remain unresolved in `paper_config.json`.
+
+`intake.md` owns the work goal only when no existing formal contract owns it.
+The scientific question stays in `research_logic.md`; local decisions stay in
+stage artifacts and `pipeline_context.md` is navigation, not duplicate authority.
 
 Read `references/paper-config.md` before creating or editing `paper_config.json`. For QCT/QWCT papers, read `references/qct-writing-methodology.md` before drafting the abstract, introduction, contribution paragraph, results framing, or discussion boundary.
 
@@ -63,7 +96,7 @@ Read `references/paper-config.md` before creating or editing `paper_config.json`
 
 Sibling skill: `../research-logic-skill/SKILL.md`
 
-Use when the contribution, mechanism, or method combination is unclear.
+Use when the question, contribution, assumptions or method combination is unclear.
 
 Artifact:
 
@@ -73,17 +106,49 @@ Artifact:
 
 It should contain:
 
-- native function of each method;
-- direct connection point;
-- shallow integration baseline;
-- mechanism-level reconstruction;
+- focal question, scope and mode;
+- candidate directions, assumptions and rival explanations;
+- located support, counterevidence and literature gaps;
+- chosen direction or unresolved decision;
 - claim discipline and boundaries.
+
+Method-integration tasks may add native functions, direct connections and
+mechanism-level reconstruction; these are not required for every contribution.
 
 Exit gate:
 
-- central mechanism is stated as a state, operator, update rule, or assumption change;
-- claims avoid generic "we improve performance" phrasing;
+- the question, proposed contribution and permissible inference are explicit;
+- candidate ideas remain distinct from findings and final author decisions;
 - open theory gaps are explicit.
+
+## Optional Literature Lane (Stages 0–1, Revisited As Needed)
+
+Use `../literature-review/SKILL.md` for unknown context, discovery, screening,
+appraisal and synthesis. Use `../literature-triage-matrix/SKILL.md` for a known
+paper set. Research-logic can form initial alternatives, check sources here,
+and reopen ideation.
+These are on-demand agent routes. The generator creates scaffolding and does
+not execute either literature Skill, retrieve papers or search databases.
+
+Only when activated, reuse or create the requested artifacts under:
+
+```text
+00_research_logic/literature/
+  literature_matrix.md      # known-set comparison, only if needed
+  review_protocol.md        # searches, decisions, appraisal, revisions and gaps
+  literature_review.md      # thematic narrative, only if requested
+```
+
+Do not create a second hidden literature system, duplicate a search ledger, or
+write three placeholders. Standalone Skills permit inline or owner-selected
+locations. Manuscript bibliography stays in the existing active .bib.
+
+Handoff states question/mode, actual source sections/versions checked, support
+and counterevidence, record/report/study links, appraisal limitations, unchecked
+claims and next action. Relevance is not quality; DOI registration is not claim
+support; several reports of one study are not independent evidence. Systematic
+coverage and real reviewer independence must be disclosed; one agent's repeated
+passes do not constitute independent dual review.
 
 ## Stage 2: Experiment Design
 
@@ -101,29 +166,31 @@ It should contain:
 
 - central claim;
 - research questions;
-- datasets and tasks;
-- baselines;
-- ablations;
-- mechanism checks;
-- metrics and tables;
+- applicable sources, independent units and sampling/proof obligations;
+- rival explanations and discriminating evidence;
+- applicable datasets, controls, baselines or ablations;
+- justified analysis and exploratory/confirmatory status;
 - failure cases;
 - claim boundaries;
-- minimum viable experiment plan.
+- minimum viable evidence plan.
 - when figures are applicable, a lightweight figure-evidence plan stating the
   intended claim anchor, target section, panel roles, required evidence and
   analysis, target venue/size, and open decisions. This is a plan, not artwork.
 
 Exit gate:
 
-- every claim maps to an experiment or TODO;
+- every claim maps to suitable evidence, proof or an explicit unresolved gap;
 - every table/figure in the future paper has a purpose;
-- baselines include strong and mechanism-neighbor alternatives.
+- applicable comparisons test the explanation, not a mandatory ML template;
+- post-outcome amendments are disclosed, not retroactively preregistered.
 - planned figures do not imply that evidence or statistics have already been
   verified.
 
 ## Stage 3: Evidence Production, Results, And Data Analysis
 
-Use the project's domain method or execution workflow to produce evidence. For
+Use the project's domain method or execution workflow to produce evidence.
+Theoretical, qualitative and literature work may use direct reasoning or source
+synthesis without new experiments. For
 quantitative results, use sibling skill `../data-analysis/SKILL.md` to check
 data provenance, units, missingness, statistical design, uncertainty, and the
 claim boundary before a submission-facing plot is produced. Non-quantitative
@@ -255,7 +322,7 @@ Exit gate:
 - source manuscript is modular;
 - original source remains untouched unless explicitly requested;
 - figure and bibliography paths resolve;
-- all literature is managed through `.bib` files;
+- manuscript bibliography uses the existing active `.bib`; source passages remain separate;
 - all manuscript images live under the single `figures/` folder;
 - labels and citation keys are preserved.
 - applicable figures come from the canonical figure packages and have caption,
@@ -277,6 +344,12 @@ Exit gate:
   source trace, caption, final-size readability, accessibility, editability,
   and unresolved issues;
 - a visual/package PASS has not been treated as scientific claim approval.
+- load-bearing citations have located source/version support, and search limits,
+  unavailable reports and overlapping studies are disclosed when relevant;
+- exploratory reasoning and author approval remain separate from tool success.
+- changes to goals, methods, data, evidence sources or figure meaning have an
+  explicit impact check even when conclusion wording is unchanged; preserve old
+  approvals as history and re-review affected portions under the shared protocol.
 
 ## Stage 7: Post-Approval English Polishing And Submission
 
@@ -335,7 +408,13 @@ The generator does not create empty figure-package or style files. The
 `05_manuscript_zh/figures/` root appears only when referenced figures are
 imported or the figure workflow needs it.
 
+The generator also does not create `00_research_logic/literature/` or any
+literature placeholders. Optional literature work creates only needed artifacts.
+
 ## Routing Rules
+
+- Unknown research context routes to literature-review; an explicit known set
+  routes to literature-triage-matrix. Reopen research-logic after evidence checks.
 
 - If the user asks "is this idea a paper?", start at Stage 1 after creating or checking `paper_config.json`.
 - If the idea is clear but evidence is weak, start at Stage 2.

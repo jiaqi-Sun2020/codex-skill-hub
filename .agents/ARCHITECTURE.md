@@ -31,6 +31,9 @@ My_skills/
 |-- 10-paper-build/
 |   |-- README.md / README.en.md
 |   |-- S_PAPER_SKILLS_LICENSE
+|   |-- THIRD_PARTY_NOTICES.md
+|   |-- literature-review/
+|   |-- literature-triage-matrix/
 |   |-- academic-figure-workflow/
 |   |-- research-logic-skill/
 |   |-- experiment-design-skill/
@@ -158,6 +161,8 @@ My_skills/
 - `60-visual-computing/GSAP_SKILLS_LICENSE`
 - `10-paper-build/academic-figure-workflow/SKILL.md`
 - `10-paper-build/research-logic-skill/SKILL.md`
+- `10-paper-build/literature-review/SKILL.md`
+- `10-paper-build/literature-triage-matrix/SKILL.md`
 - `10-paper-build/experiment-design-skill/SKILL.md`
 - `10-paper-build/data-analysis/SKILL.md`
 - `10-paper-build/research-html-report/SKILL.md`
@@ -200,7 +205,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact thirty-Skill index. Every numbered category README pair owns only the
+  compact thirty-three-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -224,7 +229,7 @@ My_skills/
   do not transfer ownership to this folder, and the `30-papertrace` and
   `40-skill-registry` README pairs do not make those shortcut targets repository
   source.
-- `10-paper-build/` owns nine centrally stored peer paper-building Skills. The eight
+- `10-paper-build/` owns twelve centrally stored peer paper-building Skills. The eight
   imported sources are a snapshot of former `S_paper_skills` commit
   `dcd573b1768e48e794975100f8548dc0f1bcb50e`; they do not retain the old Git
   history and are not Registry releases. `S_PAPER_SKILLS_LICENSE` preserves the
@@ -268,3 +273,7 @@ My_skills/
 - Do not recreate `00-overview/`; repository-wide inventory and routing are
   canonical in the root README pair, while category detail belongs in numbered
   category README pairs.
+
+`paper-project-initializer` creates only approved minimal paper entries and
+returns to the selected stage. Agent/memory/Hook need scoped approval;
+routine updates stay with Neat-Freak. See the paper Skill's source contract.

@@ -61,6 +61,8 @@ jobs:
           try {
             foreach ($iteration in 1..2) {
               foreach ($suite in $suites) {
+                python -X utf8 -B -c "import sys,unittest; s=unittest.defaultTestLoader.discover(sys.argv[1],pattern='test_*.py'); n=s.countTestCases(); print('Discovered:',n); sys.exit(2 if n==0 else 0)" $suite
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "discovery-$iteration`:$suite"; continue }
                 python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
                 if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
               }
@@ -86,6 +88,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
           $tests = Get-ChildItem '.\50-core-utils\skill-registry\sources\reader-learner\tests' -Filter 'test_*.py' | Sort-Object Name
+          if ($tests.Count -eq 0) { throw 'Reader-Learner discovery returned zero scripts' }
           $failedTests = @()
           foreach ($test in $tests) {
             python -X utf8 -B $test.FullName
@@ -135,7 +138,7 @@ jobs:
           $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {
             $_.Name -ne 'skill-registry' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md'))
           }
-          if ($active.Count -ne 30) { throw "Expected 30 active Skills, found $($active.Count)" }
+          if ($active.Count -ne 33) { throw "Expected 33 active Skills, found $($active.Count)" }
 
           $rootReadmes = (Get-Content -Raw 'README.md') + "`n" + (Get-Content -Raw 'README.en.md')
           foreach ($skill in $active) {
@@ -239,6 +242,7 @@ jobs:
             ForEach-Object { Join-Path $_.FullName 'tests' }
           $suites = @(
             (Join-Path $repoRoot '10-paper-build/academic-figure-workflow/tests')
+            (Join-Path $repoRoot '10-paper-build/latex-paper-build-skill/tests')
           ) + @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
           $standaloneScripts = @(
             (Join-Path $repoRoot '50-core-utils/find-skills/evals/test_inspect_patterns.py')
@@ -248,6 +252,8 @@ jobs:
           try {
             foreach ($iteration in 1..2) {
               foreach ($suite in $suites) {
+                python -X utf8 -B -c "import sys,unittest; s=unittest.defaultTestLoader.discover(sys.argv[1],pattern='test_*.py'); n=s.countTestCases(); print('Discovered:',n); sys.exit(2 if n==0 else 0)" $suite
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "discovery-$iteration`:$suite"; continue }
                 python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
                 if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
               }
@@ -257,6 +263,7 @@ jobs:
               }
             }
             $readerTests = Get-ChildItem (Join-Path $repoRoot '50-core-utils/skill-registry/sources/reader-learner/tests') -Filter 'test_*.py' | Sort-Object Name
+            if ($readerTests.Count -eq 0) { throw 'Reader-Learner discovery returned zero scripts' }
             foreach ($test in $readerTests) {
               python -X utf8 -B $test.FullName
               if ($LASTEXITCODE -ne 0) { $failedSuites += $test.FullName }

@@ -36,13 +36,34 @@ Use this skill to turn raw experimental outputs or result tables into defensible
    - Perform a short self-review for code bugs, data handling mistakes, inappropriate tests, and overclaimed language.
    - If evidence is weak, say so directly and propose the next data collection or analysis step.
 
-## Output Contract
+## Inference and independence
+
+- Identify the independent sampling/experimental unit before choosing tests.
+  Technical repeats, reused participants, overlapping cohorts, folds and seeds
+  do not automatically add independent observations. Model dependence or disclose
+  limitations; do not treat every table row as an independent sample.
+- Distinguish descriptive, predictive and causal claims; causal interpretation
+  needs a defensible identification/design argument, not significance or fit.
+- Define the comparison/outcome family and applicable multiplicity handling.
+  Keep exploratory/post-outcome choices distinct from confirmatory plans.
+- Non-significance is not proof of no effect; support for equivalence or a null
+  needs appropriate bounds/design and uncertainty. Optimizer convergence, fit
+  or improved metrics do not identify a unique mechanism.
+- Missing reporting is not proof a procedure was not performed. Record a located
+  observation, its consequence for the claim, uncertainty, and smallest remedy.
+- Literature Review owns published-source appraisal and synthesis; this Skill
+  owns computations on explicitly supplied data. Neither signs final scientific
+  approval on behalf of the author/domain expert.
+
+See [third-party notices](../THIRD_PARTY_NOTICES.md) for critique provenance.
+
+## Output Contract (applicable analysis only)
 
 For a complete analysis, include:
 
 - Data provenance: files, row counts, metric columns, filters, and exclusions.
 - Descriptive summary: central tendency, uncertainty, and sample size per group.
-- Statistical test: test name, reason, assumptions, p-value, effect size, confidence interval when possible.
+- Statistical test when applicable: test name, reason, assumptions, p-value, effect size, confidence interval when possible; do not force inferential tests onto qualitative or descriptive-only work.
 - Integrity status: pass/warn/fail for provenance, metric validity, result existence, and scope.
 - Claim impact: supported, partially supported, unsupported, or requires more evidence.
 - Reproducible artifacts: generated script paths, tables, figures, or JSON summaries if files are created.

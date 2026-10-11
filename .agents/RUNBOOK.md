@@ -13,7 +13,7 @@
 | `Get-ChildItem ".\50-core-utils\skill-registry\sources\reader-learner\tests" -Filter "test_*.py" \| Sort-Object Name \| ForEach-Object { python -X utf8 -B $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }` | run from repository root; direct Reader-Learner source smoke tests | verified |
 | `python -X utf8 -B -m unittest discover -s ".\20-project-build\project-agent-generator-skill\tests" -p "test_*.py"` | run from repository root; includes Hook event, encoding, size, link/junction, and drift coverage | verified |
 | `git diff --check` | run from repository root; whitespace and conflict-marker check | verified |
-| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 29 directly maintained Skills | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 33 directly maintained Skills | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\20-project-build\project-submission-audit"` | run from repository root; new submission-audit Skill structure | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\handoff"` | run from repository root; new handoff Skill structure | verified |
 | `python -X utf8 -B ".\tools\skill_registry.py" registry-check --registry .` | `50-core-utils/skill-registry/README.md`; run from the registry directory | verified |
@@ -48,13 +48,18 @@
    semantics or interpret the result; `claim_ceiling`, evidence, work completion,
    and authorization remain independent axes.
 5. Run the smallest relevant syntax or unit-test command first.
-6. For paper-build changes, validate all nine directories under `10-paper-build/`,
+6. For paper-build changes, validate all twelve Skill directories under `10-paper-build/`,
    compile their Python scripts, and smoke-test documented CLI entry points.
 7. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
 8. Do not open, print, copy, summarize, upload, or modify suspected credential files.
 9. Treat `.github/workflows/ci.yml` as the executable CI contract: keep action
    references pinned to reviewed commit SHAs and keep repository-integrity checks
    inline unless a real reusable test module is later justified.
+
+Paper initialization: from repository root, run
+`python -X utf8 -B .\10-paper-build\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<existing-project>"`.
+Read its contract before preview/apply/resume. Zero discovered tests fail CI.
+This helper does not create or enable Agent/memory/Hook.
 
 ## Long-Running Or Risky Commands
 

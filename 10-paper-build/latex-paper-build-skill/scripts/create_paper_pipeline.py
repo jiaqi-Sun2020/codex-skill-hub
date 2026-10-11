@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import re
+import stat
 import shutil
 import subprocess
 import sys
@@ -55,6 +56,32 @@ def write_text(path: Path, text: str, force: bool) -> None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text.strip() + "\n", encoding="utf-8")
+
+
+def validate_pipeline_output(project: Path) -> None:
+    """Reject linked output roots/ancestors and linked existing stage content.
+
+    Check lexical paths before resolve(), otherwise a junction loses its identity.
+    This is a local preflight, not a transaction against concurrent path swaps.
+    """
+    def check(path: Path) -> None:
+        for candidate in (path.absolute(), *path.absolute().parents):
+            try:
+                info = candidate.lstat()
+            except FileNotFoundError:
+                continue
+            if (stat.S_ISLNK(info.st_mode) or
+                    getattr(info, 'st_file_attributes', 0) & 0x400):
+                raise ValueError(f'linked/reparse pipeline output path is not allowed: {candidate}')
+
+    for destination in (project, project / 'paper_config.json', project / 'pipeline_context.md'):
+        check(destination)
+    pending = [project / stage for stage in STAGE_DIRS]
+    while pending:
+        path = pending.pop()
+        check(path)  # never traverse a linked directory
+        if path.is_dir():
+            pending.extend(path.iterdir())
 
 
 def default_paper_config(title: str, project_key: str) -> dict[str, Any]:
@@ -257,6 +284,8 @@ def copy_template(skill_dir: Path, manuscript_dir: Path, config: dict[str, Any],
     template_dir = skill_dir / "assets" / "revtex-qwct-template"
     if not template_dir.exists():
         return
+    existing_metadata = {name: (manuscript_dir / name).exists()
+                         for name in ('preamble.tex', 'frontmatter.tex')}
 
     for source in template_dir.rglob("*"):
         relative = source.relative_to(template_dir)
@@ -269,8 +298,8 @@ def copy_template(skill_dir: Path, manuscript_dir: Path, config: dict[str, Any],
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
 
-    write_text(manuscript_dir / "preamble.tex", render_preamble(config), True)
-    write_text(manuscript_dir / "frontmatter.tex", render_frontmatter(config), True)
+    write_text(manuscript_dir / "preamble.tex", render_preamble(config), force or not existing_metadata['preamble.tex'])
+    write_text(manuscript_dir / "frontmatter.tex", render_frontmatter(config), force or not existing_metadata['frontmatter.tex'])
 
 
 def run_latex_scaffold(
@@ -317,9 +346,14 @@ def pipeline_context(title: str, project_key: str, latex_source: Path | None, co
 
 ## Stage Map
 
+This table is a navigation hint, not a second current-state authority. Read the
+relevant artifact and approval source before relying on any stage's readiness.
+
 | Stage | Folder | Sibling skill | Status |
 |---|---|---|---|
 | Intake and inventory | `00_research_logic/` | this skill | TODO |
+| Optional literature discovery and synthesis | `00_research_logic/literature/` | `literature-review` | N/A until activated |
+| Optional known-set comparison | `00_research_logic/literature/literature_matrix.md` | `literature-triage-matrix` | N/A until activated |
 | Research logic | `00_research_logic/research_logic.md` | `research-logic` | TODO |
 | Experiment design | `01_experiment_design/experiment_plan.md` | `experiment-design` | TODO |
 | Evidence production | `02_training_code/`, `03_results/` | project/domain workflow | TODO/N/A |
@@ -332,8 +366,83 @@ def pipeline_context(title: str, project_key: str, latex_source: Path | None, co
 
 ## Next Step
 
-Start at the first TODO stage whose artifact is missing or too weak to support the later stages. Edit `paper_config.json` before finalizing title, authors, affiliations, correspondence, acknowledgments, and keywords. Activate the figure-evidence lane only when the paper needs figures; do not create empty figure packages for figure-free work. Figure/package QA and scientific claim review remain separate states.
+Continue the requested stage; reopen only dependencies that cannot support its
+next action. Use `00_research_logic/intake.md` for the work goal or its formal
+contract pointer, `00_research_logic/research_logic.md` for scientific questions,
+and the active stage artifact for local decisions. This context does not copy
+goals or maintain their current state. For a blocking ambiguity or material
+change, use the installed `latex-paper-build-skill` reference
+`references/goal-clarification.md`, then return to the requested stage.
+
+Edit `paper_config.json` before finalizing title, authors, affiliations, correspondence, acknowledgments, and keywords. Activate the figure-evidence lane only when the paper needs figures; do not create empty figure packages for figure-free work. Figure/package QA and scientific claim review remain separate states.
+
+Unknown context routes to literature-review; a known paper set routes to
+literature-triage-matrix. Research-logic can form initial candidates and reopen
+them after source checks. The generator creates routing/scaffolding only; agents
+invoke these literature Skills on demand. It performs no searches or source
+appraisal. Create literature artifacts only when requested;
+DOI registration, metadata matching, source support, retraction screening,
+scientific quality, search coverage and author claim approval
+are separate judgments. Theory, qualitative and literature work may use direct
+reasoning/synthesis without new experiments, training or numerical analysis.
 """
+
+
+def work_goal_section() -> str:
+    """Shared intake content; neither a scientific decision nor authorization."""
+    return """## Work Goal and Decision Source
+
+- Current requested deliverable/decision and audience: TODO
+- Scope and non-goals: TODO
+- Observable acceptance: TODO
+- Approved formal goal contract, if present: TODO/N/A (reference, not a copy)
+- Decision source and applicable action-authority reference: TODO
+- Remaining blocker and smallest next action: TODO/N/A
+
+The scientific question belongs in `research_logic.md`. Goal agreement is not
+scientific approval or permission for experiments, networking, writes or release.
+Use only applicable fields; do not invent missing history. For saved amendments,
+retain the prior decision as history and note source/approval, reason, results
+already seen, affected artifacts and reviews. Local decisions stay in the active
+stage artifact; do not create a question ledger."""
+
+
+def initialization_entries(inputs: dict[str, Any]) -> dict[str, str]:
+    """Render only two paper entry points, without config or venue defaults."""
+    section = work_goal_section()
+    replacements = {
+        "Current requested deliverable/decision and audience: TODO":
+            "Current requested deliverable/decision and audience: " + inputs['work_goal'],
+        "Observable acceptance: TODO": "Observable acceptance: " + inputs['acceptance'],
+        "Approved formal goal contract, if present: TODO/N/A (reference, not a copy)":
+            "Approved formal goal contract, if present: " + (inputs['formal_goal_ref'] or 'not located; do not infer approval'),
+        "Decision source and applicable action-authority reference: TODO":
+            "Decision source: " + inputs['goal_source'] + "; action authority is checked separately at apply",
+        "Remaining blocker and smallest next action: TODO/N/A":
+            "Remaining blocker and smallest next action: " + inputs['next_action'],
+    }
+    for old, new in replacements.items():
+        section = section.replace(old, new)
+    if inputs['formal_goal_ref']:
+        section = section.replace(inputs['work_goal'], 'See the formal goal reference; proposed changes require owner confirmation', 1)
+    materials = '\n'.join('- `' + p + '`' for p in inputs['references']) or '- No supplied material; scientific evidence remains unknown.'
+    intake = f"# Intake\n\n- Paper title: {inputs['title']}\n\n{section}\n\n## Existing Assets\n\n{materials}\n"
+    goal_ref = inputs['intake_ref'] or '00_research_logic/intake.md'
+    context = (
+        '# Paper Pipeline Context\n\n'
+        f"- Work-goal source: `{goal_ref}`\n"
+        f"- Starting stage: {inputs['start_stage']}\n"
+        f"- Next action: {inputs['next_action']}\n\n"
+        'This is navigation, not a second goal or current-state authority.\n'
+        'Use latex-paper-build-skill for the selected stage; read its sole\n'
+        'references/goal-clarification.md only for a blocker or material change.\n'
+        'Scientific questions belong to research-logic. Optional literature and\n'
+        'figure lanes stay lazy; no search, experiment, writing or publication\n'
+        'has been performed or authorized by creating these entries.\n'
+        'Missing paper_config.json is allowed until manuscript metadata is needed.\n'
+        'Agent framework, persistent Hook and memory are separate approved steps.\n'
+    )
+    return {'00_research_logic/intake.md': intake, 'pipeline_context.md': context}
 
 
 def intake_template(title: str) -> str:
@@ -348,6 +457,8 @@ def intake_template(title: str) -> str:
 - Blind-review constraints: TODO
 - Paper config: `../paper_config.json`
 
+{work_goal_section()}
+
 ## Existing Assets
 
 - Manuscript: TODO
@@ -356,6 +467,7 @@ def intake_template(title: str) -> str:
 - Experiment code: TODO
 - Result files: TODO
 - Reports/notes: TODO
+- Literature set, reviewed source sections and search limits: TODO/N/A
 
 ## Missing Decisions
 
@@ -369,25 +481,28 @@ def research_logic_template() -> str:
 
 Use `research-logic` for this stage.
 
-## Central Mechanism
+## Focal Question and Mode
 
 TODO
 
-## Native Functions
+## Candidate Directions, Assumptions and Rival Explanations
 
 TODO
 
-## Direct Connection
+## Located Support, Counterevidence and Literature Gaps
 
 TODO
 
-## Mechanism-Level Reconstruction
+## Chosen Direction or Unresolved Decision
 
 TODO
 
 ## Claim Discipline
 
 TODO
+
+Use a method-integration reconstruction only when that is the actual question.
+Candidate ideas are not validated findings; a simple adequate method is allowed.
 """
 
 
@@ -405,25 +520,29 @@ TODO
 
 TODO
 
-## Datasets and Tasks
+## Applicable Evidence Sources and Independent Units
 
 TODO
 
-## Baselines
+## Rival Explanations and Discriminating Evidence
 
 TODO
 
-## Ablations
+## Applicable Controls, Sampling or Proof Obligations
 
 TODO
 
-## Mechanism Checks
+## Failure Cases, Confounding and Missingness
 
 TODO
 
-## Metrics and Tables
+## Analysis Plan and Exploratory / Confirmatory Status
 
 TODO
+
+Datasets, baselines, ablations, seeds and numerical metrics are conditional
+modules, not required for theoretical, qualitative or literature-only research.
+Record any amendment and results already seen; do not invent preregistration.
 
 ## Optional Figure Evidence Plan
 
@@ -454,11 +573,18 @@ def review_gate_template() -> str:
 
 Before using `paper-polishing-skill`, the author should check:
 
+- [ ] The requested deliverable matches the approved goal source in intake or its formal contract; unresolved changes are proposals, not concurrent goals.
+- [ ] Goal, method, data, source-evidence and figure-meaning changes since the reviewed version have an impact check, with affected portions re-reviewed even if conclusion wording is unchanged.
+- [ ] Post-outcome amendments and their reasons are disclosed; historical approvals are not silently rewritten.
+- [ ] Author approval is separate from action authority; the intended next action has an applicable authorization source, not merely goal agreement.
 - [ ] `paper_config.json` has the correct title, authors, affiliations, correspondence address, email, and acknowledgments.
 - [ ] Abstract and introduction follow `latex-paper-build-skill/references/qct-writing-methodology.md` when the paper is QCT/QWCT.
-- [ ] The first abstract sentence is setting-qualified, not a universal theorem.
-- [ ] The introduction explains why influence does not imply invertibility.
-- [ ] No internal workflow terms such as pipeline, eval, checkpoint, author-review, or claim appear in formal manuscript prose.
+- [ ] Abstract and introduction match the demonstrated scope; a theorem is claimed only when its assumptions and proof justify it.
+- [ ] Project-specific distinctions (e.g. influence versus invertibility in QCT) are checked only when applicable.
+- [ ] Internal process IDs/status labels are not mistaken for scientific prose; legitimate scientific terms such as claim are allowed.
+- [ ] Load-bearing citations have located source/version support, not only DOI registration or abstract screening.
+- [ ] Search coverage, duplicate/overlapping studies, unavailable reports and review limitations are disclosed where applicable.
+- [ ] Exploratory and confirmatory reasoning, rival explanations and unresolved scientific decisions are explicit.
 - [ ] The Chinese scientific claim is correct and appropriately bounded.
 - [ ] Completed, partial, and planned experiments are clearly separated.
 - [ ] Figure/table intent and captions are correct.
@@ -485,9 +611,14 @@ latexmk -xelatex -bibtex -interaction=nonstopmode -file-line-error -outdir=build
 
 | Check | Status | Notes |
 |---|---|---|
+| Requested deliverable against approved goal source | TODO | Reference intake or formal contract; do not duplicate current goal state |
+| Review impact of method/data/evidence/figure changes | TODO/N/A | Reuse affected stage decisions and author review; unchanged conclusion text is not sufficient |
+| Authority for the proposed next action | TODO | Goal/content approval and a successful build do not authorize execution or release |
 | PDF builds | TODO | |
 | Undefined references | TODO | |
 | Undefined citations | TODO | |
+| Citation identity and located statement support | TODO/N/A | DOI registration is not claim support |
+| Literature coverage, versions and unresolved checks | TODO/N/A | Reuse review_protocol.md; do not infer completeness from a tool exit code |
 | Figure lane applicable | TODO/N/A | Give a reason when N/A |
 | Missing figures or broken paths | TODO/N/A | All applicable paths remain under `05_manuscript_zh/figures/` |
 | Editable figure sources or approved exceptions | TODO/N/A | |
@@ -504,7 +635,9 @@ latexmk -xelatex -bibtex -interaction=nonstopmode -file-line-error -outdir=build
 
 def create_pipeline(args: argparse.Namespace) -> None:
     skill_dir = Path(__file__).resolve().parents[1]
-    project = Path(args.project).resolve()
+    original_project = Path(args.project)
+    validate_pipeline_output(original_project)
+    project = original_project.resolve()
     title = args.title
     project_key = args.project_key or slugify(title)
     latex_source = Path(args.latex_source).resolve() if args.latex_source else None
@@ -528,9 +661,11 @@ def create_pipeline(args: argparse.Namespace) -> None:
 
     manuscript_dir = project / "05_manuscript_zh"
     if latex_source:
+        existing_metadata = {name: (manuscript_dir / name).exists()
+                             for name in ('preamble.tex', 'frontmatter.tex')}
         run_latex_scaffold(skill_dir, latex_source, bib, manuscript_dir, args.copy_figures, args.force)
-        write_text(manuscript_dir / "preamble.tex", render_preamble(config), True)
-        write_text(manuscript_dir / "frontmatter.tex", render_frontmatter(config), True)
+        write_text(manuscript_dir / "preamble.tex", render_preamble(config), args.force or not existing_metadata['preamble.tex'])
+        write_text(manuscript_dir / "frontmatter.tex", render_frontmatter(config), args.force or not existing_metadata['frontmatter.tex'])
     elif not args.no_template:
         copy_template(skill_dir, manuscript_dir, config, args.force)
 
