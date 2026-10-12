@@ -7,11 +7,11 @@ type: project
 ## Durable decisions
 
 - `My_skills` is the canonical local source and navigation hub for reusable Codex Skills. Its public repository is `jiaqi-Sun2020/codex-skill-hub`.
-- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the nine numbered categories, index all thirty-three active Skills whose canonical source is stored here, and route readers to category documentation.
-- Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` owns reusable maintenance utilities and Registry infrastructure; `60-visual-computing` owns reusable real-time web visual-computing sources; `90-personal` describes active local teaching sources; `98-inbox` and `99-archive` define staging and archive safety.
+- `README.md` and `README.en.md` are concise bilingual repository-wide entrypoints. They explain the eight numbered categories, index all thirty-three active Skills whose canonical source is stored here, and route readers to category documentation.
+- Every numbered category has a bilingual README pair. `10-paper-build` owns the paper lifecycle and optional figure-evidence map; `20-project-build` owns one-time onboarding and repeated-management architecture; `30-papertrace` and `40-skill-registry` are navigation or compatibility boundaries; `50-core-utils` owns reusable maintenance utilities, logic-chain teaching, and Registry infrastructure; `60-visual-computing` owns reusable real-time web visual-computing sources; `98-inbox` and `99-archive` define staging and archive safety.
 - Category READMEs are human-facing maps. Each Skill's `SKILL.md` remains its formal execution contract. README acknowledgements identify confirmed open-source influences with author or maintainer, project link, scope of influence, and license when known. Do not infer unrecorded provenance.
 - Original or otherwise relicensable hub content is MIT licensed. Third-party license, copyright, and notice obligations remain in force.
-- The hub directly maintains twelve paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, five reusable core Skills under `50-core-utils/`, nine visual-computing Skills under `60-visual-computing/`, and `logic-chain-tutor` under `90-personal/`.
+- The hub directly maintains twelve paper-build Skills under `10-paper-build/`, six project-build Skills under `20-project-build/`, six reusable core Skills under `50-core-utils/`, and nine visual-computing Skills under `60-visual-computing/`.
 - The twelve paper-build Skills are `academic-figure-workflow`, `research-logic`, `experiment-design`, `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-polishing-skill`, `prl-manuscript-polisher`, `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
 - On 2026-09-24, eight paper-build Skills were imported as a source snapshot from `S_paper_skills` commit `dcd573b1768e48e794975100f8548dc0f1bcb50e`. The old directory typo `data-analsys-skill/` is normalized to `data-analysis/`; the old wrapper and `util_skills/` layer are not retained. The old repository's full refs are preserved in an external verified bundle with SHA-256 `261B5C3496DABC7BBE3087F40B626C0499606827672E3458599E619B7BE0C521` before retirement.
 - The imported paper-build Skills are direct hub source, not immutable Skill Registry releases and not components of the six-Skill `20-project-build/` architecture.
@@ -35,7 +35,8 @@ type: project
 - `celestial-body-formation-skill` is canonical under `60-visual-computing/`. It governs the construction, improvement, and review of real-time web visuals for planets, stars, neutron stars, black holes, their surface and emission structures, and motion. Its public source contains generic rendering and verification guidance plus reusable stellar and neutron-star material references; project-specific cases, machine paths, internal build evidence, and conversation material remain outside the hub.
 - On 2026-10-04, the owner confirmed importing eight official GreenSock `gsap-skills` contracts under `60-visual-computing/`: `gsap-core`, `gsap-timeline`, `gsap-scrolltrigger`, `gsap-plugins`, `gsap-utils`, `gsap-react`, `gsap-performance`, and `gsap-frameworks`. They are third-party MIT-licensed Skill contracts, retain `60-visual-computing/GSAP_SKILLS_LICENSE`, and do not include the GSAP runtime or override a project-selected animation library.
 - On 2026-10-10, the owner approved AI ROASTING's MIT-licensed `find-skills` as the fifth direct `50-core-utils` Skill. The Hub preserves an execution-complete, fixed snapshot of v1.2.1 at upstream commit `55aba1789fe0504734964d98ae1ccd39e2fefea0`: its execution contract, license, selected runtime files, offline regression test, and provenance record remain; website assets and Claude plugin packaging are excluded. It discovers and inspects candidates but never installs them without explicit user approval, and this source-only integration does not create a user-level Codex installation.
-- `logic-chain-tutor` remains the single canonical personal Skill source under `90-personal/`.
+- On 2026-10-12, the owner retired the `90-personal/` category and relocated its sole `logic-chain-tutor` source to `50-core-utils/logic-chain-tutor/`. No duplicate source or retained navigation directory remains; the Hub still has thirty-three active Skills, with six under `50-core-utils`.
+- `logic-chain-tutor` remains the single canonical Skill source under `50-core-utils/`.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it at supported lifecycle events; do not add a root `AGENTS.md`.
 - The Skill Registry accepts only portable 1–64 character lowercase identifiers with single `.`, `_`, or `-` separators and rejects Windows reserved basenames; all identifier-bearing inputs are validated before filesystem side effects, while every derived filesystem path remains independently root-confined.
 - Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are required, Linux compatibility is informational, action dependencies are pinned by commit SHA, and Gitleaks scans committed history. Integrity assertions stay inline; do not add a root `tests/` directory merely to hold repository checks.
@@ -79,14 +80,12 @@ type: project
 - `60-visual-computing/gsap-utils/SKILL.md`
 - `60-visual-computing/gsap-react/SKILL.md`
 - `60-visual-computing/gsap-performance/SKILL.md`
-- `60-visual-computing/gsap-frameworks/SKILL.md
+- `60-visual-computing/gsap-frameworks/SKILL.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `60-visual-computing/celestial-body-formation-skill/references/rendering-methods.md`
 - `60-visual-computing/celestial-body-formation-skill/references/verification.md`
 - `60-visual-computing/celestial-body-formation-skill/references/stellar-materials.md`
 - `60-visual-computing/celestial-body-formation-skill/references/neutron-star-materials.md`
-- `90-personal/README.md`
-- `90-personal/README.en.md`
 - `98-inbox/README.md`
 - `98-inbox/README.en.md`
 - `99-archive/README.md`
@@ -106,7 +105,7 @@ type: project
 - `50-core-utils/neat-freak/SKILL.md`
 - `50-core-utils/find-skills/SKILL.md`
 - `50-core-utils/find-skills/UPSTREAM.md`
-- `90-personal/logic-chain-tutor/SKILL.md`
+- `50-core-utils/logic-chain-tutor/SKILL.md`
 
 `paper-project-initializer` creates only approved minimal paper entries and
 returns to the selected stage. Agent/memory/Hook need scoped approval;

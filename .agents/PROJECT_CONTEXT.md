@@ -13,7 +13,7 @@ skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
 The bilingual root READMEs document the thirty-three Skills stored in this repository
-and route readers to nine numbered categories. Each numbered category has a
+and route readers to eight numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
 contracts.
@@ -41,8 +41,7 @@ independent state axes, without duplicating the repository overview.
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
 - Numbered category README pairs under `30-papertrace/`, `40-skill-registry/`,
-  `50-core-utils/`, `60-visual-computing/`, `90-personal/`, `98-inbox/`, and
-  `99-archive/`
+  `50-core-utils/`, `60-visual-computing/`, `98-inbox/`, and `99-archive/`
 - `50-core-utils/skill-registry/README.md`
 - `.gitignore`
 - `.agents/memory/MEMORY.md`
@@ -64,15 +63,14 @@ independent state axes, without duplicating the repository overview.
   infrastructure map.
 - `60-visual-computing/README.md` and `README.en.md`: real-time web visual-computing
   Skill map and public-boundary statement.
-- `90-personal/README.md` and `README.en.md`: personal teaching Skill map.
+
 - `98-inbox/README.md` and `README.en.md`: untrusted staging-area safety rules.
 - `99-archive/README.md` and `README.en.md`: inactive archive safety rules.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
 - `10-paper-build/*/SKILL.md`, `20-project-build/*/SKILL.md`,
-  `50-core-utils/*/SKILL.md`, `60-visual-computing/*/SKILL.md`, and
-  `90-personal/*/SKILL.md`: active Skill entry points grouped by paper-build,
-  project-build, reusable-utility, visual-computing, or personal ownership.
+  `50-core-utils/*/SKILL.md`, and `60-visual-computing/*/SKILL.md`: active Skill
+  entry points grouped by paper-build, project-build, reusable-utility, or visual-computing ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
 - `10-paper-build/`: twelve centrally stored peer paper-building Skills and their
   bilingual category map.
@@ -80,19 +78,20 @@ independent state axes, without duplicating the repository overview.
   `celestial-body-formation-skill` plus `gsap-core`, `gsap-timeline`,
   `gsap-scrolltrigger`, `gsap-plugins`, `gsap-utils`, `gsap-react`,
   `gsap-performance`, and `gsap-frameworks`.
-- `90-personal/logic-chain-tutor/SKILL.md`: central personal teaching Skill.
+- `50-core-utils/logic-chain-tutor/SKILL.md`: central logic-chain teaching Skill.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
   machine-specific target path.
 
 ## Current Facts
 
-- The ten direct central core Skills span two category directories:
+- The twelve direct project-build and reusable core Skills span two category directories:
   `experiment-protocol-audit`, `project-agent-generator-skill`,
   `project-submission-audit`, `research-management-pipeline`, `research-project-pipeline`, and
   `research-workspace-governance` are maintained under `20-project-build/`;
-  `handoff`, `skill-audit-refactor`, `training-code-architecture-skill`, and
-  `neat-freak` remain under `50-core-utils/`.
+  `find-skills`, `handoff`, `logic-chain-tutor`, `neat-freak`,
+  `skill-audit-refactor`, and `training-code-architecture-skill` remain under
+  `50-core-utils/`.
 - `research-workspace-governance` owns domain-neutral governance of asset roles,
   locations, contract instances, status, evidence, amendments, invalidation, migration,
   retention, deletion approval, and traceability. Its validators check record shape,
@@ -123,7 +122,7 @@ independent state axes, without duplicating the repository overview.
   `data-analysis`, `research-html-report`, `latex-paper-build-skill`,
   `paper-polishing-skill`, `prl-manuscript-polisher`, and
   `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
-  They are separate from the ten core Skills and
+  They are separate from the twelve project-build and reusable core Skills and
   are maintained as hub source rather than Registry releases.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
@@ -139,13 +138,13 @@ independent state axes, without duplicating the repository overview.
   and other-framework lifecycle guidance. They retain the upstream MIT notice in
   `60-visual-computing/GSAP_SKILLS_LICENSE`; they do not include the GSAP runtime
   or override a project-selected animation library.
-- `logic-chain-tutor` is stored directly under `90-personal/`; it is the single
-  personal Skill and does not use an external shortcut source. Its teaching
+- `logic-chain-tutor` is stored directly under `50-core-utils/`; it is the single
+  canonical source and does not use an external shortcut source. Its teaching
   workflow now routes explicit full, length-bounded, prompt-only, localized
   rewrite, and method-simplification contracts before selecting explanation
   depth; it also distinguishes mathematical objects, operations, and information
   carriers before derivation.
-- `skill-registry` is infrastructure, not one of the ten direct core Skills.
+- `skill-registry` is infrastructure, not one of the twelve direct project-build and reusable core Skills.
   `.pipeline-interface-backups/` contains rollback material and is not an active
   Skill source.
 - The registry retains `reader-learner` version `1.0.0` as historical release

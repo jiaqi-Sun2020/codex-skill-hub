@@ -2,9 +2,9 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities, real-time visual computing, and personal teaching separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
+`codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities (including logic-chain teaching), and real-time visual computing separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 33 active Skills: twelve under `10-paper-build`, six under `20-project-build`, five under `50-core-utils`, nine under `60-visual-computing`, and one under `90-personal`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 33 active Skills: twelve under `10-paper-build`, six under `20-project-build`, six under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -15,7 +15,7 @@ Initial onboarding and ongoing governance → 20-project-build
 Research results to paper delivery         → 10-paper-build
 Cross-project maintenance and quality      → 50-core-utils
 Real-time web visual computing             → 60-visual-computing
-Personal learning and teaching             → 90-personal
+Learning and logic-chain teaching          → 50-core-utils/logic-chain-tutor
 External and compatibility entry points    → 30-papertrace / 40-skill-registry
 Unreviewed and historical material         → 98-inbox / 99-archive
 ```
@@ -34,9 +34,8 @@ The three documentation layers have distinct responsibilities:
 | `20-project-build` | Active source | Initial onboarding, governance contracts, repeated research management, protocol audits, and submission audits | [Project-build framework](20-project-build/README.en.md) |
 | `30-papertrace` | External navigation | Point to reader, teaching, and briefing Skills owned by PaperTrace | [PaperTrace entry](30-papertrace/README.en.md) |
 | `40-skill-registry` | Compatibility navigation | Point to the repository's one canonical Skill Registry source | [Registry entry](40-skill-registry/README.en.md) |
-| `50-core-utils` | Active source and infrastructure | Project-information maintenance, Skill discovery and review, handoff, Skill audits, training architecture, and version governance | [Core utilities](50-core-utils/README.en.md) |
+| `50-core-utils` | Active source and infrastructure | Project-information maintenance, Skill discovery and review, handoff, Skill audits, training architecture, logic-chain teaching, and version governance | [Core utilities](50-core-utils/README.en.md) |
 | `60-visual-computing` | Active source | Real-time web graphics, GSAP interaction animation, rendering representation, performance, and verification | [Real-time visual computing](60-visual-computing/README.en.md) |
-| `90-personal` | Active source | Teaching Skills adapted to personal learning | [Personal Skills](90-personal/README.en.md) |
 | `98-inbox` | Unreviewed staging | Hold patches, plans, and candidate documents that have not been approved | [Staging rules](98-inbox/README.en.md) |
 | `99-archive` | Historical archive | Hold historical material excluded from current discovery and execution | [Archive rules](99-archive/README.en.md) |
 
@@ -69,6 +68,7 @@ The three documentation layers have distinct responsibilities:
 | Core utility | `skill-audit-refactor` | Audit, simplify, split, or refactor an existing Skill |
 | Core utility | `training-code-architecture` | Turn training scripts into reusable, configuration-driven architecture |
 | Core utility | `find-skills` | Find candidate Skills from local, curated, and public sources; inspect them before helping install with user approval |
+| Core utility | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
 | Real-time visual computing | `celestial-body-formation-skill` | Build, improve, or audit real-time celestial visuals on the web |
 | Real-time visual computing | `gsap-core` | Use the GSAP core tween, easing, stagger, and responsive-animation APIs |
 | Real-time visual computing | `gsap-timeline` | Sequence multi-step animation and playback with GSAP timelines |
@@ -78,7 +78,6 @@ The three documentation layers have distinct responsibilities:
 | Real-time visual computing | `gsap-react` | Use GSAP safely in React or Next.js with scope and cleanup |
 | Real-time visual computing | `gsap-performance` | Optimize GSAP layout, paint, and batching costs |
 | Real-time visual computing | `gsap-frameworks` | Handle GSAP lifecycle and cleanup in Vue, Svelte, and other non-React frameworks |
-| Personal teaching | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
 
 ## Where should I start?
 
@@ -94,7 +93,7 @@ The three documentation layers have distinct responsibilities:
 | Find, verify, or compare an external Skill | Use `find-skills` in [50-core-utils](50-core-utils/README.en.md); candidate installation still needs explicit authorization |
 | Build real-time web graphics, or use GSAP for interaction, scroll, or framework animation | Use the graphics and animation entry in [60-visual-computing](60-visual-computing/README.en.md) |
 | Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
-| Learn an unfamiliar concept, formula, or paper method | Use the teaching entry in [90-personal](90-personal/README.en.md) |
+| Learn an unfamiliar concept, formula, or paper method | Use [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) in core utilities |
 
 ## Quick start
 

@@ -2,9 +2,9 @@
 
 [中文](README.md) | [English](README.en.md)
 
-`codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具、实时视觉计算和个人教学能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
+`codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具（包括逻辑链教学）和实时视觉计算能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
 
-本仓库当前直接维护 33 个活动 Skill：`10-paper-build` 12 个、`20-project-build` 6 个、`50-core-utils` 5 个、`60-visual-computing` 9 个、`90-personal` 1 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
+本仓库当前直接维护 33 个活动 Skill：`10-paper-build` 12 个、`20-project-build` 6 个、`50-core-utils` 6 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
@@ -15,7 +15,7 @@
 研究成果到论文交付       → 10-paper-build
 跨项目维护与质量工具     → 50-core-utils
 实时网页视觉计算         → 60-visual-computing
-个人学习与教学           → 90-personal
+学习与逻辑链教学         → 50-core-utils/logic-chain-tutor
 外部与兼容入口           → 30-papertrace / 40-skill-registry
 待审核与历史材料         → 98-inbox / 99-archive
 ```
@@ -34,9 +34,8 @@
 | `20-project-build` | 活动源码 | 项目首次接入、治理合同、持续研究管理、协议审核和提交审计 | [项目构建框架](20-project-build/README.md) |
 | `30-papertrace` | 外部导航 | 指向 PaperTrace 项目拥有的阅读、教学和资讯 Skill | [PaperTrace 入口](30-papertrace/README.md) |
 | `40-skill-registry` | 兼容导航 | 指向仓库内唯一 Skill Registry 源码 | [Registry 入口](40-skill-registry/README.md) |
-| `50-core-utils` | 活动源码与基础设施 | 项目信息维护、Skill 发现与审查、交接、Skill 审计、训练代码架构和版本治理 | [核心工具](50-core-utils/README.md) |
+| `50-core-utils` | 活动源码与基础设施 | 项目信息维护、Skill 发现与审查、交接、Skill 审计、训练代码架构、逻辑链教学和版本治理 | [核心工具](50-core-utils/README.md) |
 | `60-visual-computing` | 活动源码 | 网页实时图形、GSAP 交互动画、渲染表示、性能与验证 | [实时视觉计算](60-visual-computing/README.md) |
-| `90-personal` | 活动源码 | 面向个人学习方式的教学 Skill | [个人 Skill](90-personal/README.md) |
 | `98-inbox` | 未审核暂存 | 保存尚未批准应用的补丁、计划和候选文档 | [暂存规则](98-inbox/README.md) |
 | `99-archive` | 历史归档 | 保存不参与当前发现和运行的历史材料 | [归档规则](99-archive/README.md) |
 
@@ -69,6 +68,7 @@
 | 核心工具 | `skill-audit-refactor` | 审核、精简、拆分或重构已有 Skill |
 | 核心工具 | `training-code-architecture` | 将训练脚本提炼为配置驱动的可复用工程架构 |
 | 核心工具 | `find-skills` | 从本机、受管目录与公开生态发现候选 Skill，先审查，再在用户许可时协助安装 |
+| 核心工具 | `logic-chain-tutor` | 从当前卡点建立前置知识到目标概念的逻辑链 |
 | 实时视觉计算 | `celestial-body-formation-skill` | 构建、改进或审核网页中的实时天体视觉效果 |
 | 实时视觉计算 | `gsap-core` | 使用 GSAP 核心补间、缓动、交错和响应式动画 API |
 | 实时视觉计算 | `gsap-timeline` | 用 GSAP 时间线编排多步骤动画与播放控制 |
@@ -78,7 +78,6 @@
 | 实时视觉计算 | `gsap-react` | 在 React 或 Next.js 中安全使用 GSAP、作用域与清理 |
 | 实时视觉计算 | `gsap-performance` | 优化 GSAP 动画的布局、绘制与批处理开销 |
 | 实时视觉计算 | `gsap-frameworks` | 在 Vue、Svelte 等非 React 框架中处理生命周期与清理 |
-| 个人教学 | `logic-chain-tutor` | 从当前卡点建立前置知识到目标概念的逻辑链 |
 
 ## 我应该从哪里开始
 
@@ -94,7 +93,7 @@
 | 需要寻找、核验或比较外部 Skill | 使用 [50-core-utils](50-core-utils/README.md) 中的 `find-skills`；安装候选仍须先取得明确授权 |
 | 构建实时网页图形，或用 GSAP 实现交互、滚动和框架动画 | 使用 [60-visual-computing](60-visual-computing/README.md) 的图形与动画入口 |
 | 准备提交、交付或换会话 | 分别使用提交审计与任务交接，不把二者视为自动提交授权 |
-| 学习陌生概念、公式或论文方法 | 使用 [90-personal](90-personal/README.md) 中的教学入口 |
+| 学习陌生概念、公式或论文方法 | 使用核心工具中的 [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) |
 
 ## 快速开始
 

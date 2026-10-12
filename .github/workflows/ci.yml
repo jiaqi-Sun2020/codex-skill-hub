@@ -123,7 +123,7 @@ jobs:
         run: |
           $ErrorActionPreference = 'Stop'
 
-          $categories = @('10-paper-build', '20-project-build', '30-papertrace', '40-skill-registry', '50-core-utils', '60-visual-computing', '90-personal', '98-inbox', '99-archive')
+          $categories = @('10-paper-build', '20-project-build', '30-papertrace', '40-skill-registry', '50-core-utils', '60-visual-computing', '98-inbox', '99-archive')
           foreach ($category in $categories) {
             foreach ($name in @('README.md', 'README.en.md')) {
               $path = Join-Path $category $name
@@ -132,7 +132,7 @@ jobs:
           }
 
           $active = @()
-          foreach ($category in @('10-paper-build', '20-project-build', '60-visual-computing', '90-personal')) {
+          foreach ($category in @('10-paper-build', '20-project-build', '60-visual-computing')) {
             $active += Get-ChildItem $category -Directory | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md') }
           }
           $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {

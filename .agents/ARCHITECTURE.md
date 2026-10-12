@@ -64,6 +64,7 @@ My_skills/
 |   |-- neat-freak/
 |   |-- skill-audit-refactor/
 |   |-- skill-registry/
+|   |-- logic-chain-tutor/
 |   |-- training-code-architecture-skill/
 |   `-- .pipeline-interface-backups/
 |-- 60-visual-computing/
@@ -78,9 +79,7 @@ My_skills/
 |   |-- gsap-react/
 |   |-- gsap-performance/
 |   `-- gsap-frameworks/
-|-- 90-personal/
-|   |-- README.md / README.en.md
-|   `-- logic-chain-tutor/
+
 |-- 98-inbox/
 |   `-- README.md / README.en.md
 `-- 99-archive/
@@ -97,7 +96,7 @@ My_skills/
 - `40-skill-registry/`
 - `50-core-utils/`
 - `60-visual-computing/`
-- `90-personal/`
+
 - `98-inbox/`
 - `99-archive/`
 
@@ -127,8 +126,7 @@ My_skills/
 - `50-core-utils/README.en.md`
 - `60-visual-computing/README.md`
 - `60-visual-computing/README.en.md`
-- `90-personal/README.md`
-- `90-personal/README.en.md`
+
 - `98-inbox/README.md`
 - `98-inbox/README.en.md`
 - `99-archive/README.md`
@@ -170,7 +168,7 @@ My_skills/
 - `10-paper-build/paper-polishing-skill/SKILL.md`
 - `10-paper-build/prl-manuscript-polisher/SKILL.md`
 - `10-paper-build/interactive-skill-builder/SKILL.md`
-- `90-personal/logic-chain-tutor/SKILL.md`
+- `50-core-utils/logic-chain-tutor/SKILL.md`
 
 ## Tests
 
@@ -214,7 +212,7 @@ My_skills/
   Its bilingual README pair is a local technical map of those components, their
   four contract categories, independent state axes, and lifecycle routing; the
   root README pair remains the repository-wide overview.
-  `50-core-utils/` owns the five reusable core Skills plus the non-Skill
+  `50-core-utils/` owns the six reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
   `find-skills` is a fixed MIT-licensed upstream snapshot: it discovers and
   inspects external candidates but does not install them without explicit user
@@ -236,10 +234,10 @@ My_skills/
   source repository's MIT notice.
 - `experiment-design-skill/` plans required evidence, controls, and claim
   boundaries only; project runtimes or dedicated execution Skills own execution.
-- `90-personal/logic-chain-tutor/` is the centrally stored personal teaching
-  Skill; its former external source and personal shortcut are retired.
-- The ten direct core Skills are used from their designated central category
-  directories and are not vendored into projects.
+- `50-core-utils/logic-chain-tutor/` is the centrally stored logic-chain teaching
+  Skill; its former external source, personal category, and personal shortcut are retired.
+- The twelve direct project-build and reusable core Skills are used from their
+  designated central category directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison
   record boundaries. `research-project-pipeline` coordinates those components only

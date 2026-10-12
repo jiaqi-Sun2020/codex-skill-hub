@@ -13,9 +13,9 @@ repository overviews and inventories. Every numbered category has its own
 bilingual README pair for human navigation, while each Skill's `SKILL.md`
 remains the formal execution contract. Twelve paper-build Skills live in
 `10-paper-build/`, six project-build core Skills live in `20-project-build/`,
-five reusable core Skills and the versioned skill registry live in
-`50-core-utils/`, nine real-time visual-computing Skills live in
-`60-visual-computing/`, and one personal teaching Skill lives in `90-personal/`.
+six reusable core Skills and the versioned skill registry live in
+`50-core-utils/`, and nine real-time visual-computing Skills live in
+`60-visual-computing/`.
 The root is the public `jiaqi-Sun2020/codex-skill-hub` monorepo. Agent context
 remains in `.agents/` and project-scoped startup configuration remains in `.codex/`.
 

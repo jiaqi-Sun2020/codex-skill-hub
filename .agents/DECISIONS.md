@@ -176,6 +176,11 @@
   traceable project-scoped approval. Generator remains unchanged; entry completion
   grants no research, scientific or publication authority.
 
+- 2026-10-12: Retire the `90-personal/` category and relocate its sole
+  `logic-chain-tutor` source to `50-core-utils/logic-chain-tutor/`. The active
+  total remains thirty-three; `50-core-utils` now owns six reusable Skills. Root,
+  category, CI, and Agent-context inventories must not retain a retired category
+  link or a duplicate source.
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`50-core-utils/` stores five active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
+`50-core-utils/` stores six active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
 
 ## Overall framework
 
@@ -17,6 +17,9 @@ neat-freak: repeated project-information and loading maintenance
 
 Central Skill version governance
   └─ skill-registry: source, immutable releases, and consumer relationships
+
+Learning and concept explanation
+  └─ logic-chain-tutor: bridge the learner's current gap
 ```
 
 ## Component responsibilities
@@ -28,7 +31,8 @@ Central Skill version governance
 | [`skill-audit-refactor`](skill-audit-refactor/SKILL.md) | Active Skill | Audit Skill triggering, scope, resources, duplication, and safety, then make the smallest refactor | Expanding capability without evidence or removing necessary safety gates |
 | [`training-code-architecture`](training-code-architecture-skill/SKILL.md) | Active Skill | Extract configuration, factories, adapters, training loops, and reproducible outputs from existing training scripts | Hard-coding one dataset, model, or metric as a universal standard |
 | [`find-skills`](find-skills/SKILL.md) | Active Skill | Find, inspect, and recommend external Skills; help install only after explicit user approval | Automatically installing candidates, replacing human safety judgment, or adding outside Skills to this Hub |
-| [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Acting as a sixth active Skill or overwriting project-owned forks |
+| [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | Active Skill | Build prerequisites, derivations, examples, and understanding checks from the current gap | Replacing research execution or scientific review, or changing external learning profiles without approval |
+| [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Counting as an active Skill or overwriting project-owned forks |
 
 ## When to use
 
@@ -37,6 +41,7 @@ Central Skill version governance
 - Existing machine-learning training code needs a reusable architecture: use `training-code-architecture`.
 - External Skills need to be discovered, inspected, or compared: use `find-skills`; it reads local locations, the AI Roasting library, skills.sh, and GitHub, and still requires explicit approval before candidate installation.
 - Work is paused, context is compacted, or another session will continue: use `handoff`.
+- An unfamiliar concept, symbol, equation, or paper method needs explanation: use `logic-chain-tutor`; initial Agent scaffolding is not required.
 - Registry-managed versions need checking, publishing, or synchronization: use the `skill-registry` tools.
 
 When `.agents` is missing, use `20-project-build/project-agent-generator-skill` rather than asking Neat-Freak to regenerate a framework. Auditing the final change surface belongs to `20-project-build/project-submission-audit`, not Handoff.
