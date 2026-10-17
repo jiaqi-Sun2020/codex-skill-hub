@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`50-core-utils/` stores six active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
+`50-core-utils/` stores seven active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
 
 ## Overall framework
 
@@ -20,6 +20,9 @@ Central Skill version governance
 
 Learning and concept explanation
   └─ logic-chain-tutor: bridge the learner's current gap
+
+Public-facing web design
+  └─ design-taste-frontend (taste-skill): art direction, implementation, and visual checks
 ```
 
 ## Component responsibilities
@@ -32,6 +35,7 @@ Learning and concept explanation
 | [`training-code-architecture`](training-code-architecture-skill/SKILL.md) | Active Skill | Extract configuration, factories, adapters, training loops, and reproducible outputs from existing training scripts | Hard-coding one dataset, model, or metric as a universal standard |
 | [`find-skills`](find-skills/SKILL.md) | Active Skill | Find, inspect, and recommend external Skills; help install only after explicit user approval | Automatically installing candidates, replacing human safety judgment, or adding outside Skills to this Hub |
 | [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | Active Skill | Build prerequisites, derivations, examples, and understanding checks from the current gap | Replacing research execution or scientific review, or changing external learning profiles without approval |
+| [`design-taste-frontend`](taste-skill/SKILL.md) | Active Skill | Taste v2: public-page art direction, layout, imagery, motion, and visual checks | Dashboards, app screens, universal design rules, or unauthorized downloads and browser operations |
 | [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Counting as an active Skill or overwriting project-owned forks |
 
 ## When to use
@@ -42,6 +46,7 @@ Learning and concept explanation
 - External Skills need to be discovered, inspected, or compared: use `find-skills`; it reads local locations, the AI Roasting library, skills.sh, and GitHub, and still requires explicit approval before candidate installation.
 - Work is paused, context is compacted, or another session will continue: use `handoff`.
 - An unfamiliar concept, symbol, equation, or paper method needs explanation: use `logic-chain-tutor`; initial Agent scaffolding is not required.
+- A public-facing page needs design or improvement: read `taste-skill/SKILL.md`, invoked as `design-taste-frontend`; see [provenance](taste-skill/UPSTREAM.md) for prerequisites, licensing and the fixed version. Like `find-skills`, this is central source only, not automatic global discovery.
 - Registry-managed versions need checking, publishing, or synchronization: use the `skill-registry` tools.
 
 When `.agents` is missing, use `20-project-build/project-agent-generator-skill` rather than asking Neat-Freak to regenerate a framework. Auditing the final change surface belongs to `20-project-build/project-submission-audit`, not Handoff.
@@ -55,6 +60,7 @@ When `.agents` is missing, use `20-project-build/project-agent-generator-skill` 
 - Handoff writes to the operating-system temporary directory by default and does not copy secrets or full conversations.
 - Training architecture extracts stable interfaces; data, loss, shape, and domain rules remain in project Adapters.
 - Find Skills uses network search only to collect candidates and evidence; a discovery result never modifies local Skills, user-level Codex configuration, or this Hub.
+- Full Taste checks need Node 22+ and a browser; future runs create project working files and screenshots and may download assets. Importing the source grants none of those actions; user intent and project rules take precedence.
 
 ## Verification
 
@@ -70,5 +76,7 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 The corresponding `SKILL.md` or Registry README remains authoritative for commands, approval gates, inputs, and outputs.
 
 ## Provenance and license
+
+[`Taste Skill`](https://github.com/Leonxlnx/taste-skill) is Leonxlnx's MIT-licensed default v2 Skill, pinned to `f624f37a8c650b9cc550253104925efe4c8de246`. The single Skill directory is imported intact with its original contract and resources; see [UPSTREAM.md](taste-skill/UPSTREAM.md) for licensing and scope. Other style Skills, plugins and the desktop app are excluded.
 
 The local `neat-freak` draws on KKKKhazix's [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md) (MIT) for knowledge organization and workspace-consistency ideas, and extends them with `.agents/memory/`, hash-bound updates, and Codex startup-loading audits. The local `handoff` draws on Matt Pocock's [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff) (MIT) for temporary-directory defaults, existing-evidence references, and sensitive-information cleanup. [`find-skills`](https://github.com/airoasting/find-skills) is an AI ROASTING MIT-licensed fixed snapshot (v1.2.1, commit `55aba1789fe0504734964d98ae1ccd39e2fefea0`); its original execution contract, license, and provenance record are retained, while this Hub includes only the files needed for Codex execution and offline regression. These acknowledgements do not imply endorsement; third-party obligations remain in effect.

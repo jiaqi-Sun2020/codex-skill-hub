@@ -181,6 +181,12 @@
   total remains thirty-three; `50-core-utils` now owns six reusable Skills. Root,
   category, CI, and Agent-context inventories must not retain a retired category
   link or a duplicate source.
+
+- 2026-10-17: Import Leonxlnx's MIT-licensed Taste Skill v2 as the seventh direct
+  `50-core-utils` Skill, invoked as `design-taste-frontend` and fixed to commit
+  `f624f37a8c650b9cc550253104925efe4c8de246`. Preserve its complete source,
+  upstream license, and `UPSTREAM.md`; it is a hub-managed snapshot only, not a
+  global installation or authorization for later asset, browser, or server actions.
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

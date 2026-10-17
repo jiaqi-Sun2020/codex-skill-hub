@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`50-core-utils/` 保存六个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
+`50-core-utils/` 保存七个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
 
 ## 整体框架
 
@@ -20,6 +20,9 @@ neat-freak：重复维护项目信息与加载一致性
 
 学习与概念解释
   └─ logic-chain-tutor：从当前卡点补齐逻辑链
+
+公开网页设计
+  └─ design-taste-frontend（taste-skill）：艺术方向、实现与视觉检查
 ```
 
 ## 组件职责
@@ -32,6 +35,7 @@ neat-freak：重复维护项目信息与加载一致性
 | [`training-code-architecture`](training-code-architecture-skill/SKILL.md) | 活动 Skill | 将已有训练脚本提炼为配置、factory、adapter、训练循环和可复现输出架构 | 把特定数据集、模型或指标硬编码为所有项目标准 |
 | [`find-skills`](find-skills/SKILL.md) | 活动 Skill | 发现、检查并推荐外部 Skill；仅在用户明确同意后协助安装 | 自动安装候选、替代人工安全判断或把外部 Skill 纳入本 Hub |
 | [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | 活动 Skill | 从当前卡点建立前置知识、推导、例子和理解检查 | 替代研究执行、科学结论审核或擅自修改外部学习画像 |
+| [`design-taste-frontend`](taste-skill/SKILL.md) | 活动 Skill | Taste v2：公开网页艺术方向、版式、配图、动效和视觉检查 | 仪表盘、应用屏幕、通用设计标准或未经授权的素材下载与浏览器操作 |
 | [`skill-registry`](skill-registry/README.md) | 基础设施 | 维护可编辑源码、版本元数据、不可变发布快照和消费关系 | 计为活动 Skill 或覆盖项目拥有的 fork |
 
 ## 何时使用
@@ -42,6 +46,7 @@ neat-freak：重复维护项目信息与加载一致性
 - 需要寻找、检查或比较外部 Skill：使用 `find-skills`；它读取本机、AI Roasting 目录、skills.sh 与 GitHub，安装候选前必须取得明确授权。
 - 任务暂停、压缩上下文或交给后续会话：使用 `handoff`。
 - 学习陌生概念、符号、公式或论文方法：使用 `logic-chain-tutor`；它无需先生成项目框架。
+- 设计或改进公开网页：读取 `taste-skill/SKILL.md`，调用名为 `design-taste-frontend`；准备、许可和固定版本见 [来源记录](taste-skill/UPSTREAM.md)。本仓库只保存中央源码，与 `find-skills` 一样不自动全局加载。
 - 需要检查、发布或同步 Registry 管理的版本：使用 `skill-registry` 工具。
 
 首次缺失 `.agents` 框架时，应使用 `20-project-build/project-agent-generator-skill`，而不是让 Neat-Freak 重新生成框架。提交前变更面审核属于 `20-project-build/project-submission-audit`，不属于 Handoff。
@@ -55,6 +60,7 @@ neat-freak：重复维护项目信息与加载一致性
 - Handoff 默认写到系统临时目录，不把敏感信息或完整聊天复制进去。
 - 训练架构只抽取稳定接口；具体数据、损失、形状和领域规则留在项目 Adapter。
 - Find Skills 的网络检索只收集候选和证据；不因发现结果修改本机 Skill、用户级 Codex 配置或本 Hub。
+- Taste 的完整检查需要 Node 22+ 和浏览器；未来运行会产生项目工作文件、截图，并可能下载素材。导入源码不代表批准这些操作；保持用户和项目规范优先。
 
 ## 验证
 
@@ -70,5 +76,7 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 具体命令、审批门和输入输出以相应 `SKILL.md` 或 Registry README 为准。
 
 ## 来源与许可
+
+[`Taste Skill`](https://github.com/Leonxlnx/taste-skill) 是 Leonxlnx 的 MIT 许可默认 v2 Skill，固定提交 `f624f37a8c650b9cc550253104925efe4c8de246`。完整导入其单个 Skill 目录，保留原契约与资源；许可证和纳入范围见 [UPSTREAM.md](taste-skill/UPSTREAM.md)。未导入其他风格 Skill、插件或桌面应用。
 
 本地 `neat-freak` 借鉴了 KKKKhazix 的 [`neat-freak`](https://github.com/KKKKhazix/khazix-skills/blob/main/neat-freak/SKILL.md)（MIT）对知识整理和工作区一致性的思路，并扩展了 `.agents/memory/`、哈希绑定更新和 Codex 启动加载审计。本地 `handoff` 借鉴了 Matt Pocock 的 [`handoff`](https://github.com/mattpocock/skills/tree/main/skills/productivity/handoff)（MIT）关于临时目录、现有证据引用和敏感信息清理的原则。[`find-skills`](https://github.com/airoasting/find-skills) 是 AI ROASTING 的 MIT 许可固定快照（v1.2.1，提交 `55aba1789fe0504734964d98ae1ccd39e2fefea0`），保留其原始执行契约、许可证和来源记录；本地只纳入 Codex 所需的执行与离线回归文件。借鉴不表示原作者对本项目背书，第三方义务继续有效。

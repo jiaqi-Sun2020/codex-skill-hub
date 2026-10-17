@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities (including logic-chain teaching), and real-time visual computing separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 33 active Skills: twelve under `10-paper-build`, six under `20-project-build`, six under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 34 active Skills: twelve under `10-paper-build`, six under `20-project-build`, seven under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -41,7 +41,7 @@ The three documentation layers have distinct responsibilities:
 
 `.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
 
-## Thirty-three active Skills
+## Thirty-four active Skills
 
 | Category | Skill | One-line responsibility |
 |---|---|---|
@@ -69,6 +69,7 @@ The three documentation layers have distinct responsibilities:
 | Core utility | `training-code-architecture` | Turn training scripts into reusable, configuration-driven architecture |
 | Core utility | `find-skills` | Find candidate Skills from local, curated, and public sources; inspect them before helping install with user approval |
 | Core utility | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
+| Core utility | `design-taste-frontend` | Taste v2: art direction, layout, imagery, motion, and visual checks for public-facing pages |
 | Real-time visual computing | `celestial-body-formation-skill` | Build, improve, or audit real-time celestial visuals on the web |
 | Real-time visual computing | `gsap-core` | Use the GSAP core tween, easing, stagger, and responsive-animation APIs |
 | Real-time visual computing | `gsap-timeline` | Sequence multi-step animation and playback with GSAP timelines |
@@ -91,6 +92,7 @@ The three documentation layers have distinct responsibilities:
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |
 | Find, verify, or compare an external Skill | Use `find-skills` in [50-core-utils](50-core-utils/README.en.md); candidate installation still needs explicit authorization |
+| Design or improve a landing page, portfolio, brand site, or product showcase | Use [Taste Skill](50-core-utils/taste-skill/SKILL.md); dashboards and app screens are outside its default scope |
 | Build real-time web graphics, or use GSAP for interaction, scroll, or framework animation | Use the graphics and animation entry in [60-visual-computing](60-visual-computing/README.en.md) |
 | Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
 | Learn an unfamiliar concept, formula, or paper method | Use [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) in core utilities |

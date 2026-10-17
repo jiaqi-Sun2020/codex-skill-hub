@@ -8,11 +8,11 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates thirty-three directly maintained active Skills, versioned shared
+skills. It separates thirty-four directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the thirty-three Skills stored in this repository
+The bilingual root READMEs document the thirty-four Skills stored in this repository
 and route readers to eight numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
@@ -79,18 +79,20 @@ independent state axes, without duplicating the repository overview.
   `gsap-scrolltrigger`, `gsap-plugins`, `gsap-utils`, `gsap-react`,
   `gsap-performance`, and `gsap-frameworks`.
 - `50-core-utils/logic-chain-tutor/SKILL.md`: central logic-chain teaching Skill.
+- `50-core-utils/taste-skill/SKILL.md`: fixed third-party public-page art-direction and visual-check Skill.
+- `50-core-utils/taste-skill/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
   machine-specific target path.
 
 ## Current Facts
 
-- The twelve direct project-build and reusable core Skills span two category directories:
+- The thirteen direct project-build and reusable core Skills span two category directories:
   `experiment-protocol-audit`, `project-agent-generator-skill`,
   `project-submission-audit`, `research-management-pipeline`, `research-project-pipeline`, and
   `research-workspace-governance` are maintained under `20-project-build/`;
-  `find-skills`, `handoff`, `logic-chain-tutor`, `neat-freak`,
-  `skill-audit-refactor`, and `training-code-architecture-skill` remain under
+  `design-taste-frontend`, `find-skills`, `handoff`, `logic-chain-tutor`,
+  `neat-freak`, `skill-audit-refactor`, and `training-code-architecture-skill` remain under
   `50-core-utils/`.
 - `research-workspace-governance` owns domain-neutral governance of asset roles,
   locations, contract instances, status, evidence, amendments, invalidation, migration,
@@ -122,7 +124,7 @@ independent state axes, without duplicating the repository overview.
   `data-analysis`, `research-html-report`, `latex-paper-build-skill`,
   `paper-polishing-skill`, `prl-manuscript-polisher`, and
   `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
-  They are separate from the twelve project-build and reusable core Skills and
+  They are separate from the thirteen project-build and reusable core Skills and
   are maintained as hub source rather than Registry releases.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
@@ -144,7 +146,11 @@ independent state axes, without duplicating the repository overview.
   rewrite, and method-simplification contracts before selecting explanation
   depth; it also distinguishes mathematical objects, operations, and information
   carriers before derivation.
-- `skill-registry` is infrastructure, not one of the twelve direct project-build and reusable core Skills.
+- `design-taste-frontend` is the fixed MIT-licensed Taste Skill v2 snapshot under
+  `50-core-utils/taste-skill/`. It covers public-facing page art direction and
+  visual checks, not dashboard or app-screen defaults; importing it neither
+  globally installs it nor authorizes its future asset, browser, or local-server actions.
+- `skill-registry` is infrastructure, not one of the thirteen direct project-build and reusable core Skills.
   `.pipeline-interface-backups/` contains rollback material and is not an active
   Skill source.
 - The registry retains `reader-learner` version `1.0.0` as historical release
