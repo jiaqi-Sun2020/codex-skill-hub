@@ -35,10 +35,19 @@ def sha256_file(path: Path) -> str:
 
 def semantic_payload(contract: dict[str, Any]) -> dict[str, Any]:
     """Return only meaning-bearing fields; visual-only changes stay outside."""
+    architecture = contract.get("architecture")
+    if isinstance(architecture, dict) and isinstance(architecture.get("template_baseline"), dict):
+        architecture = dict(architecture)
+        baseline = dict(architecture["template_baseline"])
+        # Relocating identical protected template bytes is provenance, not a
+        # changed architecture. Hash, approval, deviations and node/edge IDs
+        # still participate; validate_contract still checks the actual path.
+        baseline.pop("path", None)
+        architecture["template_baseline"] = baseline
     return {
         "claim_anchors": contract.get("claim_anchors", []),
         "panels": contract.get("panels", []),
-        "architecture": contract.get("architecture"),
+        "architecture": architecture,
     }
 
 

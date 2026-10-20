@@ -6,10 +6,11 @@ rcParams, palette choices, panel labels, and export settings each time.
 
 from __future__ import annotations
 
+import math
 from pathlib import Path
 from typing import Any
 
-from style_manifest import load_style_manifest, nested
+from style_manifest import SEMANTIC_ROLE_ALIASES, StyleManifestError, load_style_manifest, nested, semantic_colour_errors
 
 MM_PER_INCH = 25.4
 SINGLE_COLUMN_MM = 89
@@ -156,8 +157,16 @@ def apply_nature_style(
 def figure_size(column: str = "single", height_mm: float | None = None) -> tuple[float, float]:
     width_mm = DOUBLE_COLUMN_MM if column == "double" else SINGLE_COLUMN_MM
     if height_mm is None:
-        height_mm = width_mm * 0.62
-    height_mm = min(height_mm, MAX_HEIGHT_MM)
+        height_mm = min(width_mm * 0.62, MAX_HEIGHT_MM)
+    else:
+        if isinstance(height_mm, bool):
+            raise ValueError("Explicit height_mm must be finite and positive")
+        try:
+            height_mm = float(height_mm)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("Explicit height_mm must be finite and positive") from exc
+        if not math.isfinite(height_mm) or height_mm <= 0:
+            raise ValueError("Explicit height_mm must be finite and positive")
     return mm_to_inches(width_mm, height_mm)
 
 
@@ -192,19 +201,14 @@ def add_panel_label(ax, label: str, x: float = -0.18, y: float = 1.08) -> None:
 
 def role_colours() -> dict[str, str]:
     colours = dict(DEFAULT_ROLE_COLOURS)
-    semantic = nested(_ACTIVE_MANIFEST, "semantic_colors", default={}) or {}
-    colours.update({str(key): str(value) for key, value in semantic.items()})
-    aliases = {
-        "control": "baseline",
-        "treatment": "proposed_method",
-        "comparison": "baseline",
-        "model": "proposed_method",
-        "negative": "output",
-        "positive": "proposed_method",
-    }
-    for alias, role in aliases.items():
-        if role in semantic:
-            colours[alias] = str(semantic[role])
+    semantic = nested(_ACTIVE_MANIFEST, "semantic_colors", default={})
+    errors = semantic_colour_errors(semantic)
+    if errors:
+        raise StyleManifestError("; ".join(errors))
+    colours.update({str(key): value for key, value in semantic.items()})
+    for alias, role in SEMANTIC_ROLE_ALIASES.items():
+        if alias not in semantic and role in semantic:
+            colours[alias] = semantic[role]
     return colours
 
 
@@ -314,7 +318,7 @@ def save_preview(fig, output_path: str | Path, dpi: int = 150) -> str:
     return str(path)
 
 
-def save_nature_figure(fig, output_stem: str | Path, png_dpi: int = 450, preview_dpi: int = 150) -> dict[str, str]:
+def save_nature_figure(fig, output_stem: str | Path, png_dpi: int = 450, preview_dpi: int = 150, *, fixed_canvas: bool = False) -> dict[str, str]:
     stem = Path(output_stem)
     stem.parent.mkdir(parents=True, exist_ok=True)
     paths = {
@@ -323,8 +327,12 @@ def save_nature_figure(fig, output_stem: str | Path, png_dpi: int = 450, preview
         "png": str(stem.with_suffix(".png")),
         "preview_png": str(stem.with_name(stem.name + "_preview").with_suffix(".png")),
     }
-    fig.savefig(paths["svg"])
-    fig.savefig(paths["pdf"])
-    fig.savefig(paths["png"], dpi=png_dpi)
-    fig.savefig(paths["preview_png"], dpi=preview_dpi)
+    from matplotlib import rc_context
+    # bbox_inches=None alone still inherits savefig.bbox='tight'. Opt in only
+    # for fixed slots; standalone callers retain their existing crop behaviour.
+    with rc_context({"savefig.bbox": None} if fixed_canvas else {}):
+        fig.savefig(paths["svg"])
+        fig.savefig(paths["pdf"])
+        fig.savefig(paths["png"], dpi=png_dpi)
+        fig.savefig(paths["preview_png"], dpi=preview_dpi)
     return paths

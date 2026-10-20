@@ -76,7 +76,7 @@ If a shape meaning changes between diagrams, state the legend or change the desi
 - Avoid shadows, gradients, clipart, and decorative icons.
 - Prefer uncompressed Draw.io XML for review and version control.
 - Use one Draw.io page per figure or subfigure topic; name pages after manuscript sections or figure panels.
-- Remove figure titles, captions, author notes, draft comments, operation notes, and long explanations from the canvas unless the target template explicitly requires them.
+- Apply the sole [artwork-versus-caption rule](figure-caption-contract.md#artwork-versus-caption); necessary scientific labels and annotations remain allowed.
 - Keep in-canvas text readable at the final manuscript insertion size; if it cannot be read beside body text in DOCX/PDF, simplify labels or enlarge the diagram.
 
 ## User-Edited Source Rule

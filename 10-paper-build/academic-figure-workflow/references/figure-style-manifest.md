@@ -4,32 +4,10 @@ Use this reference to create and maintain `<figure-root>/style/style_manifest.ya
 
 ## Storage Contract
 
-Recommended project layout:
-
-```text
-<figure-root>/
-├── style/
-│   ├── reference_images/
-│   ├── style_manifest.yaml
-│   └── style_report.md
-├── fig01_architecture/
-│   ├── Figure1_architecture.pptx
-│   ├── caption.md
-│   ├── ppt_manifest.json
-│   ├── source/fig01.drawio
-│   ├── exports/fig01.svg
-│   ├── exports/fig01.pdf
-│   └── exports/fig01.png
-├── fig02_comparison/
-│   ├── Figure2_comparison.pptx
-│   ├── caption.md
-│   ├── ppt_manifest.json
-│   ├── source/data.csv
-│   ├── source/fig02.py
-│   ├── exports/fig02.svg
-│   ├── exports/fig02.pdf
-│   └── exports/fig02.png
-```
+Use the canonical minimal storage/retention rules in
+[figure-package-hygiene.md](figure-package-hygiene.md#one-figure-one-folder).
+Only actual deliverables belong in a figure package; PPTX and shared style
+directories are not mandatory for an unrelated local preview.
 
 Resolve `<figure-root>` once for the active manuscript:
 
@@ -44,7 +22,11 @@ Create `style/` only when the project needs a shared visual system. A paper
 with no figure work must not receive an empty manifest or placeholder style
 files.
 
-Use dedicated temporary directories for rendered QA. Do not retain `preview/`, layout dumps, inspect snapshots, or cache folders in the final project tree unless requested. See [figure-package-hygiene.md](figure-package-hygiene.md).
+Use dedicated temporary directories for rendered QA. Retention and cleanup
+follow only [figure-package-hygiene.md](figure-package-hygiene.md#default-retention):
+keep previews while review is pending; afterward remove only classified
+transients within explicitly authorized cleanup scope. Export success is not
+review approval, and referenced evidence remains protected.
 
 Start from `assets/style_manifest.template.yaml`. It is JSON-compatible YAML so bundled scripts can read it without installing a YAML package. Full YAML syntax is allowed when a YAML parser is already available; do not silently install one.
 
@@ -56,7 +38,8 @@ The manifest must contain:
 - `references` with role, source path, and confidence;
 - `precedence` for reference conflicts;
 - `palette` with primary, secondary, accent, and neutral colours;
-- `semantic_colors` including `proposed_method`, `baseline`, `encoder`, `decoder`, `fusion`, `attention`, `input`, `output`, `uncertainty`, and `highlight`;
+- `semantic_colors` for the roles actually used; the full template's model roles
+  are examples, not mandatory vocabulary for every discipline;
 - `neutral_colors` and `backgrounds`;
 - `typography` with family and hierarchy;
 - `strokes`, `arrows`, `borders`, `corners`, `fills`, and `shadows`;
@@ -85,6 +68,22 @@ When the user says “以后所有图片沿用这个风格” or equivalent:
 5. apply the manifest to all later figures.
 
 Never create figure-local random palettes. When a needed semantic role is absent, add it at project level and record the change.
+
+## Precedence and encoding scope
+
+Scientific integrity comes first, then the actual medium/venue requirements,
+then the user's current specifically authorized changes, then the approved
+project/template and selected references for everything not overridden, then
+the existing method default. A new reference or a generic clean/minimal request
+cannot unlock a baseline. A different delivery target may be agreed, but must
+not be reported as satisfying an incompatible venue requirement.
+
+Declare the primary colour meaning per figure/comparison in the existing source
+or style report: method, role, process stage, numerical quantity, or another
+evidence-backed object. Role and stage cannot both control the same fill.
+Keep meanings stable within that declared scope; a topology, algebra diagram or
+result plot may need a different encoding from a process diagram. This is not
+permission for undocumented arbitrary palettes or changes to comparison data.
 
 ## Override Contract
 
@@ -134,4 +133,8 @@ Run:
 python .\scripts\validate_style_manifest.py --manifest <figure-root>\style\style_manifest.yaml
 ```
 
-Validation must report missing required roles, malformed colours, invalid lock state, reference-role conflicts, and unsupported units. A schema-valid manifest can still be visually or scientifically wrong; inspect the rendered figures and `style_report.md`.
+Validation checks sections, declared colours, lock state and reference roles.
+Use repeatable `--used-role` for actual consumers; the plotting script supplies
+its roles automatically. Legacy full manifests stay readable. The validator does
+not enforce authorization, measure final typography or validate every possible
+unit/override. Inspect the rendered figures and `style_report.md`.

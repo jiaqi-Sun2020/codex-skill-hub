@@ -212,6 +212,6 @@ python -X utf8 -B -m unittest discover `
 
 2026-09-24，本目录从已退役的 `jiaqi-Sun2020/S_paper_skills` 仓库 `main` 快照导入八个 Skill（源提交 `dcd573b1768e48e794975100f8548dc0f1bcb50e`），与既有 `academic-figure-workflow` 共同构成九个同级 Skill。旧目录 `data-analsys-skill/` 已规范为 `data-analysis/`；旧 wrapper、`util_skills/` 层和快捷方式不再使用。原仓库 MIT 声明保存在 [`S_PAPER_SKILLS_LICENSE`](S_PAPER_SKILLS_LICENSE)。
 
-图件工作流借鉴了 [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure) 的论点驱动多面板、语义配色和投稿 QA 思路，以及 [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill) 的数据先行可视化顾问思路。具体出版规范来源记录在 [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md)。借鉴不表示原作者对本项目背书，第三方材料继续遵守其原始许可证和通知要求。
+图件工作流借鉴了 [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure) 的论点驱动多面板、语义配色和投稿 QA 思路，以及 [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill) 的数据先行可视化顾问思路。它的可选 Apple-inspired 学术图件参考仅在用户明确选择时才生效，独立改编自两个固定 MIT 来源；不使用 Apple 资产，不改变现有 Style Manifest、科学保护或 QA 门禁。另附 PLOS 的 CC0 `Ten Simple Rules for Better Figures` 作为通用设计阅读材料，而非期刊要求或科学证据。具体出版规范来源记录在 [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md)。借鉴不表示原作者对本项目背书，第三方材料继续遵守其原始许可证和通知要求。
 
-本次文献与科学推理的固定上游提交、适配范围及完整 MIT 声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本分类现为 12 个 Skill；历史八项导入加图件仍是原来的九项来源，不改写历史记录。
+文献、科学推理和图件工作流的固定上游提交、适配范围、CC0 来源与完整 MIT 声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本分类现为 12 个 Skill；历史八项导入加图件仍是原来的九项来源，不改写历史记录。

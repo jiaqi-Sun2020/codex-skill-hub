@@ -5,7 +5,7 @@
   "references": {
     "reference_01": {"role": "primary_style", "path": "reference_images/reference_01.png", "confidence": "provisional"}
   },
-  "precedence": ["publication_integrity", "user_instruction", "primary_style", "domain_style", "locked_token", "conservative_default"],
+  "precedence": ["publication_integrity", "actual_delivery_requirements", "authorized_user_instruction", "approved_project_baseline", "selected_reference", "method_default"],
   "palette": {"primary": "#2F5D8C", "secondary": "#AEC4E6", "accent": "#D9795D", "neutral": "#8A8A8A"},
   "semantic_colors": {
     "proposed_method": "#2F5D8C",
@@ -33,7 +33,7 @@
     "panel_label_weight": "bold"
   },
   "strokes": {"axis_pt": 0.5, "module_pt": 0.8, "line_pt": 1.0, "connector_pt": 0.9},
-  "arrows": {"type": "triangle", "width": "med", "length": "med", "line_style": "solid"},
+  "arrows": {"type": "arrow", "width": "sm", "length": "sm", "line_style": "solid"},
   "borders": {"color": "#172B4D", "style": "solid"},
   "corners": {"panel_radius_pt": 8.0, "module_radius_pt": 4.0},
   "fills": {"mode": "flat", "gradient_allowed": false},

@@ -8,13 +8,15 @@ Define the final container before plotting. Keep one machine-readable layout con
 
 ```json
 {
-  "slide": {"width_px": 1600, "height_px": 900},
+  "slide_px": {"width": 1600, "height": 900},
   "target_publication_width_mm": 183,
   "panels": {
     "a": {
       "asset": "../exports/panel_a.svg",
       "slot_px": {"left": 30, "top": 68, "width": 750, "height": 800},
-      "source_canvas_mm": {"width": 85.78, "height": 91.50}
+      "source_canvas_mm": {"width": 85.78125, "height": 91.5},
+      "subplot": {"left": 0.16, "right": 0.96, "bottom": 0.16, "top": 0.86},
+      "final_metrics_pt": {"text": {"axis": 7.5, "tick": 7.0, "legend": 7.0}, "strokes": {"context": 0.55, "primary": 1.0}}
     }
   },
   "typography_final_pt": {
@@ -27,6 +29,7 @@ Define the final container before plotting. Keep one machine-readable layout con
     "panel_title": 9.0
   },
   "stroke_final_pt": {"context_minimum": 0.55, "primary_minimum": 1.0},
+  "qa_thresholds": {"aspect_anisotropy_max": 0.01, "minimum_final_text_pt": 6.5, "minimum_context_stroke_pt": 0.55, "minimum_primary_stroke_pt": 1.0},
   "visual_grammar": {
     "line_policy": "one solid semantic-colour line per strategy",
     "marker_policy": "declared events only",
@@ -35,6 +38,13 @@ Define the final container before plotting. Keep one machine-readable layout con
   }
 }
 ```
+
+These dimensions and thresholds are an example, not a global publication size.
+The checker accepts the old `slide: {width_px, height_px}` spelling, but rejects
+conflicting `slide` and `slide_px`. Missing text/stroke measurements are not
+guessed. `final_metrics_pt` and PPT slots are **declarations**: the checker reads
+SVG geometry and checks these declarations; it does not measure actual PPTX
+fonts or perform visual review. Inspect the package and actual render as well.
 
 Compute each panel's final physical size from the declared manuscript width:
 
@@ -86,6 +96,8 @@ For fixed PPT panel assets:
 - use the physical canvas from the shared layout contract;
 - use explicit subplot margins;
 - avoid `bbox_inches="tight"` because content-dependent cropping changes the exported viewBox and effective font scale;
+- use `save_nature_figure(..., fixed_canvas=True)` or the multi-panel CLI's
+  `--fixed-canvas` for a fixed slot; standalone export keeps its legacy crop;
 - if tight cropping is scientifically necessary, read the exported viewBox and recompute the PPT object bounds before assembly;
 - keep the canonical SVG text-editable and create a same-viewBox outlined-text copy only when the PowerPoint backend requires it.
 
@@ -106,6 +118,14 @@ Default paper-figure targets, unless a venue requires otherwise:
 - effective font-size difference between peer panels: no more than `5%`.
 
 Do not judge chart typography from source-code font values alone. Cropping and placement scale can make identical source values render at different final sizes.
+
+For native PPT objects, declare the assembly spec's
+`target_publication_width_mm` when known. The builder compensates manifest
+point-sized fonts/strokes for the source-canvas-to-manuscript scale. Omission
+keeps legacy source sizing and leaves final-size readiness unverified; it does
+not assume 183 mm. Existing object `font_size` remains backend pixels. Do not
+apply the native-object compensation again to a plot already drawn at its final
+physical size. Confirm actual exported XML and final-size rendering.
 
 Use one locked project font family and record every final-size role needed by the chart. Equivalent roles in peer panels must use the same role value. Do not introduce a one-off font size, weight, or family merely to make a local annotation fit; simplify, relocate, or move it to the caption.
 

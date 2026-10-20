@@ -26,23 +26,23 @@ For a journal-facing architecture or workflow panel, apply [publication-architec
 
 ### Component Board
 
-Create a second slide containing reusable independent components such as input, encoder, attention, fusion, decoder, output, connectors, legends, comparison plots, ablation plots, and raster assets. Use meaningful object names. Include a small native legend indicating Level A, B, or C.
+When a reusable component board is requested or contract-required, create a supporting slide with only the actual reusable components. Use meaningful object names and a small native editability legend. Do not add unrelated example modules just to complete a template.
 
 The board is a working canvas, not a publication panel. It may use a larger slide or grid, but it must inherit the same style manifest.
 
 ## Caption Integration
 
-Apply [figure-caption-contract.md](figure-caption-contract.md). Keep manuscript captions out of the visible publication artwork unless explicitly requested. Save `caption.md`, place the same text under `[Figure caption]` in the publication slide's speaker notes, keep `[Sources]` separate, and record the caption path in `ppt_manifest.json`.
+Use the sole [figure-caption-contract.md](figure-caption-contract.md) for
+artwork filtering, portable captions, notes and visible explanations. A simple
+publication slide does not require an extra component board or explanation
+slide. Add them for the actual request/reusable kit or an applicable contract;
+do not silently remove surfaces already required by an existing contract.
 
-Academic PPT figure kits use visible detailed-caption mode by default; explicit requests for all captions or detailed explanations reinforce this requirement:
-
-- add a separate `Caption & Interpretation` slide or a reserved explanation column on a supporting slide;
-- use native editable PowerPoint text, one named section per panel in display order;
-- explain axes, units, marks, colours, line/marker styles, uncertainty, thresholds, comparison roles, transformations, data scope, and the defensible result;
-- keep the publication artwork uncluttered unless the user explicitly asks for a typeset caption beneath it;
-- split across slides instead of shrinking or clipping the explanations.
-
-Omit the visible explanation surface only when the user explicitly requests notes-only or a single-slide publication deliverable. Record the override and reason in `caption_delivery.visible_override`.
+Contract-backed PPT delivery retains the existing caption/notes hashes and
+bindings. The legacy `--require-caption-delivery` QA flag deliberately requires
+the full three-surface package; use it when that full package is requested, not
+as an unconditional default for every PPT. Otherwise the contract determines
+the required surfaces. Structural QA does not establish visual approval.
 
 ## Assembly Specification
 
@@ -179,9 +179,9 @@ Generate a temporary rendered preview and check:
 
 Use rendered preview inspection plus structural inspection of the PPTX package. Rendering alone cannot prove editability.
 
-After QA passes, apply [figure-package-hygiene.md](figure-package-hygiene.md). Delete temporary preview PNGs, layout JSON, montage files, inspect snapshots, and starter decks unless the user explicitly requests them as deliverables. Keep the validation result in the manifest.
+The builder retains previews with visual review pending; reopening a PPTX is not visual acceptance. After actual review, follow the classified and approved cleanup in [figure-package-hygiene.md](figure-package-hygiene.md). Do not delete review evidence or unknown files automatically.
 
-Run `scripts/qa_pptx_package.py` after assembly. It checks the PPTX ZIP structure, slide bounds, native text runs, media types, and source-SVG hashes, then updates `ppt_manifest.json`. Use `--require-visual-grammar` for new or materially revised plot/PPT layouts. For academic PPT figure kits, use `--require-caption-delivery` by default; this requires a resolvable caption file, speaker notes, visible caption slides, and a non-empty panel annotation map. A user-approved notes-only or single-slide override must be validated separately and recorded rather than silently bypassing the default. Its manual-preview list remains mandatory because XML inspection cannot prove that fonts render correctly or that text is visually unclipped.
+Run `scripts/qa_pptx_package.py` after assembly. It checks the ZIP structure, declared slide bounds, native text runs, media types and source-SVG hashes; use `--check-only` for read-only inspection. Use `--require-visual-grammar` for applicable plot/PPT layouts and `--require-caption-delivery` only for the requested full package. Existing contract-required surfaces remain enforced. Its manual-preview list remains mandatory: XML inspection cannot prove that fonts render correctly or that text is visually unclipped.
 
 ## Final Editability Report
 

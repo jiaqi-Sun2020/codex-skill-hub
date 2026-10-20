@@ -1,15 +1,25 @@
 # Default Model-Diagram Template
 
-Use this reference for an editable PowerPoint neural-network or model-architecture figure only when no higher-priority visual source exists.
+Use the paper1 visual grammar as the fallback for model-architecture and
+process diagrams when no higher-priority visual style applies. Non-PPT work
+may reuse that grammar without cloning the deck. The asset, clone/edit and
+template-QA instructions apply only when the bundled PowerPoint template is
+actually selected; quantitative plots keep their applicable method rules.
 
 ## Precedence
 
-Apply the first available source:
+First apply scientific/actual-delivery requirements and the specific authorized
+scope under [figure-style-manifest.md](figure-style-manifest.md#precedence-and-encoding-scope).
+An explicitly supplied reference does not by itself unlock an existing template.
+
+For PPT authoring within that scope, select the first applicable template:
 
 1. a PPTX or template explicitly supplied by the user for the current request;
 2. a project-level user-approved model template or locked `style_manifest.yaml`;
 3. the bundled `../assets/model-diagram/default-model-diagram-template.pptx`;
-4. the ordinary method-selection workflow when PowerPoint is not the requested authoring surface.
+
+When PowerPoint is not requested, use the ordinary method-selection workflow;
+the bundled deck is not an additional deliverable.
 
 Do not let the bundled template override a user reference, a paper-wide semantic-colour lock, or a requested Draw.io-first deliverable.
 
@@ -32,7 +42,8 @@ Never carry the following into a new project without evidence:
 
 ## Clone/Edit Contract
 
-Treat the PPTX as a source deck rather than rebuilding its appearance from screenshots or hard-coded approximations.
+Only when the bundled PPTX is selected, treat it as a source deck rather than
+rebuilding its appearance from screenshots or hard-coded approximations.
 
 1. Copy the bundled PPTX into a task-scoped temporary workspace.
 2. Inspect and render both source slides.
@@ -40,7 +51,7 @@ Treat the PPTX as a source deck rather than rebuilding its appearance from scree
 4. Duplicate the required source slides and edit inherited objects in place.
 5. Preserve native PowerPoint geometry, text editability, masters, layouts, theme parts, object grouping, and connector semantics.
 6. Replace speaker notes with the target figure caption and `[Sources]` block.
-7. Preserve the component board unless the user explicitly requests a publication-slide-only output; when omitted, record the reduced editability surface in the manifest.
+7. Preserve component-board capability; include it when a reusable kit/board is requested or required by the applicable contract. A simple publication slide need not acquire an extra board.
 8. Export a versioned copy. Never overwrite the bundled asset.
 
 Use the presentation template-following workflow for inspection, frame mapping, editing, theme preservation, and fidelity QA.
@@ -51,6 +62,7 @@ Preserve these qualities unless a higher-priority project style overrides them:
 
 - white 1600 × 900 canvas;
 - dark navy structural ink and arrowheads;
+- small open arrow endpoints (`arrow`, `sm`, `sm`) matching the actual bundled PPTX, rather than a competing medium filled-triangle default;
 - Arial typography with a clear title, stage-label, tensor-label, and annotation hierarchy;
 - flat pastel semantic fills, no gradients, and no decorative shadows;
 - blue for measured/input information, green for preprocessing, pale yellow for constructed features, lilac for learned model stages, purple for physical features, blue-purple composition for fusion, and pink for prediction/output;
@@ -59,9 +71,20 @@ Preserve these qualities unless a higher-priority project style overrides them:
 - straight connectors between adjacent peer stages; elbow routes only for branch, residual, or cross-lane connections;
 - solid dark lines for learned paths and dark dashed lines for engineered/physical paths;
 - native centred junction and addition geometry instead of font symbols positioned by eye;
-- publication artwork on slide 1 and reusable/editing components on slide 2.
+- for a requested two-slide PPT kit, publication artwork on slide 1 and reusable/editing components on slide 2; otherwise deliver only the requested surfaces.
+
+These are the original paper1 visual preferences, not universal colour roles or
+a mandatory 1600×900 output. Non-PPT schematics may reuse the visual language
+without cloning a deck. Use only glyphs/geometry that express current evidence;
+topology, algebra and quantitative plots may require their own declared encoding.
 
 ## Tensor and Vector Grammar
+
+Use the following dimensional encoding only for tensors/vectors actually
+present and with dimensions verified from source evidence. If dimensions are
+unknown, retain that uncertainty and use explicitly schematic, non-proportional
+geometry rather than inventing labels or implying a measured size. This does
+not waive dimensions required by the applicable scientific contract.
 
 For one-dimensional spectral or temporal tensors:
 
@@ -81,7 +104,11 @@ For vectors:
 
 For image-like tensors, map plane width/height to spatial dimensions and stack depth to channels. Do not reuse one-dimensional ribbon geometry when it would misrepresent `(C,H,W)` data.
 
-## Layout Lessons Locked from the User Refinement
+## Conditional Layout Lessons from the User Refinement
+
+Apply each lesson only to structures verified in the current figure. These
+lessons do not require adding residuals, physical branches, regression heads
+or a second panel; existing approved project locks remain protected.
 
 - Route a residual path above the main lane without crossing the input title or hiding behind a tensor block.
 - Keep the residual projection label, exact dimensional mapping, tensor stack, and addition endpoint visually connected.
@@ -93,7 +120,9 @@ For image-like tensors, map plane width/height to spatial dimensions and stack d
 
 ## Scientific Adaptation
 
-Before editing, derive a verified architecture contract from code, equations, model summaries, or manuscript evidence:
+Before editing, derive a verified architecture contract from code, equations,
+model summaries, or manuscript evidence. Reuse an existing valid record; fill
+only applicable fields below, retaining unknowns rather than inventing facts:
 
 ```text
 Input representation:
@@ -105,7 +134,7 @@ Pooling or aggregation:
 Fusion rule:
 Prediction head:
 Output quantity and units:
-Detailed module selected for panel (b):
+Detailed module selected for panel (b), if requested:
 Evidence anchors:
 ```
 
@@ -113,7 +142,9 @@ Delete unsupported template branches instead of filling them with plausible-look
 
 ## Template QA
 
-In addition to the normal architecture and PPT QA, verify:
+Normal architecture/PPT QA follows the actual delivery requirements,
+regardless of template. When the bundled PPTX is used, also verify the
+following template-specific items for the delivered slides and structures:
 
 - every example-specific label and source has been replaced or intentionally retained with evidence;
 - source-slide structure was cloned rather than visually reconstructed;
@@ -123,7 +154,7 @@ In addition to the normal architecture and PPT QA, verify:
 - residual, skip, branch, merge, add, and concatenate semantics are correct;
 - connectors remain dark, continuous, unobscured, and attached to the intended endpoints;
 - no stage title, dimension label, operation note, or output unit overlaps;
-- slide 1 remains publication-clean and slide 2 remains an editing surface;
+- the publication slide remains clean; if a component-board slide is requested or contract-required, it remains an editing surface;
 - the final manifest records the bundled template path, template hash, intentional deviations, caption path, editability, and source trace.
 
 ## Bundled Files

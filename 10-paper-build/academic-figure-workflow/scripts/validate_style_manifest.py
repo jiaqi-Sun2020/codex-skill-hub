@@ -15,6 +15,7 @@ def main() -> int:
     parser.add_argument("--manifest", required=True, type=Path, help="Path to style_manifest.yaml")
     parser.add_argument("--emit-json", type=Path, help="Write normalized JSON for backends that do not parse full YAML")
     parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
+    parser.add_argument("--used-role", action="append", default=[], help="Validate a role actually used by this figure; repeat as needed")
     args = parser.parse_args()
 
     try:
@@ -23,7 +24,7 @@ def main() -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    errors, warnings = validate_style_manifest(manifest)
+    errors, warnings = validate_style_manifest(manifest, used_roles=args.used_role)
     for item in errors:
         print(f"error: {item}")
     for item in warnings:

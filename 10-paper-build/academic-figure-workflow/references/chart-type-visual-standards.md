@@ -41,13 +41,9 @@ Use for ordered x-values, time, training steps, or sample size trends.
 
 When legends, markers, direct labels, annotations, or fonts compete with the data, apply [plot-annotation-and-typography-contract.md](plot-annotation-and-typography-contract.md).
 
-- Choose one primary method-identity mechanism: compact legend, shared legend, or direct labels.
-- Do not combine a complete legend with repeated curve-end method names.
-- Dense sweeps default to unmarked solid lines; markers require a declared sample-level or event-level meaning.
-- Keep threshold and reference styling neutral so it is not mistaken for another compared method.
-- Use one project font family and the locked role hierarchy; equivalent roles in peer panels must use the same final-size typography.
-- Remove redundant labels before reducing font size. Move methods and configuration detail to the caption when it is not needed to decode the marks.
-- Validate the simplified grammar after final-size rendering; do not alter data, uncertainty, axis limits, or scientific roles to obtain a cleaner appearance.
+That reference owns the legend/marker/label/font decisions. Apply only the
+needed parts and inspect the actual final-size render; do not change scientific
+data, uncertainty, axes or role meanings for visual simplification.
 
 ## Criterion And Budget-Selection Figures
 
@@ -84,13 +80,16 @@ Use for dense matrix-like relationships.
 - Do not use colour to make a method look better than the data justify.
 - Include run count, split, dataset, and metric definition in the caption or support note.
 
-For manuscripts that already include ablation experiments, use three progressive checks:
+For manuscripts already making applicable ablation claims, the following are
+evidence-gap questions, not mandatory experiments or permission to run them:
 
 1. Replacement ablation: do not only compare "with module A" against "without module A"; when feasible, replace A with a traditional module of comparable parameter scale or computational role to show the proposed design is not only benefiting from added capacity.
 2. Hyperparameter robustness: for new mechanism hyperparameters such as loss weights, mask ratios, thresholds, or module depths, show a trend plot or heatmap across a meaningful range rather than only the best value. A stable plateau supports robustness; a narrow isolated peak requires training-stability discussion.
 3. Cross ablation: when two or more new core components are claimed, provide a full-combination table or matrix, such as 2x2 or 3x3, to show each component alone and the joint effect.
 
-If the data needed for these checks is missing, route the gap to writing or research verification as an experiment/material request instead of implying the ablation is complete.
+If needed evidence is missing, report the limitation and route a question to
+the author/domain method owner. Do not claim the analysis complete or expand a
+figure task into experiment design/execution without separate authorization.
 
 ## Tables As Figures
 

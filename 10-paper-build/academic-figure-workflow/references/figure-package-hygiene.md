@@ -59,7 +59,7 @@ Keep as reproducibility sources:
 - derived CSV used directly by the figure when it is small and materially improves auditability;
 - backend-specific vector assets only when the PPTX builder requires them and can trace them.
 
-Treat as transient unless the user requests retention:
+Candidates for transient classification after review, not automatic deletion:
 
 - rendered previews, montage/contact sheets, slide PNGs, `*.layout.json`, `*.inspect.ndjson`, template starter decks, template inspection folders;
 - temporary QA renders and normalized scratch manifests;
@@ -84,6 +84,9 @@ data, and evidence remain protected until explicitly classified and approved.
 
 ## Default Retention
 
-Rendered previews are required during QA but are deleted after a passing final review. Retain them only when the user asks for preview delivery, review history, or visual-regression fixtures.
+Retain previews while visual review is pending. After actual review, remove
+only specifically classified transient files under the authorized cleanup
+scope; do not infer approval from an export/structural PASS. Preserve review
+history, regression fixtures and evidence still referenced by a trace.
 
 The final manifest should preserve the validation summary so deleting preview and scratch QA files does not erase the audit outcome.

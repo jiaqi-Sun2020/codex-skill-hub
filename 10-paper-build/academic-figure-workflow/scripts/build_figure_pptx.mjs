@@ -44,8 +44,9 @@ Options:
   --manifest PATH         Output ppt_manifest.json path.
   --caption PATH          Figure caption Markdown/text; embedded in publication-slide notes.
   --figure-contract PATH  Optional academic-figure-contract/v1 JSON record.
-  --preview-dir PATH      Retained preview directory; used only with --retain-previews.
-  --retain-previews       Keep slide PNG/layout previews after QA (default: delete them).
+  --preview-dir PATH      Preview directory; conflicting files/linked directories refused.
+                          Default: unique retained directory beside the PPTX.
+  --retain-previews       Compatible no-op: previews are now retained by default.
   --demo                  Build a two-slide self-contained smoke-test kit.
   --help                  Show this help.
 
@@ -91,8 +92,18 @@ function ensureHex(value, fallback) {
   return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value) ? value : fallback;
 }
 
-function fontPx(style, token, fallbackPt) {
-  return Number(get(style, ["typography", "hierarchy_pt", token], fallbackPt)) * (96 / 72);
+function fontPx(style, token, fallbackPt, finalScale = 1) {
+  return Number(get(style, ["typography", "hierarchy_pt", token], fallbackPt)) * (96 / 72) / finalScale;
+}
+
+function publicationScale(spec) {
+  if (spec.target_publication_width_mm == null) return 1;
+  const width = Number(spec.target_publication_width_mm);
+  const canvasWidth = Number(spec.slide_size?.width ?? 1600);
+  if (!Number.isFinite(width) || width <= 0 || !Number.isFinite(canvasWidth) || canvasWidth <= 0) {
+    throw new Error("Declared publication and slide widths must be finite and positive");
+  }
+  return width / (canvasWidth * 25.4 / 96);
 }
 
 function boundsOf(object, autoBounds) {
@@ -166,17 +177,18 @@ function validateContractForAssembly(contract) {
   if (errors.length) throw new Error(`Figure contract assembly preflight failed: ${errors.join("; ")}`);
 }
 
-function styleTokens(style) {
+function styleTokens(style, finalScale = 1) {
   return {
+    finalScale,
     background: ensureHex(get(style, ["backgrounds", "slide"], "#FFFFFF"), "#FFFFFF"),
     panel: ensureHex(get(style, ["backgrounds", "panel"], "#F7F7F7"), "#F7F7F7"),
     text: ensureHex(get(style, ["neutral_colors", "text"], "#172B4D"), "#172B4D"),
     muted: ensureHex(get(style, ["neutral_colors", "muted_text"], "#666666"), "#666666"),
     border: ensureHex(get(style, ["neutral_colors", "border"], "#172B4D"), "#172B4D"),
     font: String(get(style, ["typography", "family", "sans"], "Arial")),
-    borderWidth: Number(get(style, ["strokes", "module_pt"], 0.8)) * (96 / 72),
-    connectorWidth: Number(get(style, ["strokes", "connector_pt"], 0.9)) * (96 / 72),
-    cornerRadius: Number(get(style, ["corners", "module_radius_pt"], 4)) * (96 / 72),
+    borderWidth: Number(get(style, ["strokes", "module_pt"], 0.8)) * (96 / 72) / finalScale,
+    connectorWidth: Number(get(style, ["strokes", "connector_pt"], 0.9)) * (96 / 72) / finalScale,
+    cornerRadius: Number(get(style, ["corners", "module_radius_pt"], 4)) * (96 / 72) / finalScale,
     shadow: get(style, ["shadows", "enabled"], false) ? String(get(style, ["shadows", "token"], "shadow-sm")) : "shadow-none",
     semantic: get(style, ["semantic_colors"], {}),
     outerMargin: Number(get(style, ["powerpoint", "outer_margin_px"], 54)),
@@ -224,6 +236,7 @@ async function addObject({ slide, object, objectIndex, objectCount, slideSize, t
 
   if (object.type === "native_block") {
     const role = String(object.semantic_role || "encoder");
+    if (!Object.hasOwn(tokens.semantic, role)) throw new Error(`Native object ${object.id}: missing actually used semantic role ${role}`);
     const fill = ensureHex(tokens.semantic[role], tokens.panel);
     facade = slide.shapes.add({
       geometry: "roundRect", name: object.id, position: bounds, fill,
@@ -231,12 +244,12 @@ async function addObject({ slide, object, objectIndex, objectCount, slideSize, t
       borderRadius: tokens.cornerRadius, shadow: tokens.shadow,
     });
     facade.text = String(object.label || object.id);
-    facade.text.style = { fontSize: fontPx(style, "body", 6.5) * (isBoard ? 1.25 : 1), fontFamily: tokens.font, color: tokens.text, bold: Boolean(object.bold), alignment: "center", verticalAlignment: "middle" };
+    facade.text.style = { fontSize: fontPx(style, "body", 6.5, tokens.finalScale) * (isBoard ? 1.25 : 1), fontFamily: tokens.font, color: tokens.text, bold: Boolean(object.bold), alignment: "center", verticalAlignment: "middle" };
     shapeMap.set(object.id, facade);
   } else if (object.type === "text") {
     facade = slide.shapes.add({ geometry: "textbox", name: object.id, position: bounds, fill: "none", line: { style: "solid", fill: "none", width: 0 } });
     facade.text = String(object.text || "");
-    facade.text.style = { fontSize: Number(object.font_size || fontPx(style, "body", 6.5)), fontFamily: tokens.font, color: ensureHex(object.color, tokens.text), bold: Boolean(object.bold), alignment: object.alignment || "left", verticalAlignment: object.vertical_alignment || "middle" };
+    facade.text.style = { fontSize: Number(object.font_size || fontPx(style, "body", 6.5, tokens.finalScale)), fontFamily: tokens.font, color: ensureHex(object.color, tokens.text), bold: Boolean(object.bold), alignment: object.alignment || "left", verticalAlignment: object.vertical_alignment || "middle" };
     shapeMap.set(object.id, facade);
   } else if (object.type === "native_arrow") {
     const arrowBounds = {
@@ -279,7 +292,7 @@ async function addObject({ slide, object, objectIndex, objectCount, slideSize, t
   if (object.panel_label) {
     const label = slide.shapes.add({ geometry: "textbox", name: `${object.id}_panel_label`, position: { left: bounds.left - tokens.panelLabelOffset, top: Math.max(4, bounds.top - tokens.panelLabelOffset), width: 60, height: 30 }, fill: "none", line: { style: "solid", fill: "none", width: 0 } });
     label.text = String(object.panel_label);
-    label.text.style = { fontSize: fontPx(style, "panel_label", 8), fontFamily: tokens.font, color: tokens.text, bold: true, alignment: "left", verticalAlignment: "middle" };
+    label.text.style = { fontSize: fontPx(style, "panel_label", 8, tokens.finalScale), fontFamily: tokens.font, color: tokens.text, bold: true, alignment: "left", verticalAlignment: "middle" };
     objectRecords.push({ id: `${object.id}_panel_label`, type: "native_panel_label", editability: "A", parent: object.id });
   }
 
@@ -287,8 +300,97 @@ async function addObject({ slide, object, objectIndex, objectCount, slideSize, t
   sourceTrace[object.id] = object.source_trace || [];
 }
 
-async function writeBlob(filePath, blob) {
-  await fs.writeFile(filePath, new Uint8Array(await blob.arrayBuffer()));
+async function assertDirectoryChain(directory) {
+  let current = path.resolve(directory);
+  for (;;) {
+    try {
+      const stat = await fs.lstat(current);
+      if (stat.isSymbolicLink() || !stat.isDirectory()) {
+        throw new Error(`Preview path contains a linked or non-directory component: ${current}`);
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+    const parent = path.dirname(current);
+    if (parent === current) return;
+    current = parent;
+  }
+}
+
+async function plannedPathKey(filePath) {
+  let current = path.resolve(filePath);
+  try {
+    // A dangling file link can become live when its target preview is written.
+    // Do not treat realpath(ENOENT) for that link as an ordinary missing file.
+    if ((await fs.lstat(current)).isSymbolicLink()) {
+      throw new Error(`Linked output file is not allowed: ${current}`);
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  const missing = [];
+  for (;;) {
+    try {
+      const resolved = path.join(await fs.realpath(current), ...missing);
+      return process.platform === "win32" ? resolved.toLowerCase() : resolved;
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      const parent = path.dirname(current);
+      if (parent === current) throw error;
+      missing.unshift(path.basename(current));
+      current = parent;
+    }
+  }
+}
+
+async function createPreviewDirectory(outputDir, requestedDir, slideCount, otherOutputs = []) {
+  const parent = requestedDir ? path.dirname(path.resolve(requestedDir)) : path.resolve(outputDir);
+  await assertDirectoryChain(requestedDir ? path.resolve(requestedDir) : parent);
+  await fs.mkdir(parent, { recursive: true });
+  const directory = requestedDir ? path.resolve(requestedDir) : await fs.mkdtemp(path.join(parent, ".figure-build-preview-"));
+  if (requestedDir) await fs.mkdir(directory, { recursive: true });
+  await assertDirectoryChain(directory);
+  const identity = await fs.lstat(directory);
+  const names = ["deck-montage.webp"];
+  for (let index = 1; index <= slideCount; index += 1) {
+    const stem = `slide-${String(index).padStart(2, "0")}`;
+    names.push(`${stem}.png`, `${stem}.layout.json`);
+  }
+  const planned = new Map();
+  for (const filePath of [...names.map((name) => path.join(directory, name)), ...otherOutputs]) {
+    const key = await plannedPathKey(filePath);
+    if (planned.has(key)) {
+      throw new Error(`Output path collision: ${filePath} aliases ${planned.get(key)}`);
+    }
+    planned.set(key, filePath);
+  }
+  for (const name of names) {
+    try {
+      await fs.lstat(path.join(directory, name));
+    } catch (error) {
+      if (error.code === "ENOENT") continue;
+      throw error;
+    }
+    throw new Error(`Preview already exists; refuse overwrite: ${path.join(directory, name)}`);
+  }
+  return { directory, dev: identity.dev, ino: identity.ino };
+}
+
+async function writePreview(preview, name, data) {
+  if (path.basename(name) !== name) throw new Error("Preview filename must be a basename");
+  await assertDirectoryChain(preview.directory);
+  const current = await fs.lstat(preview.directory);
+  if (current.dev !== preview.dev || current.ino !== preview.ino) {
+    throw new Error("Preview directory identity changed; stop without overwriting");
+  }
+  // Exclusive create also rejects a file/link appearing after preflight. This
+  // is not a transaction against all malicious parent-directory replacements.
+  const handle = await fs.open(path.join(preview.directory, name), "wx");
+  try {
+    await handle.writeFile(data);
+  } finally {
+    await handle.close();
+  }
 }
 
 async function main() {
@@ -316,10 +418,6 @@ async function main() {
   const outputPath = path.resolve(args.output);
   const outputDir = path.dirname(outputPath);
   const manifestPath = path.resolve(args.manifest || path.join(outputDir, "ppt_manifest.json"));
-  const retainPreviews = Boolean(args.retain_previews);
-  const previewDir = retainPreviews
-    ? path.resolve(args.preview_dir || path.join(outputDir, "preview"))
-    : path.join(outputDir, `.figure-build-preview-${process.pid}`);
   const explicitCaptionPath = args.caption
     ? path.resolve(args.caption)
     : (spec.caption ? path.resolve(specPath ? path.dirname(specPath) : process.cwd(), spec.caption) : "");
@@ -338,13 +436,17 @@ async function main() {
   const captionPath = explicitCaptionPath || contractCaptionPath;
   const captionText = captionPath ? (await fs.readFile(captionPath, "utf8")).trim() : "";
   const captionSha256 = captionPath ? hash(await fs.readFile(captionPath)) : null;
+  await assertDirectoryChain(outputDir);
   await fs.mkdir(outputDir, { recursive: true });
-  await fs.mkdir(previewDir, { recursive: true });
+  const preview = await createPreviewDirectory(outputDir, args.preview_dir, spec.slides.length,
+    [outputPath, manifestPath, `${outputPath}.inspect.ndjson`]);
+  const previewDir = preview.directory;
 
   const slideSize = spec.slide_size || { width: 1600, height: 900 };
   const { FileBlob, Presentation, PresentationFile } = await loadArtifactTool();
   const presentation = Presentation.create({ slideSize });
-  const tokens = styleTokens(style);
+  const finalScale = publicationScale(spec);
+  const tokens = styleTokens(style, finalScale);
   presentation.theme.colorScheme = {
     name: "Academic Figure Manifest",
     themeColors: {
@@ -389,6 +491,8 @@ async function main() {
     },
     surface_bindings: surfaceBindings,
     slide_size: { width: Number(slideSize.width), height: Number(slideSize.height), unit: "backend_px" },
+    final_size: { target_publication_width_mm: spec.target_publication_width_mm ?? null, source_to_publication_scale: spec.target_publication_width_mm == null ? null : finalScale, token_font_basis: spec.target_publication_width_mm == null ? "legacy_source_points; final size unverified" : "final_publication_points", explicit_font_size_basis: "legacy_backend_px" },
+    visual_qa: { status: "pending", review_source: null },
     slides: [], assets: [], source_trace: {},
     editability: { native_ppt_objects: 0, vector_svg_objects: 0, raster_objects: 0, external_editable_source_files: [] },
     raster_fallbacks: [], unresolved_issues: [], structural_qa: { pptx_reopened: false, package_inspection: "pending" },
@@ -405,13 +509,13 @@ async function main() {
     if (slideSpec.title) {
       const title = slide.shapes.add({ geometry: "textbox", name: `slide_${slideIndex + 1}_title`, position: { left: tokens.outerMargin, top: 14, width: slideSize.width - 2 * tokens.outerMargin, height: 36 }, fill: "none", line: { style: "solid", fill: "none", width: 0 } });
       title.text = String(slideSpec.title);
-      title.text.style = { fontSize: fontPx(style, "title", 8), fontFamily: tokens.font, color: tokens.text, bold: true, alignment: "left", verticalAlignment: "middle" };
+      title.text.style = { fontSize: fontPx(style, "title", 8, tokens.finalScale), fontFamily: tokens.font, color: tokens.text, bold: true, alignment: "left", verticalAlignment: "middle" };
       objectRecords.push({ id: `slide_${slideIndex + 1}_title`, type: "native_title", editability: "A" });
     }
     if (isBoard) {
       const legend = slide.shapes.add({ geometry: "textbox", name: `slide_${slideIndex + 1}_editability_legend`, position: { left: tokens.outerMargin, top: 48, width: slideSize.width - 2 * tokens.outerMargin, height: 28 }, fill: "none", line: { style: "solid", fill: "none", width: 0 } });
       legend.text = "A  Native PowerPoint object     B  Vector SVG + external editable source     C  Raster asset";
-      legend.text.style = { fontSize: fontPx(style, "annotation", 5.5) * 1.2, fontFamily: tokens.font, color: tokens.muted, alignment: "left", verticalAlignment: "middle" };
+      legend.text.style = { fontSize: fontPx(style, "annotation", 5.5, tokens.finalScale) * 1.2, fontFamily: tokens.font, color: tokens.muted, alignment: "left", verticalAlignment: "middle" };
       objectRecords.push({ id: `slide_${slideIndex + 1}_editability_legend`, type: "native_editability_legend", editability: "A" });
     }
     const objects = isBoard && (!slideSpec.objects || slideSpec.objects.length === 0)
@@ -440,7 +544,7 @@ async function main() {
       slide.shapes.connect(from, to, {
         kind: connectorObject.kind || "straight", fromSide: connectorObject.from_side || "right", toSide: connectorObject.to_side || "left",
         line: { style: connectorObject.line_style || "solid", fill: ensureHex(connectorObject.color, tokens.border), width: tokens.connectorWidth },
-        tail: { type: get(style, ["arrows", "type"], "triangle"), width: get(style, ["arrows", "width"], "med"), length: get(style, ["arrows", "length"], "med") },
+        tail: { type: get(style, ["arrows", "type"], "arrow"), width: get(style, ["arrows", "width"], "sm"), length: get(style, ["arrows", "length"], "sm") },
       });
     }
     const captionBlock = captionText && !isBoard ? `[Figure caption]\n${captionText}\n\n` : "";
@@ -450,7 +554,7 @@ async function main() {
       kind: slideSpec.kind || "figure_assembly",
       title: slideSpec.title || "",
       objects: objectRecords,
-      preview: retainPreviews ? `slide-${String(slideIndex + 1).padStart(2, "0")}.png` : null,
+      preview: path.relative(path.dirname(manifestPath), path.join(previewDir, `slide-${String(slideIndex + 1).padStart(2, "0")}.png`)).replaceAll("\\", "/"),
     });
   }
 
@@ -494,11 +598,13 @@ async function main() {
   for (let index = 0; index < presentation.slides.items.length; index += 1) {
     const slide = presentation.slides.items[index];
     const stem = `slide-${String(index + 1).padStart(2, "0")}`;
-    await writeBlob(path.join(previewDir, `${stem}.png`), await presentation.export({ slide, format: "png", scale: 2 }));
+    const image = await presentation.export({ slide, format: "png", scale: 2 });
+    await writePreview(preview, `${stem}.png`, new Uint8Array(await image.arrayBuffer()));
     const layout = await slide.export({ format: "layout" });
-    await fs.writeFile(path.join(previewDir, `${stem}.layout.json`), await layout.text(), "utf8");
+    await writePreview(preview, `${stem}.layout.json`, await layout.text());
   }
-  await writeBlob(path.join(previewDir, "deck-montage.webp"), await presentation.export({ format: "webp", montage: true, scale: 1 }));
+  const montage = await presentation.export({ format: "webp", montage: true, scale: 1 });
+  await writePreview(preview, "deck-montage.webp", new Uint8Array(await montage.arrayBuffer()));
 
   const pptx = await PresentationFile.exportPptx(presentation);
   await pptx.save(outputPath);
@@ -508,11 +614,12 @@ async function main() {
   } catch (error) {
     manifest.unresolved_issues.push(`PPTX reopen failed: ${error.message}`);
   }
-  manifest.backend.rendered_preview = retainPreviews ? "retained" : "validated_then_removed";
-  if (!retainPreviews) await fs.rm(previewDir, { recursive: true, force: true });
-  await fs.rm(`${outputPath}.inspect.ndjson`, { force: true });
+  manifest.backend.rendered_preview = "retained_not_visually_reviewed";
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n", "utf8");
-  console.log(`pptx=${outputPath} manifest=${manifestPath} previews=${retainPreviews ? previewDir : "removed"} slides=${manifest.slides.length}`);
+  console.log(`pptx=${outputPath} manifest=${manifestPath} previews=${previewDir} visual_review=pending slides=${manifest.slides.length}`);
 }
 
-main().catch((error) => { console.error(`error: ${error.message}`); process.exitCode = 1; });
+export { fontPx, publicationScale, styleTokens, validateContractForAssembly, createPreviewDirectory, writePreview };
+if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
+  main().catch((error) => { console.error(`error: ${error.message}`); process.exitCode = 1; });
+}

@@ -63,12 +63,12 @@ Record sample selection, transformations used only for display, and source locat
 
 ## 4. One Main Reading Path
 
-Prefer one integrated scientific flow plus at most one non-redundant detail inset.
+Prefer an integrated scientific flow and only detail insets that add distinct information; the scientific argument, not a fixed inset count, determines the composition.
 
 - Do not repeat input, model, and output in both an overview panel and a full architecture panel unless the overview adds a distinct manuscript claim.
 - Use an inset to explain a reusable cell or operation rather than redrawing the complete pipeline.
 - Allocate the largest area to the main claim and keep implementation detail subordinate.
-- A reader should identify input, branch split, fusion, and output within five seconds.
+- Check whether a reader can locate input, branch split, fusion and output promptly; a timed reading test is diagnostic, not a universal acceptance threshold.
 
 ## 5. Architecture Visual Grammar
 
@@ -100,15 +100,15 @@ Bring branch connectors directly into the fusion node with one arrowhead per inc
 
 ### Junctions and operators
 
-- Junction, fork, add, and merge marks must be native geometry, not font glyphs positioned by eye.
+- Prefer native/vector geometry for junction, fork, add and merge marks. Other reliable representations are allowed when their centres, meaning and final rendering are verified.
 - A dot inside a circle must use two concentric shapes with coincident geometric centres.
 - Use `+` only for verified addition. Use an unlabelled junction for a fork or routing point, and label concatenation explicitly.
-- For peer blocks with numeric mappings, build a fixed three-slot operator row: left value, native operator/arrow, right value. Do not place the complete mapping in one auto-wrapping text box.
-- Peer operator rows must use identical slot bounds and align within 2 px. Keep the operator and both values on one line.
+- For repeated numeric mappings, a three-slot operator row is a useful template; use another representation when it better expresses the verified mapping without accidental wrapping.
+- Align comparable mappings consistently at final size. A 2 px tolerance is a template starting point, not a scientific requirement.
 
 ## 6. Module Interior and Grid Contract
 
-Use an 8 px base grid on a 1600 × 900 source canvas unless the project manifest defines an equivalent rhythm.
+The following is an example starter rhythm for the bundled 1600 × 900 template, not a required canvas, grid or universal gate. Resolve actual size and content first.
 
 ```text
 compact gap: 24 px
@@ -123,20 +123,20 @@ title-to-body gap: 6 px
 ```
 
 - Peer modules in one processing lane must share height, title region, body region, padding, and vertical alignment unless a documented scientific reason requires a different class.
-- Do not repair individual boxes with arbitrary `bodyTop`, title-height, or padding overrides. Select a named `compact`, `standard`, or `detailed` module template.
-- A title may use at most two lines. Body copy may not overlap, clip, or visually touch the title region.
+- Prefer reusable module treatments to arbitrary local fixes; no new named-template system is required. Permit a purposeful local exception when it improves the current scientific layout.
+- Keep titles and body readable without overlap or clipping; line counts follow actual content and final size.
 - Dense mathematical descriptors must use a structured list, two-column matrix, or aligned rows. Do not compress seven or more items into a centred paragraph.
-- A peer row fails when internal whitespace or text fill differs visibly across boxes. Keep peer-card optical fill within about 10% by choosing compatible dimensions and line counts.
+- Compare peer optical weight as a diagnostic. A different fill ratio is not itself failure and must not force padding or invented text merely to match a percentage.
 - Transformation summaries should use a key-value process table when prose, values, units, and operations would otherwise mix in one paragraph.
 - Normalize mathematical notation within one figure: write function arguments with parentheses, for example `log1p(I580)`, `max(I)`, and `sigma(I)`. Avoid mixed forms such as `log1p I580`, `max I`, and `sigma I`.
 
 ## 7. Canvas Fill and Output Contract
 
-- The main scientific artwork should occupy at least 90% of the usable panel width and 78% of its usable height, excluding deliberate panel-heading space.
+- Record usable-canvas coverage when helpful; do not impose 90% width/78% height as universal minima or enlarge scientific objects just to meet them.
 - Whitespace must separate stages or branches; it must not arise from unrelated coordinates or undersized nodes.
 - Dual branches should reuse column centres so corresponding transformations align vertically.
-- For a 1600 x 900 dual-branch source figure, keep the clear vertical gap between peer branch modules in the 64-88 px range unless the content requires a documented exception.
-- Reject an unexplained inter-branch dead zone occupying more than 15% of the usable panel height.
+- For the 1600 x 900 template, 64–88 px can be a useful initial branch gap. Adapt it to the actual labels, objects and publication width.
+- Inspect unexplained dead zones qualitatively; a 15% ratio is a diagnostic, not a reason to change correct scientific topology.
 - Prediction/output nodes must be wide enough to keep the quantity and unit readable on one or two intentional lines. Reject narrow output boxes that force `T`, hat marks, parentheses, or units into a vertical stack.
 - Regression heads must reserve a single-line title region and a separate body region large enough for every verified operation.
 
@@ -156,13 +156,10 @@ Prefer a flat white canvas, restrained semantic tints, one grouping level, and w
 
 ## 9. Publication Text Filter
 
-The publication slide or exported panel must not contain:
-
-- `Figure 1`, the manuscript title, or a caption-like headline;
-- repository-verification notes, source paths, QA status, editability instructions, or authoring guidance;
-- long method caveats that belong in the caption or Methods section.
-
-Keep this information in speaker notes, manifests, source trace, or the component board. Short scientific labels essential to interpreting an edge or node remain allowed.
+Use the sole artwork-versus-caption rule in
+[figure-caption-contract.md](figure-caption-contract.md#artwork-versus-caption).
+Do not suppress necessary scientific labels or schematic/evidential distinctions
+under a blanket request to remove footnotes.
 
 ## 10. PPT Separation
 
@@ -182,12 +179,12 @@ Parallel structure visually explicit: yes/no
 Residual endpoints explicit: yes/no/not applicable
 Redundant overview removed or justified: yes/no
 Publication-only text filter: pass/fail
-Five-second reading order: pass/fail
+Reading order (qualitative, not a timed threshold): clear/unclear
 Connector contrast and target arrowheads: pass/fail
 Adjacent connectors straight and unobscured: pass/fail
 Multi-branch source uses visible split junction: pass/fail
 Peer module padding/alignment: pass/fail
-Peer operator slots aligned/no wrapping: pass/fail
+Peer mappings aligned/no accidental wrapping: pass/fail/not applicable
 Scientific notation normalized: pass/fail
 Junction geometry centred: pass/fail
 Text overlap/clipping: pass/fail

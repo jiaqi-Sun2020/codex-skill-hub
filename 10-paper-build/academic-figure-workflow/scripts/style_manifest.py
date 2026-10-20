@@ -39,6 +39,8 @@ REQUIRED_SECTIONS = {
     "unresolved_issues",
 }
 
+# Legacy exported example vocabulary, retained for callers; not universal
+# requirements. Validation below checks only roles actually used by a consumer.
 REQUIRED_SEMANTIC_ROLES = {
     "proposed_method",
     "baseline",
@@ -54,6 +56,7 @@ REQUIRED_SEMANTIC_ROLES = {
 
 REFERENCE_ROLES = {"primary_style", "chart_style", "architecture_style", "layout_inspiration"}
 LOCK_STATES = {"provisional", "approved", "locked"}
+SEMANTIC_ROLE_ALIASES = {"control": "baseline", "treatment": "proposed_method", "comparison": "baseline", "model": "proposed_method", "negative": "output", "positive": "proposed_method"}
 HEX_COLOUR = re.compile(r"^#[0-9A-Fa-f]{6}$")
 
 
@@ -107,7 +110,16 @@ def _walk_colours(value: Any, prefix: str = ""):
         yield prefix, value
 
 
-def validate_style_manifest(manifest: dict[str, Any]) -> tuple[list[str], list[str]]:
+def semantic_colour_errors(semantic: Any) -> list[str]:
+    """Validate declared role values before a consumer can stringify them."""
+    if not isinstance(semantic, dict):
+        return ["semantic_colors must be an object"]
+    return [f"semantic_colors.{role} must be a six-digit hex colour, got {colour!r}"
+            for role, colour in semantic.items()
+            if not isinstance(colour, str) or not HEX_COLOUR.fullmatch(colour)]
+
+
+def validate_style_manifest(manifest: dict[str, Any], used_roles: list[str] | None = None) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -130,13 +142,18 @@ def validate_style_manifest(manifest: dict[str, Any]) -> tuple[list[str], list[s
             errors.append("state.status=locked requires state.locked=true")
 
     semantic = manifest.get("semantic_colors")
-    if not isinstance(semantic, dict):
-        errors.append("semantic_colors must be an object")
-    else:
-        for role in sorted(REQUIRED_SEMANTIC_ROLES - set(semantic)):
-            errors.append(f"semantic_colors missing role: {role}")
+    errors.extend(semantic_colour_errors(semantic))
+    if isinstance(semantic, dict):
+        # Old full manifests remain valid; unrelated example model roles are
+        # not universal requirements for a statistical or conceptual figure.
+        for role in sorted(set(used_roles or [])):
+            canonical = role if role in semantic else SEMANTIC_ROLE_ALIASES.get(role, role)
+            if canonical not in semantic:
+                errors.append(f"semantic_colors missing used role: {role}")
 
     for key, colour in _walk_colours(manifest):
+        if key.startswith("semantic_colors."):
+            continue  # Role values (including non-strings) were checked above.
         if not HEX_COLOUR.fullmatch(colour):
             errors.append(f"{key} must be a six-digit hex colour, got {colour!r}")
 

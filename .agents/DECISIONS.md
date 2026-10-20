@@ -187,6 +187,8 @@
   `f624f37a8c650b9cc550253104925efe4c8de246`. Preserve its complete source,
   upstream license, and `UPSTREAM.md`; it is a hub-managed snapshot only, not a
   global installation or authorization for later asset, browser, or server actions.
+- 2026-10-21: Add an optional Apple-inspired academic-figure reference and retain the CC0 PLOS *Ten Simple Rules for Better Figures* PDF. The styling reference is explicit-selection-only, independently adapted from pinned MIT sources, excludes Apple assets, and cannot change the protected Style Manifest, scientific content, delivery requirements, or QA gates; the PLOS source is general design reading only. No active-Skill count or canonical location changes.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

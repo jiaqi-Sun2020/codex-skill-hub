@@ -27,7 +27,8 @@ When Matplotlib or another script generated the figure, inspect what can be chec
 - final physical size compared with target width/height;
 - SVG viewBox versus final PPT object ratio, including scale-x/scale-y anisotropy;
 - main data-axes width/height ratio, peer-panel aspect consistency, and explicit colorbar-width reservation;
-- effective final-size font and stroke metrics from the shared layout contract;
+- declared final-size font/stroke metrics from the shared layout contract,
+  distinguished from measurements of actual SVG/PPTX objects and the render;
 - colorbar existence for continuous color encodings;
 - duplicate panel labels or missing panel labels;
 - non-empty QA issue lists from bundled scripts.
@@ -88,7 +89,7 @@ For SVG/PDF outputs:
 - confirm text remains editable unless the venue requires outlines;
 - confirm strokes, arrows, markers, symbols, and labels survive export;
 - confirm hidden/off-canvas objects are not present;
-- confirm the figure does not include captions, author names, operation notes, file paths, or prompt traces.
+- apply [figure-caption-contract.md](figure-caption-contract.md#artwork-versus-caption) rather than blanket deletion of necessary scientific annotations.
 
 For raster outputs:
 

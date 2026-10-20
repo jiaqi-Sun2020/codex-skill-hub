@@ -97,7 +97,7 @@
   {
     "id": 20,
     "prompt": "PPT 中图 (a) 没有被拉伸，但光谱坐标区仍然显得又高又窄，旁边还有色条；请重新平衡长宽比。",
-    "expected": "Distinguishes outer asset anisotropy from the main data-axes aspect, derives axes geometry from the shared canvas and subplot margins, reserves colorbar width explicitly, keeps ordinary line/scatter axes within the declared 0.95–1.30 range and peer panels within 10%, avoids equal data-unit aspect, and reruns final-size PPT render QA."
+    "expected": "Distinguishes outer asset anisotropy from main data-axes aspect, derives geometry from the actual canvas/subplot margins, reserves colorbar width, uses the project's declared aspect/tolerance rather than imposing universal numbers, avoids equal data-unit aspect, and reruns final-size render QA."
   },
   {
     "id": 21,
@@ -163,5 +163,50 @@
     "id": 33,
     "prompt": "准备清理图件目录，只保留当前版本；目录里还有用户手工修改的旧 PPT 和未知文件。",
     "expected": "Produces a cleanup preview and keep list, protects user-approved, user-edited, historical, unknown and evidence files, deletes nothing without explicit classification and approval, and revalidates rebuild references afterward."
+  },
+  {
+    "id": 34,
+    "prompt": "Make this academic architecture figure clean and readable; no special style was selected.",
+    "expected": "Keeps the existing default and project style; does not select Apple-inspired styling merely from clean/minimal wording."
+  },
+  {
+    "id": 35,
+    "prompt": "没有参考图片；明确使用 Apple-inspired 学术风格调整这张未锁定架构图，保留原科学内容。",
+    "expected": "Reads apple-inspired-academic-figure-style.md, reuses the existing complete Style Manifest and schema, preserves semantic colours, nodes, branches, directions, formulas and dimensions, and performs final-size rendered and editable-source QA."
+  },
+  {
+    "id": 36,
+    "prompt": "Use Apple-inspired styling, but my approved style manifest is locked and the Draw.io template has user edits. No token override has been approved.",
+    "expected": "Reads the optional reference but leaves the protected manifest and template unchanged, previews any conflict and asks only for a specific required override; the style request alone does not unlock or replace the baseline."
+  },
+  {
+    "id": 37,
+    "prompt": "把实验曲线做成 Apple 风，但为了简洁去掉误差条，把 y 轴范围截短并把全部方法改成一种颜色。",
+    "expected": "Does not treat uncertainty removal or axis truncation as a visual-only change. Preserves data/statistical meaning and distinguishable method encodings, explains the conflict and retains scientific review/invalidation requirements."
+  },
+  {
+    "id": 38,
+    "prompt": "用 Apple-inspired 风格生成论文图的可编辑 PPTX，对照验收时现在没有目标期刊规范。",
+    "expected": "Retains existing hybrid PPTX, SVG text, Draw.io/source trace, captions and actual render gates; reports venue compliance as unverified rather than submission-ready and does not bundle proprietary Apple assets."
+  },
+  {
+    "id": 39,
+    "prompt": "只修正这张已有 SVG 的一个文字标签，保留其它内容；不需要 PPT 或额外说明页。",
+    "expected": "Performs the local source-backed edit and required render check without manufacturing a PPT, component board, explanation slide or duplicate state/caption package; preserves the user's baseline."
+  },
+  {
+    "id": 40,
+    "prompt": "为定性研究画一张拓扑示意，颜色表示来源类别，不是 encoder、decoder 或流程阶段。",
+    "expected": "Requires only actually used semantic roles, declares the colour scope and preserves topology; does not require neural-network roles or force the paper1 process-stage palette onto this figure."
+  },
+  {
+    "id": 41,
+    "prompt": "图件已导出 PPTX，脚本成功退出，是否可以删除预览并认定视觉审核通过？",
+    "expected": "Separates rendered/reopened/structurally checked from visually reviewed; retains previews while review is pending and never turns export success into visual or scientific approval. Cleanup needs classification and applicable authorization."
+  },
+  {
+    "id": 42,
+    "prompt": "柱图横轴是方法名称，部分数值缺失；源画布是 1600px，但论文实际插入宽度为 150mm。",
+    "expected": "Preserves categorical order and group alignment, reports missing plotted values and incomplete output, derives final native-PPT scaling from 150mm rather than a global 183mm default, and checks actual exports instead of trusting declared metrics."
   }
 ]

@@ -26,6 +26,7 @@ from typing import Any
 
 import nature_mpl_style as nstyle
 from validate_figure_contract import load_contract, sha256_file, validate_contract
+from style_manifest import load_style_manifest, validate_style_manifest
 
 
 @dataclass
@@ -48,6 +49,7 @@ class PanelSpec:
     metric_definition: str
     error_source: str
     expected_sample_size: int | None
+    marker: str | None = None
 
     @classmethod
     def from_row(cls, row: dict[str, Any], index: int) -> "PanelSpec":
@@ -70,6 +72,7 @@ class PanelSpec:
             metric_definition=str(row.get("metric_definition") or "").strip(),
             error_source=str(row.get("error_source") or "").strip(),
             expected_sample_size=(int(row["expected_sample_size"]) if str(row.get("expected_sample_size") or "").strip() else None),
+            marker=str(row["marker"]).strip() if row.get("marker") is not None else None,
         )
 
 
@@ -266,6 +269,8 @@ def plot_panel(
         return issues, audit
 
     plot_type = panel.plot_type
+    if panel.yerr and plot_type not in {"bar", "errorbar"}:
+        issues.append(f"{panel.panel}: unsupported yerr for {plot_type}; use an uncertainty-preserving plot type")
 
     if panel.group and panel.group in audit["columns"]:
         groups = grouped_rows(rows, panel.group)
@@ -279,11 +284,19 @@ def plot_panel(
 
     total_skipped_rows = 0
     total_plotted_rows = 0
+    # First-seen scientific order, shared across groups; never sort categories.
+    categories = list(dict.fromkeys(str(row[panel.x]) for row in rows
+                    if panel.x and row.get(panel.x) not in (None, ""))) if plot_type == "bar" else []
     for group_index, (group_name, group_rows) in enumerate(groups.items()):
         label = group_name or None
         selected_role = requested_roles[min(group_index, len(requested_roles) - 1)] if requested_roles else "treatment"
         colour = role_colour(selected_role)
-        marker = nstyle.marker_for_index(group_index)
+        marker = panel.marker if panel.marker is not None else nstyle.marker_for_index(group_index)
+        if str(marker).lower() in {"none", "off", ""}:
+            if plot_type == "scatter":
+                issues.append(f"{panel.panel}: unsupported invisible scatter marker")
+            else:
+                marker = None
         line_style = nstyle.line_style_for_index(group_index)
         x_numeric: list[float] = []
         y_numeric: list[float] = []
@@ -292,9 +305,15 @@ def plot_panel(
         skipped_rows = 0
         for row_index, row in enumerate(group_rows):
             try:
-                x_value = float(row.get(panel.x, row_index)) if panel.x else float(row_index)
-                y_value = float(row.get(panel.y, "")) if panel.y else math.nan
-                error_value = float(row.get(panel.yerr, "")) if panel.yerr else math.nan
+                label_value = str(row.get(panel.x, "")) if panel.x else str(row_index + 1)
+                if plot_type == "bar" and panel.x:
+                    if row.get(panel.x) in (None, ""):
+                        raise ValueError("missing category")
+                    x_value = float(categories.index(label_value))
+                else:
+                    x_value = float(row.get(panel.x, row_index)) if panel.x else float(row_index)
+                y_value = float(row.get(panel.y, "")) if panel.y and plot_type != "hist" else math.nan
+                error_value = float(row.get(panel.yerr, "")) if panel.yerr and plot_type != "hist" else math.nan
             except (TypeError, ValueError):
                 skipped_rows += 1
                 continue
@@ -304,14 +323,14 @@ def plot_panel(
                 else:
                     skipped_rows += 1
                 continue
-            if not math.isfinite(y_value):
+            if not math.isfinite(x_value) or not math.isfinite(y_value):
                 skipped_rows += 1
                 continue
             x_numeric.append(x_value)
             y_numeric.append(y_value)
-            x_labels.append(str(row.get(panel.x, row_index + 1)) if panel.x else str(row_index + 1))
+            x_labels.append(label_value)
             if panel.yerr:
-                if not math.isfinite(error_value):
+                if not math.isfinite(error_value) or error_value < 0:
                     skipped_rows += 1
                     x_numeric.pop()
                     y_numeric.pop()
@@ -319,7 +338,9 @@ def plot_panel(
                     continue
                 yerr_numeric.append(error_value)
         if skipped_rows:
-            issues.append(f"{panel.panel}: group {group_name or 'all'} skipped {skipped_rows} rows with missing/non-numeric plotted values")
+            issues.append(f"{panel.panel}: group {group_name or 'all'} skipped {skipped_rows} rows with missing/non-numeric/non-finite values or invalid uncertainty")
+        if plot_type == "bar" and len(x_labels) != len(set(x_labels)):
+            issues.append(f"{panel.panel}: unsupported duplicate categories within group; declare the aggregation instead of overlapping bars")
         total_skipped_rows += skipped_rows
         total_plotted_rows += len(x_numeric) if plot_type == "hist" else len(y_numeric)
 
@@ -331,13 +352,15 @@ def plot_panel(
             yerr = yerr_numeric if panel.yerr else None
             ax.errorbar(x_numeric, y_numeric, yerr=yerr, marker=marker, linestyle=line_style, color=colour, label=label, capsize=float(nstyle.chart_token("errorbar_capsize_pt", 2)))
         elif plot_type == "bar":
-            base_positions = list(range(len(y_numeric)))
+            base_positions = list(range(len(categories))) if panel.x else list(range(len(y_numeric)))
             width = 0.8 / max(1, len(groups))
-            positions = [position + (group_index - (len(groups) - 1) / 2) * width for position in base_positions]
+            positions = [position + (group_index - (len(groups) - 1) / 2) * width for position in x_numeric]
             edge = nstyle.neutral_colour("border", "#172B4D") if nstyle.chart_token("bar_edge", True) else "none"
-            ax.bar(positions, y_numeric, width=width, color=colour, edgecolor=edge, label=label)
+            ax.bar(positions, y_numeric, width=width, color=colour, edgecolor=edge, label=label,
+                   yerr=yerr_numeric if panel.yerr else None,
+                   capsize=float(nstyle.chart_token("errorbar_capsize_pt", 2)))
             ax.set_xticks(base_positions)
-            ax.set_xticklabels(x_labels, rotation=35, ha="right")
+            ax.set_xticklabels(categories if panel.x else x_labels, rotation=35, ha="right")
         elif plot_type == "hist":
             ax.hist(x_numeric, bins="auto", color=colour, label=label, edgecolor="white", alpha=0.75)
         else:
@@ -471,6 +494,7 @@ def main() -> int:
     parser.add_argument("--cjk-serif", action="store_true", help="Prefer serif CJK fonts for Chinese thesis/journal figures")
     parser.add_argument("--copy-script", action="store_true", help="Copy this generator next to outputs for provenance")
     parser.add_argument("--style-manifest", type=Path, help="Paper-wide style_manifest.yaml")
+    parser.add_argument("--fixed-canvas", action="store_true", help="Preserve physical canvas for fixed publication/PPT slots; default retains standalone tight cropping")
     parser.add_argument(
         "--figure-contract",
         type=Path,
@@ -487,6 +511,11 @@ def main() -> int:
     )
 
     panels = load_panel_specs(args.spec)
+    if args.style_manifest:
+        used = [role.strip() for panel in panels for role in panel.color_role.replace("|", ",").split(",") if role.strip()]
+        errors, _ = validate_style_manifest(load_style_manifest(args.style_manifest), used_roles=used)
+        if errors:
+            raise SystemExit("Style manifest validation failed: " + "; ".join(errors))
     figure_contract: dict[str, Any] | None = None
     contract_report: dict[str, Any] | None = None
     contract_panels: dict[str, dict[str, Any]] = {}
@@ -531,7 +560,7 @@ def main() -> int:
 
     issues.extend(text_overlap_issues(fig, mtext.Text))
     issues.extend(nstyle.rendered_text_qa(fig))
-    outputs = nstyle.save_nature_figure(fig, output_stem)
+    outputs = nstyle.save_nature_figure(fig, output_stem, fixed_canvas=args.fixed_canvas)
     plt.close(fig)
 
     svg_info = inspect_svg(Path(outputs["svg"]))
@@ -569,12 +598,16 @@ def main() -> int:
         "not found",
         "cannot read data",
         "missing data",
+        "data path missing",
+        "no rows",
         "missing column",
         "sample size",
         "metric definition missing",
         "error/SD/CI source missing",
     )
-    return 1 if any(any(term in issue for term in blocking_terms) for issue in issues) else 0
+    return 1 if (any(item["skipped_row_count"] for item in data_audit)
+                 or any("unsupported" in issue for issue in issues)
+                 or any(any(term in issue for term in blocking_terms) for issue in issues)) else 0
 
 
 if __name__ == "__main__":

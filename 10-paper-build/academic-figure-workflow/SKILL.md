@@ -89,78 +89,57 @@ Read [figure-method-selection.md](references/figure-method-selection.md) when mo
 
 ## Core Contracts
 
-1. Evidence and data determine content; the style manifest determines appearance.
-2. Once locked, `figures/style/style_manifest.yaml` is the only paper-wide visual source of truth. A local override requires an explicit user request and an override record.
-3. Semantic colours are stable across figures: for example, `proposed_method`, `baseline`, `encoder`, and `uncertainty` keep the same meanings.
-4. Reference-image transfer borrows design language, not pixels, scientific content, protected marks, or unsupported layout semantics.
-5. Architecture deliverables default to `.drawio + .svg + .pdf + .png`; preserve SVG `<text>`, vector arrows, and independent groups.
-6. Data figures default to source data + plotting source + `.svg + .pdf + .png`; keep `svg.fonttype = none` and `pdf.fonttype = 42`.
-7. PPT assembly defaults to `hybrid`: native PowerPoint objects where reliable, SVG for complex vector panels, and raster only for inherently bitmap content.
-8. PowerPoint editability never overrides scientific correctness. Do not alter values, error bars, statistics, axis ranges, scales, or observed points to obtain a native chart.
-9. Preserve formulas, notation, labels, and manuscript terminology through every conversion.
-10. Keep the artwork claim-focused. Move nonessential configuration text—sample counts, preprocessing recipes, fold protocol, optimizer settings, and similar authoring detail—to the figure caption unless it is required to decode the marks.
-11. Build and validate in a temporary workspace, then deliver one clean folder per figure. Keep final deliverables and reproducibility sources; remove previews, inspect snapshots, layout dumps, caches, starter decks, and temporary QA renders unless the user explicitly asks to retain them.
-12. When a plot is embedded in PPT or resized for publication, define the final container first. Make plot code and PPT assembly consume one layout contract; forbid non-uniform SVG scaling and verify final-size typography, strokes, and signal contrast after round-trip rendering.
-13. Validate the data-axes rectangle separately from the outer SVG/PPT container. A non-stretched asset can still be aesthetically wrong when subplot margins, colorbars, or legends make the evidence area too tall or narrow.
-14. Treat detailed quantitative captions as an element inventory: define both axes, every visible mark and uncertainty encoding, observation grain, transformations, comparison roles, validation scope, and any equation or metric removed from the artwork.
-15. For dense budget or mask sweeps, preserve every evaluated value, use sparse event markers, separate single-metric thresholds from joint all-criterion acceptance, show actual multi-budget mask expansion when relevant, and keep prespecified stability rules distinct from sensitivity analyses.
-16. Treat plot legends, markers, direct labels, annotations, and fonts as one visual grammar. Remove redundant encodings, use markers only for declared sample or event meanings, and keep peer typography locked at final size without altering scientific content.
-17. Every academic PPT figure kit defaults to three caption surfaces: portable `caption.md`, publication-slide speaker notes, and native editable panel-mapped visible explanation sections on a supporting slide or reserved column. Keep the publication artwork clean. A notes-only or single-slide exception requires an explicit user request and a manifest record.
-18. For editable PPT model or neural-network figures, use the bundled default model-diagram template only when the user has not supplied a reference PPTX and the project has no locked user-approved model template. The template contributes layout and visual grammar, never scientific content. Replace every example-specific label, tensor dimension, branch, operator, caption, and source with evidence from the target project.
-19. For a new or materially revised data-backed, code-backed, architecture, multi-surface, or submission-bound figure, create one `academic-figure-contract/v1` record from `assets/figure_contract.template.json`. Use it as the stable identity and lineage layer; keep the style manifest as the sole appearance layer and the layout contract as the sole geometry layer.
-20. Distinguish source, displayed, fitted, statistical, and sensitivity populations whenever they differ. A visually unchanged figure is scientifically stale when a selector, exclusion, aggregation, fit domain, uncertainty definition, or architecture topology changes without invalidating dependent outputs.
-21. Synchronize source objects, publication artwork, component boards, visible explanations, speaker notes, `caption.md`, and manifests with stable element IDs. Machine checks establish identity, coverage, hashes, and traceability; a researcher must still review scientific meaning.
-22. Treat user-approved templates and user-edited revisions as protected baselines. Record hashes and allowed deviations, produce a cleanup preview before deletion, and never infer approval from a filename or modification time.
+1. Evidence determines scientific content. Preserve data, populations, units, formulas, topology, dimensions, uncertainty and claim boundaries; unknown facts remain unknown. A visual-only edit cannot silently change science.
+2. Appearance comes from the existing project Style Manifest. Use [figure-style-manifest.md](references/figure-style-manifest.md) for precedence, locks and encoding scope. Current specific authorization overrides only its stated scope, never the protected baseline by implication.
+3. Make the intended comparison readable at its actual final size. Declare colour meaning per figure/comparison; use meaningful non-colour cues where needed. Role colours and process-stage colours must not compete for the same fill.
+4. Keep a usable editable/rebuild source and necessary evidence trace. Choose formats by the requested method: live SVG text/vectors, genuine Draw.io XML, reproducible data/plot source, or hybrid PPT as applicable. PowerPoint convenience never justifies altered science.
+5. Deliver only applicable surfaces. A simple local preview/revision does not require PPT, a component board or visible explanations. Use [figure-caption-contract.md](references/figure-caption-contract.md) as the sole artwork-versus-caption rule; required decoding information must remain accessible.
+6. For new or materially revised complex data-backed/code-backed/architecture work, multi-surface delivery or submission-bound figures, use the existing Figure Contract for identity, evidence, populations, bindings and invalidation. A local revision may reuse a valid existing record rather than create a second state. Bind actual surfaces, not imaginary deliverables. Retain source/display/fit/statistical/sensitivity distinctions when they differ.
+7. Protect approved/user-edited assets and selected revisions. Do not infer approval from names, timestamps, hashes or a new reference. Follow [figure-package-hygiene.md](references/figure-package-hygiene.md) for storage and approval-bound cleanup; unknown files are not disposable.
+8. Report scientific, structural and visual checks separately. Export, XML validity, hashes and script exit codes do not establish visual quality or scientific truth. Missing evidence/venue checks remain draft or unverified.
 
 ## Workflow Router
 
-1. Define the figure claim, target section, source facts, method, output files, and validation checks.
-2. For complex, multi-panel, submission-bound, code-backed, or data-backed figures, apply [figure-argument-contract.md](references/figure-argument-contract.md).
-3. If reference images define the desired visual language:
-   - apply [reference-image-style-migration.md](references/reference-image-style-migration.md) and [figure-style-manifest.md](references/figure-style-manifest.md);
-   - create or update `figures/style/style_manifest.yaml` and `style_report.md` before drawing;
-   - make all later SVG, Draw.io, Matplotlib, and PPT outputs inherit the manifest.
-4. For journal-facing figures, apply [publication-visual-standards.md](references/publication-visual-standards.md), [export-and-editability-standards.md](references/export-and-editability-standards.md), and [accessibility-and-color-standards.md](references/accessibility-and-color-standards.md).
-5. For CSV, Excel, TSV, JSON, Parquet, NumPy, or DataFrame inputs, apply [data-visualization-advisor.md](references/data-visualization-advisor.md) before plotting. Verify columns, units, groups, sample size, missingness, metric definitions, and uncertainty provenance.
-6. For Nature-style or multi-panel Matplotlib figures, apply [nature-matplotlib-protocol.md](references/nature-matplotlib-protocol.md), [multi-panel-layout-patterns.md](references/multi-panel-layout-patterns.md), and [chart-type-visual-standards.md](references/chart-type-visual-standards.md).
-   - When those plots will be embedded in PPTX or resized from an authoring canvas, also apply [plot-to-ppt-scale-contract.md](references/plot-to-ppt-scale-contract.md) before plotting and during final QA.
-   - When legends, markers, direct labels, annotations, or fonts are crowded or inconsistent, also apply [plot-annotation-and-typography-contract.md](references/plot-annotation-and-typography-contract.md). Record the chosen visual grammar, remove redundant encodings, and recheck the final-size render.
-7. For SVG or Draw.io diagrams, apply [svg-and-drawio-diagrams.md](references/svg-and-drawio-diagrams.md); for code-backed or neural-network architecture diagrams also apply [drawio-engineering-diagram-standards.md](references/drawio-engineering-diagram-standards.md).
-   - For journal-facing neural-network, workflow, or code-backed architecture figures, also apply [publication-architecture-layout-gate.md](references/publication-architecture-layout-gate.md) before drawing and again during final-size QA.
-   - If the requested deliverable is an editable PPT model diagram and neither a user reference deck nor a project-locked model template exists, also apply [default-model-diagram-template.md](references/default-model-diagram-template.md) and clone `assets/model-diagram/default-model-diagram-template.pptx` as the starting deck. User references and project-locked styles always take precedence.
-8. For image plates or mixed raster/vector panels, apply [image-panel-integrity.md](references/image-panel-integrity.md).
-9. For AI-generated bitmap assets, apply [ai-image-generation-gate.md](references/ai-image-generation-gate.md) before generation.
-10. If the user requests PPT, PPTX, PowerPoint assembly, a figure kit, or a component board, apply [pptx-figure-assembly.md](references/pptx-figure-assembly.md). Generate the PPTX, `ppt_manifest.json`, independently movable components, and rendered QA preview.
-    - By default, create native editable panel-mapped explanation sections on a supporting slide or reserved column. Split them across slides rather than shrinking or clipping text. Omit visible explanations only when the user explicitly requests notes-only or a single-slide deliverable, and record that override.
-11. Apply [figure-caption-contract.md](references/figure-caption-contract.md) before final export. Keep a caption draft beside the figure package and embed it in the publication slide's speaker notes when PPTX is produced. The default visible PPT explanation surface supplements rather than replaces these two sources.
-12. When venue-specific artwork rules matter, apply [publisher-visual-source-map.md](references/publisher-visual-source-map.md) and verify the current official guide.
-13. When labels, formulas, citations, or cross-references are converted between
-    formats, compare the rendered output with the source and reject missing
-    symbols, substituted glyphs, changed notation, or broken references.
-14. Apply [rendered-figure-qa.md](references/rendered-figure-qa.md) to every submission-quality figure and the additional PPT QA in [pptx-figure-assembly.md](references/pptx-figure-assembly.md).
-15. After validation, apply [figure-package-hygiene.md](references/figure-package-hygiene.md). Remove transient files only after their final outputs and source traces are verified.
-16. Validate an applicable Figure Contract with `scripts/validate_figure_contract.py`. When comparing revisions, pass the previous contract so scientific changes cannot be mislabeled as visual-only or delivered without explicit invalidation.
-17. Deliver editable sources, exports, caption draft, placement recommendation, evidence/code/data trace, style-manifest path, Figure Contract path and hash when applicable, validation summary, editability report, rebuild command, protected baselines, and unresolved issues.
+1. Establish claim, current scope, source facts, actual medium/final size and requested outputs. Reuse confirmed decisions; ask only about a gap that changes the next action.
+2. For complex/code/data/submission work, read [figure-argument-contract.md](references/figure-argument-contract.md). Do not repeat domain analysis or run new experiments merely because figure evidence is missing.
+3. Resolve appearance through [figure-style-manifest.md](references/figure-style-manifest.md). When images define style, also read [reference-image-style-migration.md](references/reference-image-style-migration.md). Reuse the single `<figure-root>/style/style_manifest.yaml`.
+   - Only when the user explicitly selects Apple-inspired academic styling, read [apple-inspired-academic-figure-style.md](references/apple-inspired-academic-figure-style.md), even without reference images. A generic clean/minimal request does not select it. Preserve locked manifests and approved/user-edited templates unless the specific override is authorized and recorded with its reason. No default, science or QA gate changes.
+   - Without a higher-priority style, keep the original paper1 diagram language in [default-model-diagram-template.md](references/default-model-diagram-template.md): white ground, navy structure, purposeful soft fills, modest corners and small open arrows. These are overridable preferences, not universal scientific rules or a requirement to author every figure in PPT.
+4. Select only the applicable method references:
+   - Data: [data-visualization-advisor.md](references/data-visualization-advisor.md); Matplotlib: [nature-matplotlib-protocol.md](references/nature-matplotlib-protocol.md), [multi-panel-layout-patterns.md](references/multi-panel-layout-patterns.md), [chart-type-visual-standards.md](references/chart-type-visual-standards.md). Budget/mask/threshold advice applies only to those questions; it is not an instruction to conduct missing experiments.
+   - SVG/Draw.io: [svg-and-drawio-diagrams.md](references/svg-and-drawio-diagrams.md), and for code/model diagrams [drawio-engineering-diagram-standards.md](references/drawio-engineering-diagram-standards.md). For journal-facing architecture also read [publication-architecture-layout-gate.md](references/publication-architecture-layout-gate.md). Layout numbers are template starting points, not universal gates.
+   - Image plates: [image-panel-integrity.md](references/image-panel-integrity.md). AI bitmaps still require the explicit permission in [ai-image-generation-gate.md](references/ai-image-generation-gate.md).
+5. When PPT/PPTX or a component kit is requested, read [pptx-figure-assembly.md](references/pptx-figure-assembly.md). Use the bundled model PPTX only under [default-model-diagram-template.md](references/default-model-diagram-template.md) precedence; never carry its example science into a new project. Keep native objects, SVG and unavoidable raster distinguishable.
+6. For resized/fixed-slot plots read [plot-to-ppt-scale-contract.md](references/plot-to-ppt-scale-contract.md); for legends/markers/typography read [plot-annotation-and-typography-contract.md](references/plot-annotation-and-typography-contract.md). One geometry record and actual final-size rendering govern scaling, not source font values alone.
+7. Apply [figure-caption-contract.md](references/figure-caption-contract.md); add notes/boards/visible explanations only for the actual delivery scope. Complex contract-backed PPT surfaces retain the existing binding/hash checks when declared.
+8. Verify current official venue requirements only when relevant using [publisher-visual-source-map.md](references/publisher-visual-source-map.md). Apply [publication-visual-standards.md](references/publication-visual-standards.md), [export-and-editability-standards.md](references/export-and-editability-standards.md), [accessibility-and-color-standards.md](references/accessibility-and-color-standards.md) and [rendered-figure-qa.md](references/rendered-figure-qa.md). Inspect actual exports for clipping, glyphs, connectors, proportion, grayscale and final-size readability; retain previews until reviewed.
+9. Validate the applicable Figure Contract with `scripts/validate_figure_contract.py`, passing the previous contract for revisions. Invalidate dependent outputs when scientific inputs/meaning change. Keep Style Manifest as appearance and the layout contract as geometry, not competing current states.
+10. Deliver requested artwork, usable source, necessary caption/evidence pointers, actual checks and unresolved issues. Cleanup is a separate classified/approved action under the hygiene reference; a successful build is not visual acceptance.
 
 ## Validation
 
-Before finishing:
+Before finishing, check only the formats, data and records actually used or
+required by the applicable contract. Do not create extra deliverables merely
+to satisfy this checklist; a missing required item remains unresolved, not
+not-applicable.
 
 - confirm method, panel claims, and evidence trace;
-- validate the style manifest and confirm semantic-colour consistency;
+- validate the style manifest when present or required, and confirm semantic-colour consistency;
 - inspect editable sources and rendered previews at intended final size;
 - check overlap, clipping, font consistency, line weight, contrast, grayscale and colour-blind interpretation;
 - check that legends, direct labels, markers, annotations, and fonts follow one declared visual grammar, with no redundant method identities or undefined decorative markers;
-- verify SVG text remains editable and Draw.io files are genuine editable XML;
-- verify data columns, units, sample counts, missing values, transformations, uncertainty, and axis scales against source data;
+- for SVG/Draw.io delivery, verify SVG text remains editable and Draw.io files are genuine editable XML as applicable;
+- for data-backed figures, verify data columns, units, sample counts, missing values, transformations, uncertainty, and axis scales against source data;
 - for PPTX, verify openability, slide bounds, independent objects, panel labels, aspect ratios, vector/raster classification, source trace, and documented fallbacks;
-- for academic PPT figure kits, verify one native editable explanation section per displayed panel, complete encoding definitions, manifest mapping, and scientific consistency with `caption.md`, notes, plot source, and data; verify any notes-only/single-slide override is explicit and recorded;
+- for requested visible PPT explanations, verify one native editable section per panel and consistency with caption, notes, source and data; verify all surfaces explicitly required by an applicable Figure Contract;
 - list unresolved scientific, data, style, font, export, and editability issues separately.
 
 ## References
 
+- <a href="Ten%20Simple%20Rules%20for%20Better%20Figures.pdf">Ten Simple Rules for Better Figures</a>: CC0 PLOS reading on figure purpose, audience, medium, captions, and integrity; a general design reference, not a venue requirement, scientific-evidence source, or replacement for the workflow's contracts and QA.
 - [figure-style-manifest.md](references/figure-style-manifest.md): project style schema, precedence, locking, overrides, and directory contract.
 - [reference-image-style-migration.md](references/reference-image-style-migration.md): reference analysis, style-token extraction, conflict resolution, and non-copying rules.
+- [apple-inspired-academic-figure-style.md](references/apple-inspired-academic-figure-style.md): optional, independently adapted academic styling, read only after an explicit Apple-inspired selection; it preserves the existing Style Manifest, scientific protections, delivery requirements, and QA gates.
 - [pptx-figure-assembly.md](references/pptx-figure-assembly.md): Figure Assembly, Component Board, editability levels, manifest, backend separation, and PPT QA.
 - [figure-caption-contract.md](references/figure-caption-contract.md): artwork-versus-caption content, panel descriptions, methods detail, PPT notes, and caption trace.
 - [figure-package-hygiene.md](references/figure-package-hygiene.md): per-figure folders, final/source/transient classification, safe cleanup, and retention rules.

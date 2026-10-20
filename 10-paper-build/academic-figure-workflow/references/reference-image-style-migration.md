@@ -40,12 +40,10 @@ Use colour sampling only to estimate tokens. Prefer stable rounded hex values ov
 
 Resolve conflicts in this order:
 
-1. publication legibility, data integrity, accessibility, and evidence constraints;
-2. explicit user instruction;
-3. `primary_style`;
-4. domain reference for the relevant figure type;
-5. existing locked project token;
-6. conservative publication default.
+Use the sole precedence and encoding-scope rules in
+[figure-style-manifest.md](figure-style-manifest.md#precedence-and-encoding-scope).
+A new `primary_style` does not automatically outrank an approved baseline;
+only the specific changes actually authorized may override it.
 
 Do not silently replace a locked token. Record every conflict in `style_report.md` with:
 
@@ -103,7 +101,8 @@ references:
     role: architecture_style
 ```
 
-If the styles conflict, `primary_style` controls the shared token unless a scientific or accessibility rule requires a documented adjustment.
+For unresolved reference conflicts, retain the approved baseline and preview
+the specific difference under the same precedence rule; do not silently unlock.
 
 ## QA
 

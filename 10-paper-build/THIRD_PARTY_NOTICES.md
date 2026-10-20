@@ -1,4 +1,4 @@
-# Third-party notices: literature, scientific reasoning and goal clarification
+# Third-party notices: literature, scientific reasoning, goal clarification, and figure workflow
 
 ## Fixed source snapshots
 
@@ -34,12 +34,59 @@
   research-logic's entry to a conditional local reference; this is not attributed
   to either new upstream source.
 
+## Academic figure workflow sources
+
+- naplesblue, [apple-design-skill](https://github.com/naplesblue/apple-design-skill/tree/e81692da299d64b9bf38ae26db2d709fc60c8bf3),
+  commit `e81692da299d64b9bf38ae26db2d709fc60c8bf3`, MIT: independently adapted
+  restrained cool neutrals, clear hierarchy, spacing, and reduced fragmentation
+  into `academic-figure-workflow/references/apple-inspired-academic-figure-style.md`.
+  Glass, UI, font, and motion recipes are excluded.
+- 2TheFar, [apple-inspired-design-skill](https://github.com/2TheFar/apple-inspired-design-skill/tree/f709388017307d8cefcdab4b9bc0f9f54e32bb8e),
+  commit `f709388017307d8cefcdab4b9bc0f9f54e32bb8e`, MIT: independently adapted
+  task-first design, semantic tokens, accessibility, rendered verification, and
+  explicit risk reporting into the same optional reference. It never becomes a
+  default style, a second manifest, or permission to change scientific content.
+- Nicolas P. Rougier, Michael Droettboom, and Philip E. Bourne, [*Ten Simple
+  Rules for Better Figures*](https://doi.org/10.1371/journal.pcbi.1003833),
+  PLOS Computational Biology 10(9): e1003833 (2014), CC0 Public Domain
+  Dedication: retained as `academic-figure-workflow/Ten Simple Rules for Better
+  Figures.pdf` (SHA-256 `95B6714AA1CE1E058475C9A807FA85E058BDAA5C3261E792DC5E8DFD9AE83AD6`).
+  It is an optional general-design reading source, not a venue rule, scientific
+  evidence input, or a substitute for the local figure contracts.
+
 These are adapted sources, not unmodified upstream releases. MIT notices below
 apply to derivative portions and do not imply endorsement or scientific validity.
 Copyright acknowledgement is not automatic manuscript citation. Any academic
 reference needs verified metadata, material relevance and author-controlled use.
 Future updates require reviewing the pinned diff and local adaptations, not
 blindly replacing central files. No user-level installation is performed.
+
+## naplesblue and 2TheFar MIT notice
+
+```text
+MIT License
+
+Copyright (c) 2026 naplesblue
+Copyright (c) 2026 2TheFar
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ## Matt Pocock MIT notice
 

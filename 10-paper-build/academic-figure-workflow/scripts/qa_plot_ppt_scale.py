@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -37,15 +38,57 @@ def svg_viewbox(path: Path) -> tuple[float, float]:
         raise ValueError(f"SVG lacks a numeric viewBox: {path}")
     width = float(match.group(3))
     height = float(match.group(4))
-    if width <= 0 or height <= 0:
+    if not math.isfinite(width) or not math.isfinite(height) or width <= 0 or height <= 0:
         raise ValueError(f"SVG viewBox is not positive: {path}")
     return width, height
+
+
+def load_layout(path: Path) -> dict:
+    """Normalize the documented legacy alias, without inventing measurements."""
+    layout = json.loads(path.read_text(encoding="utf-8-sig"))
+    if not isinstance(layout, dict):
+        raise ValueError("layout must be an object")
+    if "slide" in layout:
+        legacy = {"width": layout["slide"]["width_px"], "height": layout["slide"]["height_px"]}
+        if "slide_px" in layout and layout["slide_px"] != legacy:
+            raise ValueError("slide and slide_px conflict; resolve the authority explicitly")
+        layout.setdefault("slide_px", legacy)
+    def positive(value, label):
+        if isinstance(value, bool) or not math.isfinite(float(value)) or float(value) <= 0:
+            raise ValueError(f"{label} must be finite and positive")
+    positive(layout["slide_px"]["width"], "slide width")
+    positive(layout["slide_px"]["height"], "slide height")
+    positive(layout["target_publication_width_mm"], "publication width")
+    layout.setdefault("qa_thresholds", {})
+    for key in ("aspect_anisotropy_max", "minimum_final_text_pt", "minimum_context_stroke_pt", "minimum_primary_stroke_pt", "axes_aspect_min", "axes_aspect_max", "peer_axes_aspect_relative_difference_max"):
+        if key in layout["qa_thresholds"]:
+            value = layout["qa_thresholds"][key]
+            if isinstance(value, bool) or not math.isfinite(float(value)) or float(value) < 0:
+                raise ValueError(f"qa_thresholds.{key} must be finite and non-negative")
+    if not isinstance(layout.get("panels"), dict) or not layout["panels"]:
+        raise ValueError("layout must declare at least one panel")
+    for key, panel in layout["panels"].items():
+        for axis in ("width", "height"):
+            positive(panel["slot_px"][axis], f"{key} slot {axis}")
+            positive(panel["source_canvas_mm"][axis], f"{key} canvas {axis}")
+        metrics = panel["final_metrics_pt"]
+        if not metrics["text"]:
+            raise ValueError(f"{key} must declare text metrics (not measured by this checker)")
+        for value in metrics["text"].values():
+            positive(value, f"{key} text")
+        for role in ("context", "primary"):
+            positive(metrics["strokes"][role], f"{key} {role} stroke")
+    return layout
 
 
 def main() -> int:
     args = parse_args()
     layout_path = args.layout.resolve()
-    layout = json.loads(layout_path.read_text(encoding="utf-8"))
+    try:
+        layout = load_layout(layout_path)
+    except (ValueError, KeyError, TypeError) as exc:
+        print(f"error: incomplete or invalid declared layout: {exc}", file=sys.stderr)
+        return 2
     slide = layout["slide_px"]
     target_width_mm = float(layout["target_publication_width_mm"])
     qa = layout["qa_thresholds"]
@@ -199,6 +242,7 @@ def main() -> int:
     report = {
         "layout": str(layout_path),
         "status": "pass" if not issues else "fail",
+        "evidence_scope": {"measured": ["SVG viewBox"], "declared": ["PPT slots", "final text and strokes", "subplot geometry"], "not_checked": ["actual PPTX font sizes", "actual rendered appearance"], "visual_review": "not_performed"},
         "panels": panels,
         "peer_axes_aspect_relative_difference": peer_axes_difference,
         "typography_contract": typography_contract,

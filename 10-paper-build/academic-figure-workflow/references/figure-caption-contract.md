@@ -19,9 +19,18 @@ Move to the caption by default:
 
 An exception is allowed when removing the text would make the marks ambiguous or scientifically misleading. Record the reason in the figure manifest.
 
+Authoring metadata (file paths, QA status, editability instructions, repository
+checks) belongs outside publication artwork. Caption-like headlines normally
+belong in the manuscript caption, but essential labels, equations, annotations
+and an unmistakable schematic/test-only designation must not be removed for
+minimalism. This section is the shared publication-text filtering authority.
+
 ## Required Caption Structure
 
-Create `caption.md` beside the final figure or PPTX. It should contain:
+Create or reuse the portable caption beside a manuscript-facing final figure.
+For a simple local preview/revision, reuse existing caption/evidence pointers
+rather than generating an empty or duplicate caption package. Include the
+following only as applicable to the actual figure, without inventing missing facts:
 
 1. **Figure number and claim-focused title.**
 2. **Panel descriptions** in `(a)`, `(b)`, ... order, stating what is shown rather than restating visual appearance.
@@ -48,7 +57,13 @@ Removing a dense in-panel equation or metric callout transfers its explanatory b
 
 ## PPTX Integration
 
-For academic PPT figure kits, default to all three caption surfaces: `caption.md`, publication-slide speaker notes, and native editable visible panel explanations on a supporting slide or reserved column. Keep the publication artwork itself clean. Use notes-only or a single-slide exception only when the user explicitly asks for it, and record the override in the manifest.
+Use only the actual delivery surfaces. Keep a portable caption for manuscript
+use; add speaker notes, a component board or visible explanations when requested
+or required by the applicable contract. Simple one-slide/local previews do not
+require the complete kit. Existing v1 contract-backed PPT delivery still checks
+its declared caption/notes bindings and hashes; explicitly required visible
+surfaces retain their checks. Do not erase requirements on an existing project
+by silently changing its contract.
 
 ### Clean publication artwork
 
@@ -62,9 +77,9 @@ For a publication-figure slide:
 
 Speaker notes supplement but do not replace `caption.md`, because journal submission systems and manuscript editors need a portable text file.
 
-### Visible detailed-caption mode — default for PPT figure kits
+### Visible detailed-caption mode — when requested
 
-For every academic PPT figure kit, and especially when the user asks to add all figure captions, detailed panel explanations, or 逐图解释 inside the PPT:
+When the user asks for all captions, detailed panel explanations or 逐图解释 inside the PPT, or its existing contract requires visible explanations:
 
 - preserve the clean publication slide unless the user explicitly asks to typeset the manuscript caption beneath the artwork;
 - add a separate native editable `Caption & Interpretation` slide, or a dedicated explanation column on a supporting slide;
@@ -75,7 +90,9 @@ For every academic PPT figure kit, and especially when the user asks to add all 
 - split the explanation across multiple slides when necessary; do not shrink text below the declared PPT editing-size minimum or allow clipping;
 - keep the visible explanation, `caption.md`, and `[Figure caption]` speaker notes scientifically consistent. They may differ in layout and concision, but not in definitions, values, scope, or conclusions.
 
-If the user explicitly requests a single publication slide or notes-only delivery, omit the visible explanation surface and record `caption_delivery.visible_override` with the user-approved reason. Do not silently fall back to notes-only.
+If a project already required visible explanations, a reduced delivery needs
+the applicable user-approved override in `caption_delivery.visible_override`.
+A new simple preview has no implied all-surfaces requirement to override.
 
 Record the delivery in `ppt_manifest.json`:
 

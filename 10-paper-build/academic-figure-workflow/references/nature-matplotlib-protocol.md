@@ -19,10 +19,10 @@ panel,claim,data,plot_type,x,y,yerr,group,color_role,title,xlabel,ylabel,annotat
 ## Execution Rules
 
 1. Use `scripts/make_nature_multipanel.py` when the user provides a panel spec and source data; use `scripts/nature_mpl_style.py` when writing a custom plot script.
-2. Size figures in millimetres: 89 mm single column, 183 mm double column, maximum 170 mm height unless the target journal guide says otherwise.
+2. Use the actual medium's physical size. 89/183 mm columns and 170 mm height are this method's starting points only; existing Word/PPT insertion and actual venue constraints take precedence.
 3. Use editable vector text: `svg.fonttype = "none"`, `pdf.fonttype = 42`, `ps.fonttype = 42`.
 4. Use Arial or Helvetica-compatible sans-serif fonts for English figures; for Chinese or bilingual figures, select an installed CJK font and fix minus-sign rendering before export.
-5. Keep normal text between 5 pt and 7 pt, and panel labels as 8 pt bold lowercase letters.
+5. Resolve one final-size hierarchy from the actual project/venue and verify its rendered readability. The helper's 5–7 pt text and 8 pt panel labels are template defaults, not universal acceptance limits.
 6. Include axis lines and tick marks; label all axes with units in parentheses when units exist.
 7. Avoid background gridlines, drop shadows, decorative icons, patterns, coloured text, overlapping text, and rainbow or red/green-dependent palettes.
 8. Use a semantic colour map before plotting: assign each colour to a role such as `control`, `treatment`, `model`, `uncertainty`, `negative`, `positive`, or `highlight`.
@@ -44,6 +44,14 @@ python scripts/make_nature_multipanel.py --spec panel_spec.csv --data-root data 
 ```
 
 Treat a non-empty QA issue list as unresolved until inspected. If the rendered preview fails, the figure is not Nature-grade yet.
+
+For fixed publication/PPT slots add `--fixed-canvas`; otherwise standalone tight
+cropping is retained. Set an optional panel-spec `marker` (for example `none`
+for an explicitly chosen unmarked line). Omitting it preserves legacy markers;
+no data-count threshold silently removes them. Categorical bars keep first-seen
+order across groups; missing/non-numeric plotted rows make the command fail
+rather than implying complete evidence. A failed command may leave diagnostic
+exports and QA records: do not treat them as complete deliverables.
 
 ## Output Packet
 
