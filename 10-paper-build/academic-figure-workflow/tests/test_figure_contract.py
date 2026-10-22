@@ -166,6 +166,17 @@ class FigureContractTests(unittest.TestCase):
         self.assertTrue(any("ppt_main" in issue for issue in errors))
         self.assertTrue(any("visible_explanation" in issue for issue in errors))
 
+    def test_svg_contract_needs_no_ppt_or_notes_and_legacy_ppt_keeps_notes(self):
+        contract = base_contract()
+        self.assertEqual([], self.validate(contract)[0])
+        self.assertNotIn("notes", contract["surfaces"]["bindings"][0])
+        contract["surfaces"]["ppt"]["required"] = True
+        contract["surfaces"]["bindings"][0]["ppt_main"] = "native-panel-a"
+        errors = self.validate(contract)[0]
+        self.assertTrue(any("notes: required for PPT" in issue for issue in errors))
+        contract["surfaces"]["bindings"][0]["notes"] = "notes-a"
+        self.assertEqual([], self.validate(contract)[0])
+
     def test_semantic_change_requires_invalidation(self):
         previous = base_contract()
         current = copy.deepcopy(previous)
@@ -286,6 +297,284 @@ class AppleStyleCompatibilityTests(unittest.TestCase):
                     existing[key] = value
         merge(result, self.tokens)
         return result
+
+    def task_manifest(self, *tasks):
+        keys = set(self.style.COMMON_REQUIRED_SECTIONS)
+        for task in tasks:
+            keys.update(self.style.TASK_REQUIRED_SECTIONS[task])
+        return {key: copy.deepcopy(value) for key, value in self.template.items() if key in keys}
+
+    def test_minimal_svg_manifest_has_no_unrelated_sections_or_notes(self):
+        manifest = self.task_manifest("svg")
+        self.assertEqual([], self.style.validate_style_manifest(manifest, tasks=["svg"])[0])
+        for key in ("architecture", "powerpoint", "axes", "charts"):
+            self.assertNotIn(key, manifest)
+        before = copy.deepcopy(manifest)
+        self.style.validate_style_manifest(manifest, tasks=["svg"])
+        self.assertEqual(before, manifest)
+
+    def test_task_specific_sections_and_common_fields_remain_required(self):
+        for task in ("svg", "plot", "architecture", "powerpoint"):
+            complete = self.task_manifest(task)
+            self.assertEqual([], self.style.validate_style_manifest(complete, tasks=[task])[0])
+            required = self.style.COMMON_REQUIRED_SECTIONS | self.style.TASK_REQUIRED_SECTIONS[task]
+            for field in required:
+                with self.subTest(task=task, field=field):
+                    incomplete = copy.deepcopy(complete)
+                    del incomplete[field]
+                    self.assertIn(f"missing required section: {field}",
+                                  self.style.validate_style_manifest(incomplete, tasks=[task])[0])
+
+    def test_full_legacy_and_mixed_task_manifests_remain_compatible(self):
+        before = copy.deepcopy(self.template)
+        for tasks in (None, ["svg"], ["plot"], ["architecture"], ["powerpoint"], ["plot", "powerpoint"]):
+            self.assertEqual([], self.style.validate_style_manifest(self.template, tasks=tasks)[0])
+        self.assertEqual(before, self.template)
+        plot = self.task_manifest("plot")
+        self.assertTrue(any("powerpoint" in issue for issue in
+                            self.style.validate_style_manifest(plot, tasks=["plot", "powerpoint"])[0]))
+
+    def test_schema_version_legacy_numeric_and_string_forms_are_preserved(self):
+        for version in (1.0, 1, "1.0"):
+            for task in ("svg", "plot", "powerpoint"):
+                with self.subTest(version=version, task=task):
+                    manifest = self.task_manifest(task)
+                    manifest["schema_version"] = version
+                    before = copy.deepcopy(manifest)
+                    self.assertEqual([], self.style.validate_style_manifest(manifest, tasks=[task])[0])
+                    self.assertEqual(before, manifest)
+                    self.assertIs(type(version), type(manifest["schema_version"]))
+
+    def test_schema_version_unknown_versions_and_invalid_types_are_rejected(self):
+        for version in (None, True, False, 0, 2, 1.1, float("nan"), float("inf"),
+                        "", "1", "1.0 ", "2.0", "True", [], {}, ["1.0"]):
+            with self.subTest(version=version):
+                manifest = self.task_manifest("svg")
+                manifest["schema_version"] = version
+                errors, _ = self.style.validate_style_manifest(manifest, tasks=["svg"])
+                self.assertTrue(any("schema_version" in error for error in errors), errors)
+
+    def test_declared_optional_sections_and_colours_cannot_bypass_checks(self):
+        for section, value in (("architecture", []), ("powerpoint", None),
+                               ("axes", "invalid"), ("precedence", {})):
+            with self.subTest(section=section):
+                manifest = self.task_manifest("svg")
+                manifest[section] = value
+                self.assertTrue(self.style.validate_style_manifest(manifest, tasks=["svg"])[0])
+        for value in ("red", "#123", "#GG0000", None, False, 123):
+            with self.subTest(colour=value):
+                manifest = self.task_manifest("svg")
+                manifest["neutral_colors"]["text"] = value
+                self.assertTrue(any("six-digit hex" in error for error in
+                                    self.style.validate_style_manifest(manifest, tasks=["svg"])[0]))
+
+    def test_unknown_tasks_and_invalid_identity_are_rejected(self):
+        manifest = self.task_manifest("svg")
+        self.assertTrue(self.style.validate_style_manifest(manifest, tasks=["powerpiont"])[0])
+        for field, value in (("project_id", ""), ("schema_version", None),
+                             ("references", {}), ("state", {"locked": True, "status": "approved"})):
+            with self.subTest(field=field):
+                broken = copy.deepcopy(manifest)
+                broken[field] = value
+                self.assertTrue(self.style.validate_style_manifest(broken, tasks=["svg"])[0])
+
+    def test_validator_cli_svg_and_mixed_task_requirements(self):
+        cli = SKILL_ROOT / "scripts/validate_style_manifest.py"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            path = root / "style.json"
+            path.write_text(json.dumps(self.task_manifest("svg")), encoding="utf-8")
+            before = path.read_bytes()
+            command = [sys.executable, "-X", "utf8", "-B", str(cli), "--manifest", str(path)]
+            svg = subprocess.run([*command, "--task", "svg"], capture_output=True, text=True)
+            self.assertEqual(0, svg.returncode, svg.stdout + svg.stderr)
+            self.assertEqual(before, path.read_bytes())
+            self.assertEqual(["style.json"], sorted(p.name for p in root.iterdir()))
+            failed = subprocess.run([*command, "--task", "plot", "--task", "powerpoint"], capture_output=True, text=True)
+            self.assertEqual(1, failed.returncode)
+            self.assertIn("missing required section: axes", failed.stdout)
+            self.assertIn("missing required section: powerpoint", failed.stdout)
+            unknown = subprocess.run([*command, "--task", "unknown"], capture_output=True, text=True)
+            self.assertEqual(2, unknown.returncode)
+
+    def test_matplotlib_consumer_accepts_plot_without_architecture_or_ppt(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            path = Path(temporary) / "style.json"
+            path.write_text(json.dumps(self.task_manifest("plot")), encoding="utf-8")
+            matplotlib = MagicMock()
+            matplotlib.rcParams = {}
+            self.nstyle.apply_nature_style(matplotlib, style_manifest_path=path)
+            self.assertEqual("none", matplotlib.rcParams["svg.fonttype"])
+            path.write_text(json.dumps(self.task_manifest("svg")), encoding="utf-8")
+            with self.assertRaisesRegex(self.style.StyleManifestError, "axes"):
+                self.nstyle.apply_nature_style(matplotlib, style_manifest_path=path)
+
+    @unittest.skipUnless(importlib.util.find_spec("matplotlib"), "Matplotlib unavailable; isolated plot CLI untested")
+    def test_plot_cli_task_scope_and_required_data_checks(self):
+        import os
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            data = root / "input.csv"
+            data.write_text("x,y,se\n0,1,0.1\n1,1.5,0.2\n2,2,0.1\n", encoding="utf-8")
+            data_before = data.read_bytes()
+            style = root / "plot-style.json"
+            style.write_text(json.dumps(self.task_manifest("plot")), encoding="utf-8")
+            spec = root / "panels.json"
+            panel = dict(panel="a", claim="Synthetic fixture only", data="input.csv", plot_type="errorbar",
+                         x="x", y="y", yerr="se", color_role="treatment", xlabel="Index", ylabel="Test value",
+                         metric_definition="Synthetic test values", error_source="Declared synthetic spread", expected_sample_size=3)
+            spec.write_text(json.dumps([panel]), encoding="utf-8")
+            environment = {**os.environ, "MPLCONFIGDIR": str(root / "mpl-cache")}
+            command = [sys.executable, "-X", "utf8", "-B", str(SKILL_ROOT / "scripts/make_nature_multipanel.py"),
+                       "--spec", str(spec), "--data-root", str(root), "--style-manifest", str(style),
+                       "--column", "single", "--height-mm", "70", "--fixed-canvas", "--stem", "test"]
+            output = root / "valid"
+            valid = subprocess.run([*command, "--output-dir", str(output)], env=environment, capture_output=True, text=True)
+            self.assertEqual(0, valid.returncode, valid.stdout + valid.stderr)
+            report = json.loads((output / "test_qa.json").read_text("utf-8"))
+            self.assertEqual(3, report["data_audit"][0]["plotted_row_count"])
+            self.assertEqual(0, report["data_audit"][0]["skipped_row_count"])
+            self.assertEqual(data_before, data.read_bytes())
+            self.assertFalse(list(root.rglob("*.pptx")))
+            minimal = self.task_manifest("plot")
+            del minimal["axes"]
+            style.write_text(json.dumps(minimal), encoding="utf-8")
+            missing = root / "missing-config"
+            invalid = subprocess.run([*command, "--output-dir", str(missing)], env=environment, capture_output=True, text=True)
+            self.assertNotEqual(0, invalid.returncode)
+            self.assertIn("missing required section: axes", invalid.stderr + invalid.stdout)
+            self.assertFalse(missing.exists())
+            style.write_text(json.dumps(self.task_manifest("plot")), encoding="utf-8")
+            panel["y"] = "absent_scientific_column"
+            spec.write_text(json.dumps([panel]), encoding="utf-8")
+            bad_data = subprocess.run([*command, "--output-dir", str(root / "bad-data")], env=environment,
+                                      capture_output=True, text=True)
+            self.assertNotEqual(0, bad_data.returncode)
+            self.assertEqual(data_before, data.read_bytes())
+
+    @unittest.skipUnless(shutil.which("node"), "Node unavailable; PPT task preflight untested")
+    def test_ppt_builder_refuses_missing_config_before_writes(self):
+        builder = SKILL_ROOT / "scripts/build_figure_pptx.mjs"
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            valid = self.task_manifest("powerpoint")
+            cases = []
+            for field in ("project_id", "references", "typography", "powerpoint", "arrows", "panels"):
+                broken = copy.deepcopy(valid)
+                del broken[field]
+                cases.append((f"missing-{field}", broken, f"missing required section: {field}"))
+            for section, field in (("semantic_colors", "input"), ("neutral_colors", "text")):
+                broken = copy.deepcopy(valid)
+                broken[section][field] = "not-a-colour"
+                cases.append((f"bad-{section}", broken, f"{section}.{field} must be a six-digit hex"))
+            for value in (None, [], False, "bad"):
+                broken = copy.deepcopy(valid)
+                broken["powerpoint"] = value
+                cases.append((f"bad-ppt-type-{type(value).__name__}", broken, "powerpoint must be an object"))
+            for version in (True, "2.0"):
+                broken = copy.deepcopy(valid)
+                broken["schema_version"] = version
+                cases.append((f"bad-version-{version}", broken, "schema_version must be"))
+            for name, manifest, message in cases:
+                for existing in (False, True):
+                    with self.subTest(case=name, existing=existing):
+                        case_root = root / f"{name}-{existing}"
+                        case_root.mkdir()
+                        style = case_root / "style.json"
+                        style.write_text(json.dumps(manifest), encoding="utf-8")
+                        output = case_root / "output" / "figure.pptx"
+                        if existing:
+                            output.parent.mkdir()
+                            output.write_bytes(b"user-owned output must survive")
+                            (output.parent / "ppt_manifest.json").write_bytes(b"user-owned manifest")
+                        before = {str(p.relative_to(case_root)): p.read_bytes() for p in case_root.rglob("*") if p.is_file()}
+                        before_paths = sorted(str(p.relative_to(case_root)) for p in case_root.rglob("*"))
+                        command = [shutil.which("node"), str(builder), "--demo", "--style-json", str(style),
+                                   "--python", sys.executable, "--output", str(output)]
+                        result = subprocess.run(command, capture_output=True, text=True)
+                        print("PPT_ENTRY_CASE " + json.dumps(dict(case=name, existing=existing, command=command,
+                              exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)))
+                        self.assertNotEqual(0, result.returncode)
+                        self.assertIn(message, result.stderr)
+                        after = {str(p.relative_to(case_root)): p.read_bytes() for p in case_root.rglob("*") if p.is_file()}
+                        self.assertEqual(before, after)
+                        self.assertEqual(before_paths, sorted(str(p.relative_to(case_root)) for p in case_root.rglob("*")))
+                        if not existing:
+                            self.assertFalse(output.parent.exists())
+
+    @unittest.skipUnless(shutil.which("node"), "Node unavailable; PPT shared validation untested")
+    def test_ppt_shared_validator_accepts_normal_full_and_task_manifests(self):
+        builder = SKILL_ROOT / "scripts/build_figure_pptx.mjs"
+        manifests = []
+        for base in (self.template, self.task_manifest("powerpoint"), self.merged()):
+            for version in (1.0, "1.0"):
+                manifest = copy.deepcopy(base)
+                manifest["schema_version"] = version
+                manifests.append(manifest)
+        program = (f"import {{requirePowerpointStyle}} from {json.dumps(builder.as_uri())};"
+                   "import assert from 'node:assert/strict';"
+                   f"for (const style of {json.dumps(manifests)}) {{"
+                   f"const result = await requirePowerpointStyle(style, {json.dumps(sys.executable)});"
+                   "assert.deepEqual(result.errors, []);}")
+        result = subprocess.run([shutil.which("node"), "--input-type=module"], input=program, capture_output=True, text=True)
+        self.assertEqual(0, result.returncode, result.stderr)
+
+    @unittest.skipUnless(shutil.which("node"), "Node unavailable; normal PPT entry preflight untested")
+    def test_ppt_entry_normal_style_passes_to_assembly_validation(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            style = root / "style.json"
+            style.write_text(json.dumps(self.task_manifest("powerpoint")), encoding="utf-8")
+            # A deliberate later assembly error shows the actual CLI accepted
+            # the normal PPT style, without requiring the optional renderer.
+            spec = root / "empty-spec.json"
+            spec.write_text('{"slides": []}', encoding="utf-8")
+            command = [shutil.which("node"), str(SKILL_ROOT / "scripts/build_figure_pptx.mjs"),
+                       "--spec", str(spec), "--style-json", str(style), "--python", sys.executable,
+                       "--output", str(root / "output" / "figure.pptx")]
+            result = subprocess.run(command, capture_output=True, text=True)
+            print("PPT_ENTRY_CASE " + json.dumps(dict(case="normal-style-later-assembly-error", command=command,
+                  exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)))
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("Assembly spec needs at least one slide", result.stderr)
+            self.assertNotIn("PPT style validation failed", result.stderr)
+            self.assertFalse((root / "output").exists())
+
+    @unittest.skipUnless(shutil.which("node"), "Node unavailable; normal PPT demo export untested")
+    def test_ppt_entry_normal_demo_export_when_backend_available(self):
+        import os
+        roots = [os.environ.get("RUNTIME_NODE_MODULES"),
+                 *os.environ.get("NODE_PATH", "").split(os.pathsep),
+                 str(Path.cwd() / "node_modules"), str(SKILL_ROOT / "scripts/node_modules")]
+        if not any((Path(root) / "@oai/artifact-tool/dist/artifact_tool.mjs").is_file() for root in roots if root):
+            self.skipTest("Configured @oai/artifact-tool unavailable; actual PPT export untested (no install/environment change)")
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            style = root / "style.json"
+            style.write_text(json.dumps(self.task_manifest("powerpoint")), encoding="utf-8")
+            output = root / "output/figure.pptx"
+            command = [shutil.which("node"), str(SKILL_ROOT / "scripts/build_figure_pptx.mjs"), "--demo",
+                       "--style-json", str(style), "--python", sys.executable, "--output", str(output)]
+            result = subprocess.run(command, capture_output=True, text=True)
+            print("PPT_ENTRY_CASE " + json.dumps(dict(case="normal-style-demo-export", command=command,
+                  exit_code=result.returncode, stdout=result.stdout, stderr=result.stderr)))
+            self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+            self.assertTrue(output.read_bytes().startswith(b"PK"))
+            self.assertTrue((output.parent / "ppt_manifest.json").is_file())
+
+    @unittest.skipUnless(shutil.which("node"), "Node unavailable; PPT entry interpreter failure untested")
+    def test_ppt_entry_missing_python_fails_closed_before_output(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            style = root / "style.json"
+            style.write_text(json.dumps(self.task_manifest("powerpoint")), encoding="utf-8")
+            command = [shutil.which("node"), str(SKILL_ROOT / "scripts/build_figure_pptx.mjs"), "--demo",
+                       "--style-json", str(style), "--python", str(root / "absent-python"),
+                       "--output", str(root / "output" / "figure.pptx")]
+            result = subprocess.run(command, capture_output=True, text=True)
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("PPT style validation failed", result.stderr)
+            self.assertFalse((root / "output").exists())
 
     def test_optional_tokens_use_existing_schema_and_keep_scientific_encodings(self):
         revised = self.merged()

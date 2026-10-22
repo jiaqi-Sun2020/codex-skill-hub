@@ -39,6 +39,19 @@ REQUIRED_SECTIONS = {
     "unresolved_issues",
 }
 
+# Keep REQUIRED_SECTIONS as the legacy full-template vocabulary. Consumers
+# select only their additional requirements; no task state is stored in YAML.
+TASK_REQUIRED_SECTIONS = {
+    "general": set(),
+    "svg": set(),
+    "architecture": {"architecture", "arrows", "borders", "corners", "fills", "shadows", "spacing"},
+    "plot": {"axes", "ticks", "legend", "grid", "markers", "charts", "spacing", "panels"},
+    "powerpoint": {"powerpoint", "arrows", "borders", "corners", "fills", "shadows", "spacing", "panels"},
+}
+COMMON_REQUIRED_SECTIONS = REQUIRED_SECTIONS - set().union(*TASK_REQUIRED_SECTIONS.values())
+LIST_SECTIONS = {"precedence", "overrides", "conflicts", "unresolved_issues"}
+OBJECT_SECTIONS = REQUIRED_SECTIONS - LIST_SECTIONS - {"schema_version", "project_id"}
+
 # Legacy exported example vocabulary, retained for callers; not universal
 # requirements. Validation below checks only roles actually used by a consumer.
 REQUIRED_SEMANTIC_ROLES = {
@@ -106,7 +119,7 @@ def _walk_colours(value: Any, prefix: str = ""):
     elif isinstance(value, list):
         for index, child in enumerate(value):
             yield from _walk_colours(child, f"{prefix}[{index}]")
-    elif isinstance(value, str) and (prefix.startswith("palette") or prefix.startswith("semantic_colors") or prefix.startswith("neutral_colors") or prefix.startswith("backgrounds") or prefix.endswith(".color")):
+    elif prefix.split(".", 1)[0] in {"palette", "semantic_colors", "neutral_colors", "backgrounds"} or prefix.endswith(".color"):
         yield prefix, value
 
 
@@ -119,12 +132,44 @@ def semantic_colour_errors(semantic: Any) -> list[str]:
             if not isinstance(colour, str) or not HEX_COLOUR.fullmatch(colour)]
 
 
-def validate_style_manifest(manifest: dict[str, Any], used_roles: list[str] | None = None) -> tuple[list[str], list[str]]:
+def validate_style_manifest(
+    manifest: dict[str, Any], used_roles: list[str] | None = None,
+    *, tasks: list[str] | None = None,
+) -> tuple[list[str], list[str]]:
+    """Validate common identity/locks/tokens plus the real consumer's sections.
+
+    With no tasks, check common requirements, not readiness for every format.
+    Supplied but unused sections still receive type and colour checks.
+    """
     errors: list[str] = []
     warnings: list[str] = []
 
-    missing_sections = sorted(REQUIRED_SECTIONS - set(manifest))
+    if not isinstance(manifest, dict):
+        return ["style manifest root must be an object"], warnings
+    required = set(COMMON_REQUIRED_SECTIONS)
+    requested = [tasks] if isinstance(tasks, str) else (tasks or ["general"])
+    for task in requested:
+        if not isinstance(task, str) or task not in TASK_REQUIRED_SECTIONS:
+            errors.append(f"unknown style task: {task!r}")
+        else:
+            required.update(TASK_REQUIRED_SECTIONS[task])
+    missing_sections = sorted(required - set(manifest))
     errors.extend(f"missing required section: {section}" for section in missing_sections)
+
+    version = manifest.get("schema_version")
+    # YAML/JSON numeric 1.0 and the existing string form denote the same
+    # schema. Do not coerce arbitrary values (especially bool, an int subclass).
+    if not ((type(version) in (int, float) and version == 1.0)
+            or (type(version) is str and version == "1.0")):
+        errors.append('schema_version must be numeric 1.0 or the string "1.0"')
+    if not isinstance(manifest.get("project_id"), str) or not manifest["project_id"].strip():
+        errors.append("project_id must be a non-empty string")
+    for field in sorted(OBJECT_SECTIONS & set(manifest)):
+        if not isinstance(manifest[field], dict):
+            errors.append(f"{field} must be an object")
+    for field in sorted(LIST_SECTIONS & set(manifest)):
+        if not isinstance(manifest[field], list):
+            errors.append(f"{field} must be a list")
 
     state = manifest.get("state")
     if not isinstance(state, dict):
@@ -154,7 +199,7 @@ def validate_style_manifest(manifest: dict[str, Any], used_roles: list[str] | No
     for key, colour in _walk_colours(manifest):
         if key.startswith("semantic_colors."):
             continue  # Role values (including non-strings) were checked above.
-        if not HEX_COLOUR.fullmatch(colour):
+        if not isinstance(colour, str) or not HEX_COLOUR.fullmatch(colour):
             errors.append(f"{key} must be a six-digit hex colour, got {colour!r}")
 
     references = manifest.get("references")
@@ -177,10 +222,6 @@ def validate_style_manifest(manifest: dict[str, Any], used_roles: list[str] | No
             errors.append("one reference must have role=primary_style")
         if primary_count > 1:
             errors.append("only one reference may have role=primary_style")
-
-    for collection in ("overrides", "conflicts", "unresolved_issues"):
-        if collection in manifest and not isinstance(manifest[collection], list):
-            errors.append(f"{collection} must be a list")
 
     if not manifest.get("unresolved_issues") and nested(manifest, "state", "status") == "provisional":
         warnings.append("provisional manifest has no unresolved_issues")

@@ -32,22 +32,29 @@ Start from `assets/style_manifest.template.yaml`. It is JSON-compatible YAML so 
 
 ## Required Sections
 
-The manifest must contain:
+Always retain `schema_version`, `project_id`, `state` (`locked`, `status`),
+`references`, `precedence`, `palette`, `semantic_colors`, `neutral_colors`,
+`backgrounds`, `typography`, `strokes`, `overrides`, `conflicts` and
+`unresolved_issues`. These preserve identity, source/style meaning, locks and
+unresolved decisions; a style check does not replace the scientific Figure Contract.
 
-- `schema_version`, `project_id`, and `state` with `locked` and `status`;
-- `references` with role, source path, and confidence;
-- `precedence` for reference conflicts;
-- `palette` with primary, secondary, accent, and neutral colours;
-- `semantic_colors` for the roles actually used; the full template's model roles
-  are examples, not mandatory vocabulary for every discipline;
-- `neutral_colors` and `backgrounds`;
-- `typography` with family and hierarchy;
-- `strokes`, `arrows`, `borders`, `corners`, `fills`, and `shadows`;
-- `spacing`, `panels`, `axes`, `ticks`, `legend`, `grid`, `markers`, and `charts`;
-- for plot-to-PPT work, `chart_contrast` thresholds and a `publication_layout` target width or an external shared layout contract;
-- `architecture` grammar and semantic module roles;
-- `powerpoint` slide and object defaults;
-- `overrides`, `conflicts`, and `unresolved_issues`.
+Validate extra sections for the actual task, without adding a task field or a
+new schema to the manifest:
+
+| Task | Additional required sections |
+|---|---|
+| `general` / simple `svg` | None; still validate all declared tokens |
+| `architecture` | `architecture`, `arrows`, `borders`, `corners`, `fills`, `shadows`, `spacing` |
+| `plot` | `axes`, `ticks`, `legend`, `grid`, `markers`, `charts`, `spacing`, `panels` |
+| `powerpoint` | `powerpoint`, `arrows`, `borders`, `corners`, `fills`, `shadows`, `spacing`, `panels` |
+
+Combine tasks for mixed delivery (for example plot plus PowerPoint). General
+validation alone is not a claim of readiness for a more specific consumer.
+Existing complete manifests remain valid and need no migration. Missing
+required task sections fail; optional sections, when supplied, are still
+checked for valid types and colours. Model semantic-role examples are not
+required unless actually used. Plot-to-PPT geometry/contrast and scientific
+evidence requirements remain in their existing contracts, not this style schema.
 
 Every colour must be a six-digit hex value. Sizes must state their unit in the key or containing object. Do not mix point, millimetre, pixel, and PowerPoint-coordinate values implicitly.
 
@@ -130,11 +137,16 @@ Run:
 
 ```powershell
 # Directory: the academic-figure-workflow skill directory
-python .\scripts\validate_style_manifest.py --manifest <figure-root>\style\style_manifest.yaml
+python -X utf8 -B .\scripts\validate_style_manifest.py --manifest <figure-root>\style\style_manifest.yaml --task svg
 ```
 
 Validation checks sections, declared colours, lock state and reference roles.
-Use repeatable `--used-role` for actual consumers; the plotting script supplies
-its roles automatically. Legacy full manifests stay readable. The validator does
+Use repeatable `--task` for actual consumers (for example `--task plot --task
+powerpoint`) and `--used-role` for used colours. The plotting script supplies
+its task and roles automatically. The API accepts keyword `tasks`; omitted
+tasks use common/general validation, not all-format readiness. Before PPT
+assembly, normalize with `--task powerpoint` plus any applicable content task;
+the builder also refuses a missing/non-object `powerpoint` section.
+Legacy full manifests stay readable. The validator does
 not enforce authorization, measure final typography or validate every possible
 unit/override. Inspect the rendered figures and `style_report.md`.

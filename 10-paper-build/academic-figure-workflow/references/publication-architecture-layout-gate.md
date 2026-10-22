@@ -2,6 +2,13 @@
 
 Use this gate for journal-facing neural-network, workflow, and code-backed architecture figures before drawing or revising the visual layer. It addresses failures that can pass slide-level QA while remaining misleading or unreadable in a manuscript.
 
+Scientific fidelity, unambiguous relationships, no information-obscuring overlap
+and final-size readability are hard requirements. Anchor directions, grouping,
+grid rhythm and line counts below are layout defaults, not scientific gates.
+Use a different layout when the actual reading direction, content or medium
+benefits; briefly explain the choice in the existing layout/QA record. This
+does not unlock an approved project template or waive the hard requirements.
+
 ## 1. Final-Size Contract
 
 Declare before layout:
@@ -74,7 +81,10 @@ Prefer an integrated scientific flow and only detail insets that add distinct in
 
 ### Parallel operations
 
-Show a visible fork, parallel lanes, and merge/concatenation. A vertical or horizontal list of boxes without branch edges reads as a sequence and fails this gate.
+Make parallel relationships explicit with source-backed edges and labels; a
+visible fork, lanes and merge are useful defaults where those operations exist.
+Do not invent a merge. A list that misleadingly depicts parallel operations
+as a sequence fails regardless of its orientation.
 
 ### Residual connections
 
@@ -90,18 +100,18 @@ Bring branch connectors directly into the fusion node with one arrowhead per inc
 - Reserve filled block arrows for a rare figure-level transition.
 - Avoid crossings and text placed on top of connectors.
 - Use line style as a redundant semantic cue when colour carries branch meaning.
-- On a light canvas, structural connectors must use the manifest's high-contrast foreground colour. Do not use pastel connector colours merely to match module fills.
+- On a light canvas, default to the manifest's high-contrast foreground colour for structural connectors. Other approved semantic colours are valid if contrast and path meaning remain clear; do not use faint pastel connectors merely to match module fills.
 - Distinguish learned, physical, residual, and auxiliary paths primarily with solid/dashed/dotted style, line width, and a short edge label.
 - Render and verify arrow direction. The arrowhead must terminate at the target node.
-- Adjacent peer nodes on the same baseline must use a straight connector with explicit `right -> left` anchors. Do not rely on automatic elbow routing for a short horizontal edge.
-- When one source feeds two or more branches, use a visible split junction and route from that junction. Do not attach multiple auto-routed edges directly to a large source card.
+- For adjacent nodes in a left-to-right lane, prefer straight connectors with explicit `right -> left` anchors. Other directions or elbow routes are valid when their endpoints, direction and non-obscuring path are clear at final size.
+- For multiple branches, prefer an explicit split junction; direct source edges are also valid when their origins and separate targets are unambiguous. Reject ambiguous routing, not a particular junction style.
 - Connector segments may sit behind module fills only at their endpoint masks. A visible edge must remain continuous from source boundary to target boundary.
-- Use connector-specific z-order: above the canvas/background and below module labels. Do not apply an unconditional `sendToBack()` policy to every edge.
+- Keep connectors visible without obscuring labels; above the background and below labels is a useful z-order default. Do not apply an unconditional `sendToBack()` policy to every edge.
 
 ### Junctions and operators
 
 - Prefer native/vector geometry for junction, fork, add and merge marks. Other reliable representations are allowed when their centres, meaning and final rendering are verified.
-- A dot inside a circle must use two concentric shapes with coincident geometric centres.
+- For a dot inside a circle, verify coincident visual centres; two concentric shapes are one implementation, not a required object count.
 - Use `+` only for verified addition. Use an unlabelled junction for a fork or routing point, and label concatenation explicitly.
 - For repeated numeric mappings, a three-slot operator row is a useful template; use another representation when it better expresses the verified mapping without accidental wrapping.
 - Align comparable mappings consistently at final size. A 2 px tolerance is a template starting point, not a scientific requirement.
@@ -122,27 +132,30 @@ title region: 30 px
 title-to-body gap: 6 px
 ```
 
-- Peer modules in one processing lane must share height, title region, body region, padding, and vertical alignment unless a documented scientific reason requires a different class.
+- Prefer consistent height, padding and alignment for comparable modules. Content length, reading order or medium can justify a local layout exception; it need not invent a scientific distinction.
 - Prefer reusable module treatments to arbitrary local fixes; no new named-template system is required. Permit a purposeful local exception when it improves the current scientific layout.
 - Keep titles and body readable without overlap or clipping; line counts follow actual content and final size.
-- Dense mathematical descriptors must use a structured list, two-column matrix, or aligned rows. Do not compress seven or more items into a centred paragraph.
+- For dense mathematical descriptors, prefer a structured list, matrix or aligned rows when these improve scanning. Item count alone (including seven or more) does not determine the layout; reject ambiguity, overlap or unreadable final-size text instead.
 - Compare peer optical weight as a diagnostic. A different fill ratio is not itself failure and must not force padding or invented text merely to match a percentage.
 - Transformation summaries should use a key-value process table when prose, values, units, and operations would otherwise mix in one paragraph.
-- Normalize mathematical notation within one figure: write function arguments with parentheses, for example `log1p(I580)`, `max(I)`, and `sigma(I)`. Avoid mixed forms such as `log1p I580`, `max I`, and `sigma I`.
+- Keep mathematical notation consistent with verified source definitions. Parenthesized function arguments are a useful default, not permission to change an operator, symbol or scientific meaning to fit a visual convention.
 
 ## 7. Canvas Fill and Output Contract
 
 - Record usable-canvas coverage when helpful; do not impose 90% width/78% height as universal minima or enlarge scientific objects just to meet them.
-- Whitespace must separate stages or branches; it must not arise from unrelated coordinates or undersized nodes.
+- Use whitespace to separate stages or branches; assess unexplained gaps against readability rather than forcing uniform canvas fill.
 - Dual branches should reuse column centres so corresponding transformations align vertically.
 - For the 1600 x 900 template, 64–88 px can be a useful initial branch gap. Adapt it to the actual labels, objects and publication width.
 - Inspect unexplained dead zones qualitatively; a 15% ratio is a diagnostic, not a reason to change correct scientific topology.
-- Prediction/output nodes must be wide enough to keep the quantity and unit readable on one or two intentional lines. Reject narrow output boxes that force `T`, hat marks, parentheses, or units into a vertical stack.
-- Regression heads must reserve a single-line title region and a separate body region large enough for every verified operation.
+- Keep output quantities, notation and units unambiguous and readable. Prefer one or two intentional lines; another arrangement is valid if it preserves meaning and final-size readability.
+- Prefer separate title and body regions for regression heads; allow wrapping or another organization when every verified operation remains clear without clipping or overlap.
 
 ## 8. Anti-Card Gate
 
-Reference-image style migration may reuse colour, corner treatment, spacing, and grouping rhythm, but it must not turn the figure into a dashboard.
+Reference-image style migration may reuse colour, corner treatment, spacing,
+and grouping rhythm. Avoid dashboard-like ornament that has no scientific
+role; do not remove a genuine source-backed interface or grouping merely to
+match this visual preference.
 
 Reject or simplify when:
 
@@ -181,9 +194,9 @@ Redundant overview removed or justified: yes/no
 Publication-only text filter: pass/fail
 Reading order (qualitative, not a timed threshold): clear/unclear
 Connector contrast and target arrowheads: pass/fail
-Adjacent connectors straight and unobscured: pass/fail
-Multi-branch source uses visible split junction: pass/fail
-Peer module padding/alignment: pass/fail
+Connector anchors/routing clear and unobscured: pass/fail
+Multi-branch origins and targets explicit: pass/fail/not applicable
+Peer module padding/alignment or justified exception: pass/fail
 Peer mappings aligned/no accidental wrapping: pass/fail/not applicable
 Scientific notation normalized: pass/fail
 Junction geometry centred: pass/fail

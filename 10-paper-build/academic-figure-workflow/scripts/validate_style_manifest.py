@@ -7,7 +7,7 @@ import argparse
 import sys
 from pathlib import Path
 
-from style_manifest import StyleManifestError, load_style_manifest, normalized_json, validate_style_manifest
+from style_manifest import TASK_REQUIRED_SECTIONS, StyleManifestError, load_style_manifest, normalized_json, validate_style_manifest
 
 
 def main() -> int:
@@ -16,6 +16,8 @@ def main() -> int:
     parser.add_argument("--emit-json", type=Path, help="Write normalized JSON for backends that do not parse full YAML")
     parser.add_argument("--strict", action="store_true", help="Treat warnings as failures")
     parser.add_argument("--used-role", action="append", default=[], help="Validate a role actually used by this figure; repeat as needed")
+    parser.add_argument("--task", action="append", choices=sorted(TASK_REQUIRED_SECTIONS),
+                        help="Actual consumer task; repeat for mixed delivery. Default: common/general checks")
     args = parser.parse_args()
 
     try:
@@ -24,7 +26,7 @@ def main() -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 2
 
-    errors, warnings = validate_style_manifest(manifest, used_roles=args.used_role)
+    errors, warnings = validate_style_manifest(manifest, used_roles=args.used_role, tasks=args.task)
     for item in errors:
         print(f"error: {item}")
     for item in warnings:

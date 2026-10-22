@@ -513,7 +513,7 @@ def main() -> int:
     panels = load_panel_specs(args.spec)
     if args.style_manifest:
         used = [role.strip() for panel in panels for role in panel.color_role.replace("|", ",").split(",") if role.strip()]
-        errors, _ = validate_style_manifest(load_style_manifest(args.style_manifest), used_roles=used)
+        errors, _ = validate_style_manifest(load_style_manifest(args.style_manifest), used_roles=used, tasks=["plot"])
         if errors:
             raise SystemExit("Style manifest validation failed: " + "; ".join(errors))
     figure_contract: dict[str, Any] | None = None

@@ -10,7 +10,7 @@ import math
 from pathlib import Path
 from typing import Any
 
-from style_manifest import SEMANTIC_ROLE_ALIASES, StyleManifestError, load_style_manifest, nested, semantic_colour_errors
+from style_manifest import SEMANTIC_ROLE_ALIASES, StyleManifestError, load_style_manifest, nested, semantic_colour_errors, validate_style_manifest
 
 MM_PER_INCH = 25.4
 SINGLE_COLUMN_MM = 89
@@ -131,7 +131,12 @@ def apply_nature_style(
 ) -> dict[str, str]:
     """Apply publication defaults and return style diagnostics."""
     global _ACTIVE_MANIFEST
-    _ACTIVE_MANIFEST = load_style_manifest(style_manifest_path) if style_manifest_path else None
+    manifest = load_style_manifest(style_manifest_path) if style_manifest_path else None
+    if manifest is not None:
+        errors, _ = validate_style_manifest(manifest, tasks=["plot"])
+        if errors:
+            raise StyleManifestError("Style manifest validation failed: " + "; ".join(errors))
+    _ACTIVE_MANIFEST = manifest
     matplotlib_module.rcParams.update(nature_rcparams(_ACTIVE_MANIFEST))
     diagnostics: dict[str, str] = {}
     if style_manifest_path:

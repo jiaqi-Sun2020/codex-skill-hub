@@ -5,6 +5,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import crypto from "node:crypto";
+import { execFile } from "node:child_process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -40,6 +41,8 @@ Options:
   --spec PATH             Backend-neutral JSON assembly specification.
   --style-manifest PATH   JSON-compatible YAML style manifest.
   --style-json PATH       Normalized JSON emitted by validate_style_manifest.py.
+  --python PATH           Existing Python interpreter for shared style validation
+                          (default: python on Windows, python3 elsewhere).
   --output PATH           Output PPTX path (required).
   --manifest PATH         Output ppt_manifest.json path.
   --caption PATH          Figure caption Markdown/text; embedded in publication-slide notes.
@@ -90,6 +93,35 @@ function get(object, keys, fallback) {
 
 function ensureHex(value, fallback) {
   return typeof value === "string" && /^#[0-9A-Fa-f]{6}$/.test(value) ? value : fallback;
+}
+
+async function requirePowerpointStyle(style, python = process.platform === "win32" ? "python" : "python3") {
+  // Validate the actual in-memory payload, not a second file read. Keep all
+  // task/colour/schema rules in the existing validator; no shell or commands
+  // supplied by a manifest are executed. Missing Python fails before writes.
+  const code = [
+    "import json, sys",
+    "sys.path.insert(0, sys.argv[1])",
+    "from style_manifest import validate_style_manifest",
+    "errors, warnings = validate_style_manifest(json.load(sys.stdin), tasks=['powerpoint'])",
+    "print(json.dumps(dict(errors=errors, warnings=warnings)))",
+    "sys.exit(1 if errors else 0)",
+  ].join("\n");
+  return new Promise((resolve, reject) => {
+    const child = execFile(python, ["-X", "utf8", "-B", "-c", code, SCRIPT_DIR],
+      { encoding: "utf8", windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+      (error, stdout, stderr) => {
+        let result;
+        try { result = JSON.parse(stdout); } catch { /* Fail closed below. */ }
+        if (error || !Array.isArray(result?.errors) || !Array.isArray(result?.warnings) || result.errors.length) {
+          const detail = Array.isArray(result?.errors) ? result.errors.join("; ") : "";
+          reject(new Error(`PPT style validation failed: ${detail || stderr.trim() || error?.message || "invalid validator response"}`));
+        } else resolve(result);
+      });
+    // A failed interpreter can close stdin early; execFile reports that exit.
+    child.stdin.on("error", () => {});
+    child.stdin.end(JSON.stringify(style));
+  });
 }
 
 function fontPx(style, token, fallbackPt, finalScale = 1) {
@@ -402,6 +434,8 @@ async function main() {
 
   const stylePath = path.resolve(args.style_json || args.style_manifest || TEMPLATE_MANIFEST);
   const style = await readJsonCompatible(stylePath, "Style manifest");
+  const styleValidation = await requirePowerpointStyle(style, args.python);
+  for (const warning of styleValidation.warnings) console.warn(`style warning: ${warning}`);
   const specPath = args.spec ? path.resolve(args.spec) : "";
   const spec = args.demo ? demoSpec(style) : await readJsonCompatible(specPath, "Assembly spec");
   if (!Array.isArray(spec.slides) || spec.slides.length === 0) throw new Error("Assembly spec needs at least one slide");
@@ -619,7 +653,7 @@ async function main() {
   console.log(`pptx=${outputPath} manifest=${manifestPath} previews=${previewDir} visual_review=pending slides=${manifest.slides.length}`);
 }
 
-export { fontPx, publicationScale, styleTokens, validateContractForAssembly, createPreviewDirectory, writePreview };
+export { fontPx, publicationScale, styleTokens, requirePowerpointStyle, validateContractForAssembly, createPreviewDirectory, writePreview };
 if (process.argv[1] && pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url) {
   main().catch((error) => { console.error(`error: ${error.message}`); process.exitCode = 1; });
 }

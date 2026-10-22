@@ -2,6 +2,12 @@
 
 Use this reference for every manuscript-facing figure and whenever the user asks for 图注, caption, figure legend, annotations after PPT generation, or removal of configuration text from the artwork.
 
+PPT notes checks apply only when PPT is in the delivery scope and notes are
+requested or required by its applicable contract. A pure SVG or simple local
+revision must not acquire a PPT/notes deliverable to satisfy this reference.
+Missing required notes remain unresolved, not not-applicable; existing v1 PPT
+contracts that require notes and matching hashes keep those requirements.
+
 ## Artwork Versus Caption
 
 Keep inside the artwork only information needed to decode the visual claim:
@@ -53,7 +59,7 @@ When the user asks for a detailed caption or when a quantitative panel is not se
 - for threshold or budget-selection figures, whether each mark represents a single criterion, an individual criterion pass rate, a joint all-criterion pass, a first isolated pass, or a consecutive stability window; include the denominator and distinguish prespecified from sensitivity-only rules;
 - equations, symbol definitions, fit domain, coefficient units, metric definitions, and validation protocol when those are moved out of the artwork.
 
-Removing a dense in-panel equation or metric callout transfers its explanatory burden to the caption. Confirm that every removed item remains defined in `caption.md` and PPT speaker notes. Do not describe a display-only jitter as measurement uncertainty or allow a generic legend term such as `Data spectra` to obscure the actual train/validation/test scope.
+Removing a dense in-panel equation or metric callout transfers its explanatory burden to the caption. Confirm that every removed item remains defined in `caption.md` (or the valid existing caption pointer for a local revision), and in PPT speaker notes only when notes are in scope. Do not describe a display-only jitter as measurement uncertainty or allow a generic legend term such as `Data spectra` to obscure the actual train/validation/test scope.
 
 ## PPTX Integration
 
@@ -70,12 +76,11 @@ by silently changing its contract.
 For a publication-figure slide:
 
 - keep the visible slide caption-free unless the user asks to typeset a caption on the slide;
-- write the full caption into the slide speaker notes under `[Figure caption]`;
-- keep provenance under a separate `[Sources]` block;
+- when notes are in scope, write the full caption into the slide speaker notes under `[Figure caption]` and keep provenance under a separate `[Sources]` block;
 - record the caption path in `ppt_manifest.json` and trace it to the figure/PPT slide;
 - component-board slides may contain a native `Caption draft` text box only when the user wants to edit the caption visually.
 
-Speaker notes supplement but do not replace `caption.md`, because journal submission systems and manuscript editors need a portable text file.
+When delivered, speaker notes supplement but do not replace `caption.md`, because journal submission systems and manuscript editors need a portable text file.
 
 ### Visible detailed-caption mode — when requested
 
@@ -88,13 +93,15 @@ When the user asks for all captions, detailed panel explanations or 逐图解释
 - include the panel's scientific comparison and defensible result, not only a description of its appearance;
 - keep long provenance and implementation details in speaker notes or `caption.md` rather than turning the visible page into a methods appendix;
 - split the explanation across multiple slides when necessary; do not shrink text below the declared PPT editing-size minimum or allow clipping;
-- keep the visible explanation, `caption.md`, and `[Figure caption]` speaker notes scientifically consistent. They may differ in layout and concision, but not in definitions, values, scope, or conclusions.
+- keep the visible explanation and `caption.md` scientifically consistent, including `[Figure caption]` speaker notes when notes are in scope. They may differ in layout and concision, but not in definitions, values, scope, or conclusions.
 
 If a project already required visible explanations, a reduced delivery needs
 the applicable user-approved override in `caption_delivery.visible_override`.
 A new simple preview has no implied all-surfaces requirement to override.
 
-Record the delivery in `ppt_manifest.json`:
+Record the actual PPT delivery in `ppt_manifest.json`. The following example
+has required notes and visible explanations; it is not a default for SVG or
+notes-free delivery:
 
 ```json
 {
@@ -113,7 +120,7 @@ Record the delivery in `ppt_manifest.json`:
 
 ## Caption QA
 
-Verify that:
+Verify the applicable caption and delivery surfaces only:
 
 - every panel is described exactly once and in display order;
 - every axis and every visible legend/mark type is explained, and the intended comparison is explicit;
@@ -122,10 +129,10 @@ Verify that:
 - transformations and units match the plotting code;
 - reported metrics distinguish calibration fit from held-out or cross-validated performance;
 - no configuration paragraph remains in the plot merely because it was present in an earlier draft;
-- the caption in PPT notes matches `caption.md`.
+- when PPT notes are in scope, their caption matches `caption.md`;
 - every panel requested for visible PPT explanation has one native editable annotation section and a manifest mapping;
 - visible caption text is not clipped, does not cover data, and is split rather than reduced below the declared editing-size minimum;
-- the visible explanation, `caption.md`, and speaker notes do not contradict each other;
+- the visible explanation, `caption.md`, and any delivered speaker notes do not contradict each other;
 - single-metric threshold crossings are not described as joint acceptance unless every formal criterion passes at the same candidate value.
 
 ## Stable Surface Identity
@@ -136,8 +143,10 @@ stable element ID. The contract maps that ID to the plot or diagram source,
 PPT main object, component-board object, visible explanation, notes anchor,
 caption anchor, and manifest object as applicable.
 
-Record the SHA-256 of `caption.md` and of the caption copied into speaker notes.
-The hashes must match for a verified PPT package. A matching hash proves that
+When PPT notes are required, record the SHA-256 of `caption.md` and of the
+caption copied into speaker notes. The hashes must match for a verified PPT
+package requiring notes, including existing v1 contract-backed PPT delivery.
+Do not create notes or a PPT solely to supply a second hash. A matching hash proves that
 the text was transferred consistently; it does not prove that the text is a
 valid scientific interpretation. Review values, scope, exclusions,
 uncertainty, and conclusions manually.
