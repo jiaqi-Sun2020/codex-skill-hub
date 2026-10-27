@@ -58,9 +58,14 @@ class PaperAuditIntegrationTests(unittest.TestCase):
             isolated = Path(temporary) / "paper-audit"
             shutil.copytree(AUDIT, isolated)
             self.assertFalse((isolated.parent / "latex-paper-build-skill").exists())
+            # On Windows hosted runners, TemporaryDirectory can expose an 8.3
+            # path while Path.resolve() returns its long-name equivalent.
+            # Compare normalized roots so a contained link is not misread as
+            # escaping the standalone package.
+            isolated_root = isolated.resolve()
             for markdown in isolated.rglob("*.md"):
                 for target in local_targets(markdown):
-                    self.assertTrue(target.is_relative_to(isolated), str(target))
+                    self.assertTrue(target.is_relative_to(isolated_root), str(target))
                     self.assertTrue(target.is_file(), str(target))
             self.assertEqual(file_snapshot(isolated), file_snapshot(AUDIT))
 
