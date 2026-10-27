@@ -361,7 +361,7 @@ relevant artifact and approval source before relying on any stage's readiness.
 | HTML research report | `04_reports/` | `research-html-report` | TODO |
 | Optional figure-evidence lane | `05_manuscript_zh/figures/` | `academic-figure-workflow` | N/A until activated |
 | Chinese LaTeX manuscript | `05_manuscript_zh/` | `latex-paper-build-skill` | TODO |
-| Author review gate | `06_review_gate/` | this skill | TODO |
+| Mock pre-review and author gate | `06_review_gate/` | `paper-audit` then author | TODO |
 | Polished submission | `07_polished_submission/` | `paper-polishing-skill` | TODO |
 
 ## Next Step
@@ -385,6 +385,14 @@ DOI registration, metadata matching, source support, retraction screening,
 scientific quality, search coverage and author claim approval
 are separate judgments. Theory, qualitative and literature work may use direct
 reasoning/synthesis without new experiments, training or numerical analysis.
+
+Completed-manuscript mock review and revision re-review route to `paper-audit`,
+then return to the human Stage 6 gate. Before whole-manuscript final delivery,
+including a Stage 7 shortcut, follow paper-audit's final-manuscript handoff.
+Reference the reviewed version, coverage, unresolved issues and author decision;
+this context is not a second review state. The generator does not run reviews
+or create an empty `06_review_gate/paper_audit_report.md`. Existing equivalent
+reports may be reused; saving a report requires applicable authorization.
 """
 
 
@@ -571,10 +579,15 @@ def review_gate_template() -> str:
     return """
 # Author Review Checklist
 
-Before using `paper-polishing-skill`, the author should check:
+Before whole-manuscript final delivery via `paper-polishing-skill` or
+`prl-manuscript-polisher`, the author should check:
+
+- [ ] An applicable whole-manuscript pre-review from `paper-audit` or an equivalent human review is located with its version, coverage, unresolved issues and author disposition; a limited report is not whole-paper coverage.
+- [ ] Revision concerns are verified against current text/evidence, not closed merely because an author says they were fixed; prior IDs and history remain identifiable.
+- [ ] The mock recommendation is separate from scientific support, author approval and next-action authority. Local edits and explicitly pending-review drafts do not require whole-paper pre-review.
 
 - [ ] The requested deliverable matches the approved goal source in intake or its formal contract; unresolved changes are proposals, not concurrent goals.
-- [ ] Goal, method, data, source-evidence and figure-meaning changes since the reviewed version have an impact check, with affected portions re-reviewed even if conclusion wording is unchanged.
+- [ ] Goal, method, data, source-evidence and figure-meaning changes since the reviewed version have an impact check, including formulas, scope and claim strength; re-review affected portions even if conclusion wording is unchanged. Apply this after polishing too; pure wording/layout changes reuse review after a meaning check.
 - [ ] Post-outcome amendments and their reasons are disclosed; historical approvals are not silently rewritten.
 - [ ] Author approval is separate from action authority; the intended next action has an applicable authorization source, not merely goal agreement.
 - [ ] `paper_config.json` has the correct title, authors, affiliations, correspondence address, email, and acknowledgments.
@@ -612,8 +625,10 @@ latexmk -xelatex -bibtex -interaction=nonstopmode -file-line-error -outdir=build
 | Check | Status | Notes |
 |---|---|---|
 | Requested deliverable against approved goal source | TODO | Reference intake or formal contract; do not duplicate current goal state |
-| Review impact of method/data/evidence/figure changes | TODO/N/A | Reuse affected stage decisions and author review; unchanged conclusion text is not sufficient |
+| Review impact of method/data/evidence/figure changes | TODO/N/A | After polishing too: include formulas, scope and claim strength; reuse unaffected review after a meaning check, re-review affected portions; unchanged conclusion text is not sufficient |
 | Authority for the proposed next action | TODO | Goal/content approval and a successful build do not authorize execution or release |
+| Applicable whole-manuscript pre-review | TODO | Reference report/version/coverage and unresolved issues; no duplicate review state |
+| Author disposition of review | TODO | Mock recommendation and permission to continue a draft do not imply scientific approval or submission readiness |
 | PDF builds | TODO | |
 | Undefined references | TODO | |
 | Undefined citations | TODO | |

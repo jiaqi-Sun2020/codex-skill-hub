@@ -269,6 +269,27 @@ Produce:
 5. `PRL_CHANGELOG.md` — high-impact revisions and unresolved author decisions;
 6. `PRL_JUSTIFICATION_100W.md` — a defensible editor-facing justification, only after the central claim passes the evidence audit.
 
+## Whole-manuscript pre-review handoff
+
+For whole-manuscript final delivery, follow the shared
+[paper-audit handoff](../paper-audit/SKILL.md#final-manuscript-handoff).
+Check the applicable review's version, whole-paper coverage, unresolved issues
+and author disposition before calling the manuscript final/pre-reviewed.
+If the sibling is unavailable, reuse a verifiable equivalent human review or
+leave pre-review pending; do not install it or invent a passed review.
+
+Local polishing, translation drafts and explicitly pending-review manuscripts
+need not undergo whole-paper pre-review. An explicit instruction to continue
+permits only that work, not an upgrade to scientific approval or submission-ready.
+After polishing, check semantic impact and re-review affected methods, data,
+evidence, formulas, figure meaning, scope or claim strength. Reuse unaffected
+findings; purely verbal/layout edits need a meaning check, not another full audit.
+Do not create a competing review ledger or overwrite an old report.
+
+The PRL fit/editing audit remains venue-specific; it does not automatically
+constitute general whole-manuscript mock peer review. Do not duplicate a
+verifiable existing review merely to change its format.
+
 ## Quality gates
 
 Do not declare the manuscript “PRL-ready” unless all gates pass:

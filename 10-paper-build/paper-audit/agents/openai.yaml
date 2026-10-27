@@ -1,0 +1,4 @@
+interface:
+  display_name: "Paper Audit"
+  short_description: "Mock peer review of whole papers and revised manuscripts"
+  default_prompt: "Use $paper-audit to review my completed manuscript or re-review its revision; return one evidence-grounded report without editing files."

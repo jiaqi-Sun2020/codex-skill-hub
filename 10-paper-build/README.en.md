@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`10-paper-build/` directly maintains twelve peer Skills that turn research questions, evidence, and analysis into reviewable figures, Chinese author-review drafts, and final submission material. This document is the human entry point for the paper-build category; each Skill's `SKILL.md` remains its formal execution contract.
+`10-paper-build/` directly maintains thirteen peer Skills that turn research questions, evidence, and analysis into reviewable figures, Chinese author-review drafts, and final submission material. This document is the human entry point for the paper-build category; each Skill's `SKILL.md` remains its formal execution contract.
 
 > The paper pipeline manages research arguments and deliverables. It does not perform the underlying research, invent data, or declare a scientific claim established because a figure, build, or polishing pass succeeded.
 
@@ -25,7 +25,7 @@ HTML report (optional)          academic-figure-workflow
   ↓                                      ↓
 Chinese LaTeX manuscript ← figure package, caption, trace, QA
   ↓
-Author scientific and visual review
+Whole-paper mock review → Author scientific and visual review
   ↓
 English polishing and submission checks
 ```
@@ -54,7 +54,7 @@ Example: “Use `latex-paper-build-skill` at the current figure stage. Clarify o
 5. **Review Chinese scientific content before English polishing.** Unless explicitly overridden, approve the science, boundaries, and figure/table intent before translation and venue adaptation.
 6. **Simple projects remain simple.** Do not create empty directories, manifests, or ceremonial placeholders when figures, statistics, or HTML reports do not apply.
 
-## Unique responsibilities of the twelve Skills
+## Unique responsibilities of the thirteen Skills
 
 | Skill | Owns | Does not own |
 |---|---|---|
@@ -67,6 +67,7 @@ Example: “Use `latex-paper-build-skill` at the current figure stage. Clarify o
 | [`research-html-report`](research-html-report/SKILL.md) | Standalone HTML research briefs, evidence plans, and risk displays | Replacing research design or manufacturing evidence |
 | [`academic-figure-workflow`](academic-figure-workflow/SKILL.md) | Figure arguments, editable sources, style, exports, captions, evidence trace, and rendered QA | Inventing data, mechanisms, modules, or scientific support |
 | [`latex-paper-build-skill`](latex-paper-build-skill/SKILL.md) | Pipeline orchestration, LaTeX architecture, figure placement, cross-references, and compilation | Reimplementing statistics or figure-generation logic |
+| [`paper-audit`](paper-audit/SKILL.md) | Completed-manuscript mock review and revision re-review, one evidence-anchored report | Automatic edits, research execution, author approval or real editorial decisions |
 | [`paper-polishing-skill`](paper-polishing-skill/SKILL.md) | Translation, structural revision, and Nature/PRL/PRA polishing of approved content | Inventing data, citations, or stronger claims |
 | [`prl-manuscript-polisher`](prl-manuscript-polisher/SKILL.md) | PRL compression, adaptation, and evidence calibration for a technically complete physics manuscript | Hiding weak evidence with stronger prose |
 | [`interactive-skill-builder`](interactive-skill-builder/SKILL.md) | Skill creation through interviews, specification confirmation, approval gates, and validation | Producing a final Skill without author confirmation |
@@ -83,10 +84,25 @@ Example: “Use `latex-paper-build-skill` at the current figure stage. Clarify o
 | 3 Research execution and analysis | Results must be produced or reviewed | Project/domain executor + `data-analysis` | Raw results, analysis code, statistics, and interpretation | Sources, units, transforms, uncertainty, and boundaries are reviewable |
 | 4 Research brief | A shareable or printable plan is useful | `research-html-report` | Standalone HTML report | Claim, evidence matrix, risk, and TODOs are visible |
 | 5 Figures and Chinese manuscript | Formal figures or manuscript structure are needed | Figure Skill + LaTeX Pipeline | Figure packets, `caption.md`, Chinese LaTeX manuscript | Paths, captions, prose interpretation, and build relationships resolve |
-| 6 Author review | The Chinese manuscript and applicable figures exist | Author/domain expert | Review decision and retained TODOs | Science, claim boundary, terminology, figures, and metadata are approved |
+| 6 Mock pre-review and author gate | The complete manuscript and applicable figures exist | paper-audit → Author/domain expert | Applicable review, author decision and unresolved items | Version, coverage and findings are traceable; scientific approval remains human-owned |
 | 7 English polishing and submission checks | Scientific content is author-approved | Polishing / PRL Skill | English manuscript and build/submission report | PDF, citations, figures, anonymity, and venue checks pass or expose gaps |
 
 Completing a stage means only that its contract is satisfied. Work completion, data trustworthiness, figure quality, manuscript compilation, claim support, and publication authorization remain independent judgments.
+
+## Whole-manuscript mock review and revision re-review
+
+[paper-audit](paper-audit/SKILL.md) works independently of the Pipeline, config or sibling Skills. Abstract-only input allows limited feedback, not completed whole-paper pre-review. It defaults to one read-only chat report; saving needs authorization. It does not edit manuscripts, add experiments or submit papers.
+
+```text
+Complete draft → Understand argument → Mock review → Counter-review → One report → Author decision
+Revision + identifiable old report → Verify closure and impact → Re-review report → Author decision
+```
+
+The report distinguishes validity, contribution, expression and consistency. There are no concern quotas, predetermined positive results or narrative substitutes for evidence. An author's "fixed" is not closure evidence; inspect the revised draft and retain unknown history. A mock recommendation is not an editorial decision.
+
+Stage 6 returns the report to the human gate. The Stage 7 shortcut and both direct polishers check applicable pre-review or equivalent human review before final whole-manuscript delivery; local edits, translation drafts and explicitly pending-review versions are exempt. After polishing, check semantic impact and reopen affected methods, data, evidence, formulas, figure meaning or claim strength. Permission to continue work does not make unchecked science pass.
+
+The generator adds navigation only, never reviews or empty reports. When saving is authorized and no location exists, use `06_review_gate/paper_audit_report.md`; reuse legacy workspaces and reports without a new ledger. Copying the standalone package neither globally installs it nor verifies host auto-discovery.
 
 ## Optional literature lane and scientific checks
 
@@ -177,8 +193,9 @@ Directory numbers are compatibility contracts and are not renumbered for the fig
 | A shareable research brief is needed | Stage 4 |
 | A figure, caption, style lock, or figure QA is needed | Optional figure lane, then return to Stage 5 |
 | A `.tex` manuscript needs restructuring or configuration | Stage 5 |
+| A complete manuscript needs mock review, or revisions need re-review | paper-audit standalone, or return to the Stage 6 author gate |
 | Chinese scientific content awaits an author decision | Stage 6 |
-| Content is approved and needs English or PRL adaptation | Stage 7 |
+| Content is approved and needs English or PRL adaptation | Check applicable pre-review before Stage 7; unchecked versions remain pending-review drafts |
 
 Small edits do not restart from Stage 0. Missing evidence, an unapproved decision, or a failed gate returns the workflow to the earliest affected stage rather than being hidden by polishing.
 
@@ -214,4 +231,4 @@ On 2026-09-24, this directory imported eight Skills from the `main` snapshot of 
 
 The figure workflow draws on argument-driven multi-panel design, semantic colour, and submission QA ideas from [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure), and the data-first visualization-advisor approach from [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill). Its optional Apple-inspired academic-figure reference applies only after an explicit user selection; it independently adapts two pinned MIT sources, uses no Apple assets, and does not change the existing Style Manifest, scientific protections, or QA gates. The included CC0 PLOS article *Ten Simple Rules for Better Figures* is general design reading, not a venue requirement or scientific evidence. Specific publication-guideline sources are recorded in [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md). These acknowledgements do not imply endorsement; third-party material remains subject to its original licenses and notices.
 
-Fixed upstream commits, adaptation scope, the CC0 source, and full MIT notices for literature, scientific reasoning, and the figure workflow are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The category now has 12 Skills; the historical eight imports plus the figure Skill remain the original nine-source history.
+Fixed upstream commits, adaptation scope, and MIT, Apache-2.0 and CC0 notices for literature, scientific reasoning, mock review and the figure workflow are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The category now has 13 Skills; the historical eight imports plus the figure Skill remain the original nine-source history.

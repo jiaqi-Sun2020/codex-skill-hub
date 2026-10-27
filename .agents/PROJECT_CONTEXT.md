@@ -8,18 +8,18 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates thirty-four directly maintained active Skills, versioned shared
+skills. It separates thirty-six directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the thirty-four Skills stored in this repository
+The bilingual root READMEs document the thirty-six Skills stored in this repository
 and route readers to eight numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
 contracts.
 
 The bilingual `10-paper-build` READMEs define the paper lifecycle and optional
-literature and figure-evidence lanes for twelve peer Skills. The bilingual `20-project-build`
+literature and figure-evidence lanes for thirteen peer Skills. The bilingual `20-project-build`
 READMEs define one-time onboarding and repeated research management for six
 project-build Skills, including SCI/STAT/ENG/GOV contract responsibilities and
 independent state axes, without duplicating the repository overview.
@@ -72,7 +72,7 @@ independent state axes, without duplicating the repository overview.
   `50-core-utils/*/SKILL.md`, and `60-visual-computing/*/SKILL.md`: active Skill
   entry points grouped by paper-build, project-build, reusable-utility, or visual-computing ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
-- `10-paper-build/`: twelve centrally stored peer paper-building Skills and their
+- `10-paper-build/`: thirteen centrally stored peer paper-building Skills and their
   bilingual category map.
 - `60-visual-computing/`: nine centrally stored visual-computing Skills:
   `celestial-body-formation-skill` plus `gsap-core`, `gsap-timeline`,
@@ -81,17 +81,19 @@ independent state axes, without duplicating the repository overview.
 - `50-core-utils/logic-chain-tutor/SKILL.md`: central logic-chain teaching Skill.
 - `50-core-utils/taste-skill/SKILL.md`: fixed third-party public-page art-direction and visual-check Skill.
 - `50-core-utils/taste-skill/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
+- `50-core-utils/archify/SKILL.md`: fixed third-party interactive HTML-diagram and explainer Skill.
+- `50-core-utils/archify/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
   machine-specific target path.
 
 ## Current Facts
 
-- The thirteen direct project-build and reusable core Skills span two category directories:
+- The fourteen direct project-build and reusable core Skills span two category directories:
   `experiment-protocol-audit`, `project-agent-generator-skill`,
   `project-submission-audit`, `research-management-pipeline`, `research-project-pipeline`, and
   `research-workspace-governance` are maintained under `20-project-build/`;
-  `design-taste-frontend`, `find-skills`, `handoff`, `logic-chain-tutor`,
+  `archify`, `design-taste-frontend`, `find-skills`, `handoff`, `logic-chain-tutor`,
   `neat-freak`, `skill-audit-refactor`, and `training-code-architecture-skill` remain under
   `50-core-utils/`.
 - `research-workspace-governance` owns domain-neutral governance of asset roles,
@@ -119,9 +121,9 @@ independent state axes, without duplicating the repository overview.
 - Optional policy-topology declarations are boundary-checked by the Pipeline and
   audited for content only by `neat-freak`, which also owns narrowly scoped repair
   of existing marked Bootstrap wiring after explicit authorization.
-- Twelve peer paper-building Skills are stored directly under `10-paper-build/`:
+- Thirteen peer paper-building Skills are stored directly under `10-paper-build/`:
   `academic-figure-workflow`, `research-logic`, `experiment-design`,
-  `data-analysis`, `research-html-report`, `latex-paper-build-skill`,
+  `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-audit`,
   `paper-polishing-skill`, `prl-manuscript-polisher`, and
   `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
   They are separate from the thirteen project-build and reusable core Skills and
@@ -150,7 +152,10 @@ independent state axes, without duplicating the repository overview.
   `50-core-utils/taste-skill/`. It covers public-facing page art direction and
   visual checks, not dashboard or app-screen defaults; importing it neither
   globally installs it nor authorizes its future asset, browser, or local-server actions.
-- `skill-registry` is infrastructure, not one of the thirteen direct project-build and reusable core Skills.
+- `archify` is the fixed Apache-2.0 Archify v3.2.0 snapshot under `50-core-utils/archify/`.
+  It renders interactive standalone HTML diagrams and optional explainers, but its source-only
+  import neither globally installs it nor authorizes future browser, update-check, or global-rule actions.
+- `skill-registry` is infrastructure, not one of the fourteen direct project-build and reusable core Skills.
   `.pipeline-interface-backups/` contains rollback material and is not an active
   Skill source.
 - The registry retains `reader-learner` version `1.0.0` as historical release

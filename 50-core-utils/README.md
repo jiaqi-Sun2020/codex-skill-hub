@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`50-core-utils/` 保存七个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
+`50-core-utils/` 保存八个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
 
 ## 整体框架
 
@@ -23,6 +23,9 @@ neat-freak：重复维护项目信息与加载一致性
 
 公开网页设计
   └─ design-taste-frontend（taste-skill）：艺术方向、实现与视觉检查
+
+交互式图解与解释
+  └─ archify：系统、流程和关系的 HTML 图解与按需一页解释
 ```
 
 ## 组件职责
@@ -36,6 +39,7 @@ neat-freak：重复维护项目信息与加载一致性
 | [`find-skills`](find-skills/SKILL.md) | 活动 Skill | 发现、检查并推荐外部 Skill；仅在用户明确同意后协助安装 | 自动安装候选、替代人工安全判断或把外部 Skill 纳入本 Hub |
 | [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | 活动 Skill | 从当前卡点建立前置知识、推导、例子和理解检查 | 替代研究执行、科学结论审核或擅自修改外部学习画像 |
 | [`design-taste-frontend`](taste-skill/SKILL.md) | 活动 Skill | Taste v2：公开网页艺术方向、版式、配图、动效和视觉检查 | 仪表盘、应用屏幕、通用设计标准或未经授权的素材下载与浏览器操作 |
+| [`archify`](archify/SKILL.md) | 活动 Skill | 由描述或代码证据生成交互式 HTML 图解及按需一页解释 | 科学事实认证、学术图件交付、自动全局安装或擅自修改全局规则 |
 | [`skill-registry`](skill-registry/README.md) | 基础设施 | 维护可编辑源码、版本元数据、不可变发布快照和消费关系 | 计为活动 Skill 或覆盖项目拥有的 fork |
 
 ## 何时使用
@@ -47,6 +51,7 @@ neat-freak：重复维护项目信息与加载一致性
 - 任务暂停、压缩上下文或交给后续会话：使用 `handoff`。
 - 学习陌生概念、符号、公式或论文方法：使用 `logic-chain-tutor`；它无需先生成项目框架。
 - 设计或改进公开网页：读取 `taste-skill/SKILL.md`，调用名为 `design-taste-frontend`；准备、许可和固定版本见 [来源记录](taste-skill/UPSTREAM.md)。本仓库只保存中央源码，与 `find-skills` 一样不自动全局加载。
+- 解释系统、流程、关系、状态或代码架构，或明确要求一页解释：读取 `archify/SKILL.md`；固定版本、运行边界及许可见 [来源记录](archify/UPSTREAM.md)。不替代论文分类的 `academic-figure-workflow`。
 - 需要检查、发布或同步 Registry 管理的版本：使用 `skill-registry` 工具。
 
 首次缺失 `.agents` 框架时，应使用 `20-project-build/project-agent-generator-skill`，而不是让 Neat-Freak 重新生成框架。提交前变更面审核属于 `20-project-build/project-submission-audit`，不属于 Handoff。
@@ -61,6 +66,7 @@ neat-freak：重复维护项目信息与加载一致性
 - 训练架构只抽取稳定接口；具体数据、损失、形状和领域规则留在项目 Adapter。
 - Find Skills 的网络检索只收集候选和证据；不因发现结果修改本机 Skill、用户级 Codex 配置或本 Hub。
 - Taste 的完整检查需要 Node 22+ 和浏览器；未来运行会产生项目工作文件、截图，并可能下载素材。导入源码不代表批准这些操作；保持用户和项目规范优先。
+- Archify 将来运行可生成 `.archify/`、HTML 和审核回执，部分命令会启动浏览器并检查上游更新；导入不授权这些动作，不自动启用主动解释模式或改写全局规则。
 
 ## 验证
 
@@ -76,6 +82,8 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 具体命令、审批门和输入输出以相应 `SKILL.md` 或 Registry README 为准。
 
 ## 来源与许可
+
+[`Archify`](https://github.com/tt-a1i/archify) 是 tt-a1i 维护、源自 Cocoon AI 的图解 Skill，固定提交 `81c6be8d87090670c45d08a8f97f9d29c5af0bec`（v3.2.0）。完整保留单个 `archify/` 目录的206个文件；采用 Apache-2.0，历史 MIT 授权、字体与图标的独立许可继续有效。许可证、NOTICE 和第三方声明均保留，详见 [UPSTREAM.md](archify/UPSTREAM.md)。未导入网站、仓库开发工具或全局集成。
 
 [`Taste Skill`](https://github.com/Leonxlnx/taste-skill) 是 Leonxlnx 的 MIT 许可默认 v2 Skill，固定提交 `f624f37a8c650b9cc550253104925efe4c8de246`。完整导入其单个 Skill 目录，保留原契约与资源；许可证和纳入范围见 [UPSTREAM.md](taste-skill/UPSTREAM.md)。未导入其他风格 Skill、插件或桌面应用。
 

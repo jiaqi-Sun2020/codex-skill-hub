@@ -138,7 +138,7 @@ jobs:
           $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {
             $_.Name -ne 'skill-registry' -and (Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md'))
           }
-          if ($active.Count -ne 34) { throw "Expected 34 active Skills, found $($active.Count)" }
+          if ($active.Count -ne 36) { throw "Expected 36 active Skills, found $($active.Count)" }
 
           $rootReadmes = (Get-Content -Raw 'README.md') + "`n" + (Get-Content -Raw 'README.en.md')
           foreach ($skill in $active) {

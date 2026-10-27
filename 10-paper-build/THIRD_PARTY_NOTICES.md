@@ -1,4 +1,40 @@
-# Third-party notices: literature, scientific reasoning, goal clarification, and figure workflow
+# Third-party notices: literature, scientific reasoning, goal clarification, mock review, and figure workflow
+
+## Paper Audit sources (2026-10-28)
+
+The standalone [paper-audit](paper-audit/SKILL.md) locally adapts bounded
+whole-manuscript mock review and revision re-review. Exact source notices,
+license scope and full MIT / Apache-2.0 texts travel with
+[its LICENSE](paper-audit/LICENSE). The root MIT license does not override them.
+
+| Fixed source | Selected input and local use | Excluded |
+|---|---|---|
+| [xcl2005/academic-paper-writing-skill](https://github.com/xcl2005/academic-paper-writing-skill/tree/33ddc61ee5aaa1932210894ac62d4d7ac909c936), MIT, Connor | `modules/13_simulated_review_rebuttal.md`: separate referee assessment from response drafting, concern anchors and closure | Fixed referee roles, rebuttal templates, research orchestration |
+| [Spark-To-Paper-Skills/paperjury-codex](https://github.com/Spark-To-Paper-Skills/paperjury-codex/tree/6383d0ca3c1b6cec3e9c8d7fda75092d67857768), MIT, Yiran Wang | `SKILL.md`: challenge misreadings, deduplicate and define closure | Auto edits/updates, votes, Node guards and permanent ledger |
+| [stephenturner/skill-peer-review-assistant](https://github.com/stephenturner/skill-peer-review-assistant/tree/ef30b0f9790eb419bbfe25906472b727dbd69de3), MIT, Stephen D. Turner | `SKILL.md`: grounded strengths, actual retrieval limits/failures | Mandatory Consensus, fixed query/concern counts and DOCX installation |
+| [Yuan1z0825/nature-skills](https://github.com/Yuan1z0825/nature-skills/tree/c1637a89c7097d486ba1c6e755e34d01cbb24998), Apache-2.0 | `skills/nature-reviewer/SKILL.md` and `references/forensic-consistency-audit.md` beneath it: claim/evidence anchors, severity versus blocking, conditional consistency | Three mandatory reviewers, Nature-wide criteria, punctuation bans, research execution, reproduced journal policies |
+| [blader/humanizer](https://github.com/blader/humanizer/tree/8c307f367c91bd974002f10f2be2965d642c13df), MIT, Siqi Chen | `SKILL.md`: redundant inflation and preservation of scientific meaning | Automatic file writeback, punctuation/word bans, AI-authorship claims, full rewriting |
+
+These fixed sources inform `paper-audit/SKILL.md`,
+`paper-audit/references/method-checks.md` and
+`paper-audit/references/report-template.md`; local modification notices identify
+the adaptation. They are not installed or called at runtime.
+
+Method inspiration only, with no source text, worksheets or assets copied:
+- [GeoGeekLab/scientific-storytelling-skill](https://github.com/GeoGeekLab/scientific-storytelling-skill/tree/093883872b69ddf1667fad402fad90a2d806aa67):
+  `SKILL.md` and `references/09-sources-attribution.md`; reverse outlining,
+  paragraph function and question/answer alignment. The source statement credits
+  University of Guelph teaching material under CC BY-NC-SA; those materials are
+  not redistributed here.
+- [kangning-huang/science_narrative_skills](https://github.com/kangning-huang/science_narrative_skills/tree/db672955c2ed58ca24171517e55e9696f38ce2fe):
+  `abt-narrative-critique/SKILL.md`; optional background/question/response lens.
+  README declares MIT, but a full license text was not verified. No upstream
+  implementation text or field-specific citation quotas are copied.
+
+No upstream rule about overlapping error bars, fixed display precision or
+suspected duplication is accepted as scientific proof. Local review first checks
+definitions, identities, conditions and evidence; a mock verdict is never author
+approval or an actual editorial decision.
 
 ## Fixed source snapshots
 

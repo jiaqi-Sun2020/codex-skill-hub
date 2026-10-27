@@ -40,6 +40,7 @@ My_skills/
 |   |-- data-analysis/
 |   |-- research-html-report/
 |   |-- latex-paper-build-skill/
+|   |-- paper-audit/
 |   |-- paper-polishing-skill/
 |   |-- prl-manuscript-polisher/
 |   `-- interactive-skill-builder/
@@ -59,6 +60,7 @@ My_skills/
 |   `-- skill-registry.lnk
 |-- 50-core-utils/
 |   |-- README.md / README.en.md
+|   |-- archify/
 |   |-- find-skills/
 |   |-- handoff/
 |   |-- neat-freak/
@@ -149,6 +151,8 @@ My_skills/
 - `50-core-utils/find-skills/UPSTREAM.md`
 - `50-core-utils/taste-skill/SKILL.md`
 - `50-core-utils/taste-skill/UPSTREAM.md`
+- `50-core-utils/archify/SKILL.md`
+- `50-core-utils/archify/UPSTREAM.md`
 - `50-core-utils/skill-registry/README.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `60-visual-computing/gsap-core/SKILL.md`
@@ -168,6 +172,7 @@ My_skills/
 - `10-paper-build/data-analysis/SKILL.md`
 - `10-paper-build/research-html-report/SKILL.md`
 - `10-paper-build/latex-paper-build-skill/SKILL.md`
+- `10-paper-build/paper-audit/SKILL.md`
 - `10-paper-build/paper-polishing-skill/SKILL.md`
 - `10-paper-build/prl-manuscript-polisher/SKILL.md`
 - `10-paper-build/interactive-skill-builder/SKILL.md`
@@ -191,6 +196,7 @@ My_skills/
 - `50-core-utils/skill-registry/sources/reader-learner/tests/test_profile_safety.py`
 - `50-core-utils/skill-registry/sources/reader-learner/tests/test_visible_wiki.py`
 - `50-core-utils/skill-registry/tests/test_skill_registry.py`
+- `10-paper-build/latex-paper-build-skill/tests/test_paper_audit_integration.py`
 
 ## Generated / Output Areas
 
@@ -206,7 +212,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact thirty-four-Skill index. Every numbered category README pair owns only the
+  compact thirty-six-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -215,13 +221,16 @@ My_skills/
   Its bilingual README pair is a local technical map of those components, their
   four contract categories, independent state axes, and lifecycle routing; the
   root README pair remains the repository-wide overview.
-  `50-core-utils/` owns the seven reusable core Skills plus the non-Skill
+  `50-core-utils/` owns the eight reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
   `find-skills` is a fixed MIT-licensed upstream snapshot: it discovers and
   inspects external candidates but does not install them without explicit user
   approval or create a user-level Codex copy. `taste-skill` is a fixed
   MIT-licensed snapshot for public-page art direction and visual checks; its
   source-only import does not authorize its future asset, browser, or local-server actions.
+  `archify` is a fixed Apache-2.0 snapshot for interactive HTML diagrams and optional
+  explainers; it does not authorize a global installation, browser launch, update check,
+  or global-rule change.
 - `60-visual-computing/` owns `celestial-body-formation-skill` plus eight
   GreenSock GSAP Skill contracts for core animation, timelines, scroll, plugins,
   utilities, React, performance, and other frameworks. Celestial sources retain
@@ -232,7 +241,8 @@ My_skills/
   do not transfer ownership to this folder, and the `30-papertrace` and
   `40-skill-registry` README pairs do not make those shortcut targets repository
   source.
-- `10-paper-build/` owns twelve centrally stored peer paper-building Skills. The eight
+- `10-paper-build/` owns thirteen centrally stored peer paper-building Skills, including
+  the read-only `paper-audit` mock-review and revision re-review entry. The eight
   imported sources are a snapshot of former `S_paper_skills` commit
   `dcd573b1768e48e794975100f8548dc0f1bcb50e`; they do not retain the old Git
   history and are not Registry releases. `S_PAPER_SKILLS_LICENSE` preserves the
@@ -241,7 +251,7 @@ My_skills/
   boundaries only; project runtimes or dedicated execution Skills own execution.
 - `50-core-utils/logic-chain-tutor/` is the centrally stored logic-chain teaching
   Skill; its former external source, personal category, and personal shortcut are retired.
-- The thirteen direct project-build and reusable core Skills are used from their
+- The fourteen direct project-build and reusable core Skills are used from their
   designated central category directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison

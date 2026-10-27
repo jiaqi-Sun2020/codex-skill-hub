@@ -15,6 +15,15 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
 
 ## Workflow
 
+For a completed manuscript's mock peer review or revision re-review, read
+[paper-audit](../paper-audit/SKILL.md) and return its single report to the author
+gate. Do not continue into the authoring, scaffolding or compilation steps below
+merely to perform that review. Standalone paper-audit needs no Pipeline.
+For whole-manuscript final delivery, including a direct Stage 7 route, follow its
+[final-manuscript handoff](../paper-audit/SKILL.md#final-manuscript-handoff).
+Local edits and explicitly pending-review drafts remain available; permission
+to proceed does not turn missing review into approval.
+
 For paper initialization, onboarding checks or interrupted initialization, read
 [paper-project-initializer](../paper-project-initializer/SKILL.md). It previews
 and creates only minimal entries under scoped permission, then returns here at
@@ -157,6 +166,7 @@ When this skill lives inside a skill hub such as `10-paper-build`, treat sibling
   and rendered QA. Inside a generated pipeline, its single figure root is
   `05_manuscript_zh/figures/`.
 - `../research-html-report/SKILL.md` for shareable research briefs and publication-style HTML reports.
+- `../paper-audit/SKILL.md` for completed-paper mock peer review and revision re-review; author approval remains separate.
 - `../paper-polishing-skill/SKILL.md` for post-approval Chinese-to-English translation and Nature/PRL/PRA manuscript polishing.
 - `references/paper-config.md` for config-driven title, author, affiliation, correspondence, keyword, acknowledgment, and abstract metadata.
 - `references/qct-writing-methodology.md` for reusable QCT/QWCT abstract, introduction, contribution, result-framing, terminology, and claim-boundary methodology.

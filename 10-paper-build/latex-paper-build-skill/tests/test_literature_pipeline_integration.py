@@ -486,7 +486,7 @@ class LiteraturePipelineTests(unittest.TestCase):
     def test_new_skill_layout_excludes_paid_and_pdf_generators(self):
         files = {p.name for p in (REVIEW / "scripts").glob("*.py")}
         self.assertEqual(files, {"search_databases.py", "verify_citations.py"})
-        self.assertEqual(len([p for p in HUB.iterdir() if (p / "SKILL.md").is_file()]), 12)
+        self.assertEqual(len([p for p in HUB.iterdir() if (p / "SKILL.md").is_file()]), 13)
 
 
 class GoalClarificationIntegrationTests(unittest.TestCase):
@@ -576,7 +576,7 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
         self.assertEqual(heading_levels(chinese), heading_levels(english))
         for text in (chinese, english):
             self.assertEqual(text.count('(latex-paper-build-skill/references/goal-clarification.md)'), 1)
-        self.assertEqual(len([p for p in HUB.iterdir() if (p / 'SKILL.md').is_file()]), 12)
+        self.assertEqual(len([p for p in HUB.iterdir() if (p / 'SKILL.md').is_file()]), 13)
 
 
 if __name__ == "__main__":

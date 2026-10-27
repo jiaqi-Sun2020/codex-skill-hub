@@ -4,7 +4,7 @@
 
 `codex-skill-hub` is the central source and navigation repository for reusable Codex Skills. It keeps project governance, paper delivery, cross-project utilities (including logic-chain teaching), and real-time visual computing separate so every capability has one canonical source while users retain one concise place to find the correct workflow.
 
-The repository directly maintains 34 active Skills: twelve under `10-paper-build`, six under `20-project-build`, seven under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
+The repository directly maintains 36 active Skills: thirteen under `10-paper-build`, six under `20-project-build`, eight under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
@@ -41,7 +41,7 @@ The three documentation layers have distinct responsibilities:
 
 `.agents/` stores project Agent context and durable knowledge; `.codex/` stores project-local startup loading. Neither replaces the human overview or creates another root `AGENTS.md`.
 
-## Thirty-four active Skills
+## Thirty-six active Skills
 
 | Category | Skill | One-line responsibility |
 |---|---|---|
@@ -54,6 +54,7 @@ The three documentation layers have distinct responsibilities:
 | Paper build | `research-html-report` | Package research logic and evidence plans as a standalone HTML report |
 | Paper build | `academic-figure-workflow` | Produce editable, traceable academic figures with rendered QA |
 | Paper build | `latex-paper-build-skill` | Build and maintain a LaTeX-centered paper-delivery pipeline |
+| Paper build | `paper-audit` | Independently mock-review completed manuscripts and revisions, returning one grounded report |
 | Paper build | `paper-polishing-skill` | Translate, restructure, and polish approved content for a target venue |
 | Paper build | `prl-manuscript-polisher` | Adapt, compress, and evidence-calibrate a technically complete manuscript for PRL |
 | Paper build | `interactive-skill-builder` | Create or update Skills through interviews, specifications, and approval gates |
@@ -70,6 +71,7 @@ The three documentation layers have distinct responsibilities:
 | Core utility | `find-skills` | Find candidate Skills from local, curated, and public sources; inspect them before helping install with user approval |
 | Core utility | `logic-chain-tutor` | Build a logical chain from the learner's current gap to the target concept |
 | Core utility | `design-taste-frontend` | Taste v2: art direction, layout, imagery, motion, and visual checks for public-facing pages |
+| Core utility | `archify` | Turn descriptions or repository evidence into interactive standalone HTML diagrams and on-demand one-page explainers |
 | Real-time visual computing | `celestial-body-formation-skill` | Build, improve, or audit real-time celestial visuals on the web |
 | Real-time visual computing | `gsap-core` | Use the GSAP core tween, easing, stagger, and responsive-animation APIs |
 | Real-time visual computing | `gsap-timeline` | Sequence multi-step animation and playback with GSAP timelines |
@@ -90,9 +92,11 @@ The three documentation layers have distinct responsibilities:
 | Discover research context or compare known papers | Use the literature-review or matrix entry in [10-paper-build](10-paper-build/README.en.md) |
 | Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
+| A completed manuscript needs mock peer review or revision re-review | Use [paper-audit](10-paper-build/paper-audit/SKILL.md); read-only report by default, no automatic edits |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |
 | Find, verify, or compare an external Skill | Use `find-skills` in [50-core-utils](50-core-utils/README.en.md); candidate installation still needs explicit authorization |
 | Design or improve a landing page, portfolio, brand site, or product showcase | Use [Taste Skill](50-core-utils/taste-skill/SKILL.md); dashboards and app screens are outside its default scope |
+| Explain a system, workflow, relationship, or code architecture interactively, or request a one-page explainer | Use [Archify](50-core-utils/archify/SKILL.md); the central snapshot grants neither global installation nor execution authority |
 | Build real-time web graphics, or use GSAP for interaction, scroll, or framework animation | Use the graphics and animation entry in [60-visual-computing](60-visual-computing/README.en.md) |
 | Prepare a submission, delivery, or session transfer | Use submission audit and handoff separately; neither grants automatic commit authority |
 | Learn an unfamiliar concept, formula, or paper method | Use [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) in core utilities |

@@ -1,0 +1,4 @@
+# Keep the pinned upstream rendering bytes unchanged; these verified generated HTML
+# examples deliberately retain trailing spaces used by the upstream formatter.
+*.html whitespace=-trailing-space
+renderers/workflow/workflow-compiler.mjs whitespace=-trailing-space

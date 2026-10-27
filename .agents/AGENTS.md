@@ -60,10 +60,10 @@ codex-skill-hub/
   README pair's repository-wide overview role.
 - Keep only repository entry files at the root: the bilingual READMEs,
   `LICENSE`, `.gitignore`, and Git metadata.
-- Maintain the twelve paper-build Skill sources under `10-paper-build/`, the six
-  project-build core Skill sources under `20-project-build/`, the seven reusable
+- Maintain the thirteen paper-build Skill sources under `10-paper-build/`, the six
+  project-build core Skill sources under `20-project-build/`, the eight reusable
   core Skill sources under `50-core-utils/`, and the nine real-time visual-computing
-  Skills under `60-visual-computing/`; these thirty-four active Skills remain
+  Skills under `60-visual-computing/`; these thirty-six active Skills remain
   canonical at their designated paths.
 - `paper-project-initializer` creates only approved minimal paper entries and
   returns to the selected stage. Agent/memory/Hook are separately approved;

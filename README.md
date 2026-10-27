@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具（包括逻辑链教学）和实时视觉计算能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
 
-本仓库当前直接维护 34 个活动 Skill：`10-paper-build` 12 个、`20-project-build` 6 个、`50-core-utils` 7 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
+本仓库当前直接维护 36 个活动 Skill：`10-paper-build` 13 个、`20-project-build` 6 个、`50-core-utils` 8 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
@@ -41,7 +41,7 @@
 
 `.agents/` 保存项目 Agent 上下文与长期知识，`.codex/` 保存项目级启动加载。二者不是人类总览的替代品，也不会在根目录生成另一份 `AGENTS.md`。
 
-## 34 个活动 Skill
+## 36 个活动 Skill
 
 | 分类 | Skill | 一句话职责 |
 |---|---|---|
@@ -54,6 +54,7 @@
 | 论文构建 | `research-html-report` | 将研究逻辑与证据计划整理为独立 HTML 报告 |
 | 论文构建 | `academic-figure-workflow` | 制作可编辑、可追溯并经过渲染 QA 的学术图件 |
 | 论文构建 | `latex-paper-build-skill` | 构建和维护以 LaTeX 为中心的论文交付 Pipeline |
+| 论文构建 | `paper-audit` | 独立进行整稿模拟审稿与修订回审，只交付有依据的报告 |
 | 论文构建 | `paper-polishing-skill` | 在内容获批后完成翻译、结构修订和期刊风格润色 |
 | 论文构建 | `prl-manuscript-polisher` | 对技术完整稿件进行 PRL 适配、压缩和证据校准 |
 | 论文构建 | `interactive-skill-builder` | 通过访谈、规格和审批门创建或更新 Skill |
@@ -70,6 +71,7 @@
 | 核心工具 | `find-skills` | 从本机、受管目录与公开生态发现候选 Skill，先审查，再在用户许可时协助安装 |
 | 核心工具 | `logic-chain-tutor` | 从当前卡点建立前置知识到目标概念的逻辑链 |
 | 核心工具 | `design-taste-frontend` | Taste v2：为公开网页提供艺术方向、版式、配图、动效与视觉检查 |
+| 核心工具 | `archify` | 将描述或代码证据转为可交互的独立 HTML 图解及按需的一页解释 |
 | 实时视觉计算 | `celestial-body-formation-skill` | 构建、改进或审核网页中的实时天体视觉效果 |
 | 实时视觉计算 | `gsap-core` | 使用 GSAP 核心补间、缓动、交错和响应式动画 API |
 | 实时视觉计算 | `gsap-timeline` | 用 GSAP 时间线编排多步骤动画与播放控制 |
@@ -90,9 +92,11 @@
 | 寻找研究背景或比较已有文献 | 使用 [10-paper-build](10-paper-build/README.md) 的文献发现或矩阵入口 |
 | 把已有研究成果整理成论文 | 从 [10-paper-build](10-paper-build/README.md) 当前最早缺失的阶段进入 |
 | 更新已初始化项目的 README、`.agents` 或长期知识 | 使用 [50-core-utils](50-core-utils/README.md) 中的持续维护工具 |
+| 论文写完，需要模拟审稿或修订回审 | 使用 [paper-audit](10-paper-build/paper-audit/SKILL.md)；默认只读报告，不自动改稿 |
 | 审核一个 Skill 或整理训练代码 | 从核心工具分类选择对应 Skill |
 | 需要寻找、核验或比较外部 Skill | 使用 [50-core-utils](50-core-utils/README.md) 中的 `find-skills`；安装候选仍须先取得明确授权 |
 | 设计或改进落地页、作品集、品牌或产品展示页 | 使用 [Taste Skill](50-core-utils/taste-skill/SKILL.md)；仪表盘和应用屏幕不属于其默认范围 |
+| 将系统、流程、关系或代码架构解释为交互图，或明确要求一页解释 | 使用 [Archify](50-core-utils/archify/SKILL.md)；中央快照不等于全局安装或运行授权 |
 | 构建实时网页图形，或用 GSAP 实现交互、滚动和框架动画 | 使用 [60-visual-computing](60-visual-computing/README.md) 的图形与动画入口 |
 | 准备提交、交付或换会话 | 分别使用提交审计与任务交接，不把二者视为自动提交授权 |
 | 学习陌生概念、公式或论文方法 | 使用核心工具中的 [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) |

@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`10-paper-build/` 直接维护十二个同级 Skill，用于把研究问题、证据和分析组织成可审核的图件、中文作者审阅稿及最终投稿材料。本目录是论文构建分类的人类入口；每个 Skill 的正式执行规则仍以其 `SKILL.md` 为准。
+`10-paper-build/` 直接维护十三个同级 Skill，用于把研究问题、证据和分析组织成可审核的图件、中文作者审阅稿及最终投稿材料。本目录是论文构建分类的人类入口；每个 Skill 的正式执行规则仍以其 `SKILL.md` 为准。
 
 > 论文 Pipeline 管理研究论证和交付物，不执行具体研究任务，不虚构数据，也不会因为图件、编译或润色通过而宣告科学主张成立。
 
@@ -25,7 +25,7 @@ HTML 报告（可选）   academic-figure-workflow
   ↓                         ↓
 中文 LaTeX 稿件 ← 图件包、图注、证据追踪、QA
   ↓
-作者科学与视觉审核
+整稿模拟审稿 → 作者科学与视觉审核
   ↓
 英文润色与投稿检查
 ```
@@ -54,7 +54,7 @@ HTML 报告（可选）   academic-figure-workflow
 5. **中文内容先审核，英文润色后执行。**除非用户明确覆盖，先确认科学内容、边界和图表意图，再翻译和适配期刊。
 6. **简单项目保持简单。**没有图件、统计或 HTML 报告需求时，不生成空目录、空 manifest 或形式化占位物。
 
-## 十二个 Skill 的唯一职责
+## 十三个 Skill 的唯一职责
 
 | Skill | 负责 | 不负责 |
 |---|---|---|
@@ -67,6 +67,7 @@ HTML 报告（可选）   academic-figure-workflow
 | [`research-html-report`](research-html-report/SKILL.md) | 独立 HTML 研究简报、证据计划和风险展示 | 替代研究设计或制造证据 |
 | [`academic-figure-workflow`](academic-figure-workflow/SKILL.md) | 图件论点、可编辑源、样式、导出、图注、证据追踪和渲染 QA | 虚构数据、机制、模块或科学支持 |
 | [`latex-paper-build-skill`](latex-paper-build-skill/SKILL.md) | Pipeline 编排、LaTeX 架构、图件装配、交叉引用和编译 | 重复实现统计分析或制图逻辑 |
+| [`paper-audit`](paper-audit/SKILL.md) | 完整稿件的模拟审稿与修订回审，一份证据定位报告 | 自动改稿、执行研究、替代作者批准或真实编辑决定 |
 | [`paper-polishing-skill`](paper-polishing-skill/SKILL.md) | 获批内容的翻译、结构修订和 Nature/PRL/PRA 风格润色 | 发明数据、引用或更强主张 |
 | [`prl-manuscript-polisher`](prl-manuscript-polisher/SKILL.md) | 技术完整物理稿件的 PRL 压缩、适配和证据校准 | 用措辞掩盖证据不足 |
 | [`interactive-skill-builder`](interactive-skill-builder/SKILL.md) | 通过访谈、规格确认、审批门和验证创建 Skill | 绕过作者确认生成最终 Skill |
@@ -83,10 +84,25 @@ HTML 报告（可选）   academic-figure-workflow
 | 3 研究执行与分析 | 需要产生或核验结果 | 项目/领域执行者 + `data-analysis` | 原始结果、分析代码、统计与解释 | 来源、单位、变换、不确定性和边界可审查 |
 | 4 研究简报 | 需要共享或打印研究计划 | `research-html-report` | 独立 HTML 报告 | 主张、证据矩阵、风险和 TODO 可见 |
 | 5 图件与中文稿 | 需要正式图件或论文结构 | 图件 Skill + LaTeX Pipeline | 图件包、`caption.md`、中文 LaTeX 稿件 | 路径解析、图注、正文解读和编译关系成立 |
-| 6 作者审核 | 中文稿和适用图件已形成 | 作者/领域专家 | 审核决定和保留 TODO | 科学内容、主张边界、术语、图表和元数据获批 |
+| 6 整稿预审与作者审核 | 完整稿件和适用图件已形成 | paper-audit → 作者/领域专家 | 适用预审报告、作者决定和未决项 | 版本、覆盖和意见可核；科学批准仍由作者决定 |
 | 7 英文润色与投稿检查 | 作者已批准科学内容 | polishing / PRL Skill | 英文稿、构建与投稿检查 | PDF、引用、图件、匿名和期刊约束通过或列明缺口 |
 
 阶段完成只表示该阶段的合同满足。工作完成、数据可信、图件合格、稿件编译、主张获支持和获得发布授权必须分别判断。
+
+## 整稿模拟审稿与修订回审
+
+[paper-audit](paper-audit/SKILL.md) 可独立调用，不依赖 Pipeline、配置或兄弟 Skill。只有摘要时可提供有限意见，但不能冒充整稿预审。默认只读、聊天交付一份报告；保存需授权，不自动修改论文、补实验或投稿。
+
+```text
+完整稿件 → 理解论证 → 模拟审稿 → 反审自己的意见 → 一份报告 → 作者决定
+修订稿＋可定位旧报告 → 核对关闭条件与关联影响 → 回审报告 → 作者决定
+```
+
+报告区分科学有效性、贡献、表达和内部一致性；不凑问题数量，不要求负结果变成功，也不以流畅叙事替代证据。作者说“已修复”不足以关闭问题，必须对照新稿；缺历史则保留未知。模拟建议不是实际编辑决定。
+
+Stage 6 接收报告后停在作者门禁。Stage 7 快捷路由及两个直接润色入口在最终整稿交付前检查适用预审或等价人工审查；局部修改、译文草稿和明确的待审核版本不强制整稿预审。润色后复核语义影响，方法、数据、证据、公式、图义或主张强度改变时重开相关部分。已有授权允许继续工作，但不会使未核事项自动通过。
+
+生成器只增加导航，不执行审稿或生成空报告。授权保存且没有已有位置时，可使用 `06_review_gate/paper_audit_report.md`；旧工作区与既有报告优先复用，不新增台账。只复制独立 Skill 包不会自动全局安装或验证宿主自动发现。
 
 ## 可选文献支线与科学检查
 
@@ -177,8 +193,9 @@ paper_pipeline/
 | 需要可分享研究简报 | Stage 4 |
 | 需要图件、图注、风格锁定或图件 QA | 可选图件支线，然后返回 Stage 5 |
 | 已有 `.tex`，需要重组或接入配置 | Stage 5 |
+| 完整稿件需模拟审稿，或修订后需回审 | paper-audit；可独立调用，Pipeline 中返回 Stage 6 作者门禁 |
 | 中文科学内容等待作者决定 | Stage 6 |
-| 内容已经批准，需要英文稿或 PRL 适配 | Stage 7 |
+| 内容已经批准，需要英文稿或 PRL 适配 | 核对适用预审后进入 Stage 7；未核版本只作为待审核稿 |
 
 不要求小修改从 Stage 0 重跑。任何缺失证据、未批准决定或失败门禁都应返回最早受影响阶段，而不是靠润色绕过。
 
@@ -214,4 +231,4 @@ python -X utf8 -B -m unittest discover `
 
 图件工作流借鉴了 [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure) 的论点驱动多面板、语义配色和投稿 QA 思路，以及 [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill) 的数据先行可视化顾问思路。它的可选 Apple-inspired 学术图件参考仅在用户明确选择时才生效，独立改编自两个固定 MIT 来源；不使用 Apple 资产，不改变现有 Style Manifest、科学保护或 QA 门禁。另附 PLOS 的 CC0 `Ten Simple Rules for Better Figures` 作为通用设计阅读材料，而非期刊要求或科学证据。具体出版规范来源记录在 [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md)。借鉴不表示原作者对本项目背书，第三方材料继续遵守其原始许可证和通知要求。
 
-文献、科学推理和图件工作流的固定上游提交、适配范围、CC0 来源与完整 MIT 声明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本分类现为 12 个 Skill；历史八项导入加图件仍是原来的九项来源，不改写历史记录。
+文献、科学推理、整稿预审和图件工作流的固定上游提交、适配范围及 MIT、Apache-2.0、CC0 来源说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本分类现为 13 个 Skill；历史八项导入加图件仍是原来的九项来源，不改写历史记录。

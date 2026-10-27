@@ -332,6 +332,25 @@ Exit gate:
 
 ## Stage 6: User Scientific/Content Review Gate
 
+For a completed draft without an applicable equivalent review, use
+[paper-audit](../../paper-audit/SKILL.md) for a single read-only mock-review
+report before the author decision. For a revised draft,
+reuse identifiable prior concerns and verify their closure against the new text;
+never close them on an author's assertion alone. Review may be standalone and
+must not create or rebuild a Pipeline.
+
+Apply the shared [final-manuscript handoff](../../paper-audit/SKILL.md#final-manuscript-handoff):
+locate an applicable whole-paper pre-review or equivalent human review, its
+version, coverage, unresolved issues and author disposition. This is not a
+second state ledger. Existing report locations and legacy formats may be reused.
+Default delivery is chat; only when saving is authorized and no location exists,
+use `06_review_gate/paper_audit_report.md`. No empty report is generated.
+
+A limited report is not whole-paper coverage; a mock verdict is not author
+approval or execution authority. Return to the human gate, not automatically to
+Stage 7. Explicitly authorized work despite pending review remains a draft, not
+pre-reviewed or submission-ready.
+
 Do not run whole-manuscript final English polishing before this gate unless the user explicitly overrides it. The author should review the Chinese manuscript for scientific content, claim boundaries, terminology, figure/table intent, and paper metadata.
 
 Exit gate:
@@ -356,6 +375,13 @@ Exit gate:
 Sibling skill: `../paper-polishing-skill/SKILL.md`
 
 Use after the review gate to translate and polish the approved Chinese manuscript into the requested Nature, PRL, or PRA style.
+
+Before final delivery, check the applicable pre-review and the semantic impact
+of polishing under paper-audit's shared handoff rule. Reuse unaffected findings;
+re-review changed methods, data, evidence, formulas, figure meaning, scope or
+claim strength even when conclusion wording is unchanged. Pure wording/layout
+changes need a meaning check, not an automatic full re-review. A missing report
+or author decision stays pending; an override to translate does not approve it.
 
 Required checks:
 
@@ -428,7 +454,8 @@ literature placeholders. Optional literature work creates only needed artifacts.
   5 for manuscript placement and prose interpretation after the figure packet
   is ready.
 - If the user has a `.tex` manuscript, asks for paper architecture, or asks for author/contact metadata configuration, start at Stage 5.
-- If the user has approved the Chinese manuscript and asks for final English output, start at Stage 7 with `paper-polishing-skill`.
+- If the user asks for completed-manuscript mock peer review or revision re-review, route to `paper-audit` at Stage 6 and return its report to the author; do not scaffold, polish or advance automatically.
+- If the user has approved the Chinese manuscript and asks for final English output, check the applicable whole-paper pre-review under the shared handoff before Stage 7 with `paper-polishing-skill`; absent review remains pending, not implied by Chinese-content approval.
 - If the user has a manuscript and wants pre-final content review, start at Stage 6; after approval, continue to Stage 7.
 
 Do not require all stages for small edits. A pipeline exists to preserve continuity, not to create ceremony.
