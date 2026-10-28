@@ -13,7 +13,8 @@
 | `Get-ChildItem ".\50-core-utils\skill-registry\sources\reader-learner\tests" -Filter "test_*.py" \| Sort-Object Name \| ForEach-Object { python -X utf8 -B $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }` | run from repository root; direct Reader-Learner source smoke tests | verified |
 | `python -X utf8 -B -m unittest discover -s ".\20-project-build\project-agent-generator-skill\tests" -p "test_*.py"` | run from repository root; includes Hook event, encoding, size, link/junction, and drift coverage | verified |
 | `git diff --check` | run from repository root; whitespace and conflict-marker check | verified |
-| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 34 directly maintained Skills | verified |
+| `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\neat-freak"` | run from repository root; repeat for all 37 directly maintained Skills | verified |
+| `python -X utf8 -B ".\50-core-utils\humanizer\scripts\validate-package.py"` | run from repository root; Humanizer's read-only offline package validation | verified |
 | `Get-ChildItem ".\50-core-utils\taste-skill" -Recurse -File \| Where-Object { $_.Extension -in @('.mjs', '.js') } \| ForEach-Object { node --check $_.FullName; if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE } }` | run from repository root; imported Taste Skill JavaScript syntax check | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\20-project-build\project-submission-audit"` | run from repository root; new submission-audit Skill structure | verified |
 | `python -X utf8 -B "$env:CODEX_HOME\skills\.system\skill-creator\scripts\quick_validate.py" ".\50-core-utils\handoff"` | run from repository root; new handoff Skill structure | verified |
@@ -49,7 +50,7 @@
    semantics or interpret the result; `claim_ceiling`, evidence, work completion,
    and authorization remain independent axes.
 5. Run the smallest relevant syntax or unit-test command first.
-6. For paper-build changes, validate all twelve Skill directories under `10-paper-build/`,
+6. For paper-build changes, validate all thirteen Skill directories under `10-paper-build/`,
    compile their Python scripts, and smoke-test documented CLI entry points.
 7. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
 8. Do not open, print, copy, summarize, upload, or modify suspected credential files.

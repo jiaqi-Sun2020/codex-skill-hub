@@ -189,6 +189,14 @@
   global installation or authorization for later asset, browser, or server actions.
 - 2026-10-21: Add an optional Apple-inspired academic-figure reference and retain the CC0 PLOS *Ten Simple Rules for Better Figures* PDF. The styling reference is explicit-selection-only, independently adapted from pinned MIT sources, excludes Apple assets, and cannot change the protected Style Manifest, scientific content, delivery requirements, or QA gates; the PLOS source is general design reading only. No active-Skill count or canonical location changes.
 
+- 2026-10-28: Import Siqi Chen's MIT-licensed Humanizer v3.1.0 as the ninth
+  direct `50-core-utils` Skill, invoked as `humanizer` and fixed to commit
+  `8c307f367c91bd974002f10f2be2965d642c13df`. Preserve the selected source,
+  package metadata, offline validator, license, and `UPSTREAM.md`; this is a
+  source snapshot only, not a global installation or authorization to edit files.
+  Any prose edit requires explicit authority, must preserve supported claims and
+  citations, and does not perform scientific review or guarantee detector evasion.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

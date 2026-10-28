@@ -8,11 +8,11 @@
 ## Purpose
 
 `My_skills` is the owner-confirmed central navigation and source hub for local Codex
-skills. It separates thirty-six directly maintained active Skills, versioned shared
+skills. It separates thirty-seven directly maintained active Skills, versioned shared
 skills, and project-owned forks. `.agents/AGENTS.md`
 is the single project entrypoint for `.agents/memory/MEMORY.md`; the trusted
 project-local `.codex/` Hook explicitly loads that entrypoint.
-The bilingual root READMEs document the thirty-six Skills stored in this repository
+The bilingual root READMEs document the thirty-seven Skills stored in this repository
 and route readers to eight numbered categories. Each numbered category has a
 bilingual README pair for its human-facing framework, contents, boundaries, and
 maintenance entry points; individual `SKILL.md` files remain the formal execution
@@ -83,17 +83,19 @@ independent state axes, without duplicating the repository overview.
 - `50-core-utils/taste-skill/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
 - `50-core-utils/archify/SKILL.md`: fixed third-party interactive HTML-diagram and explainer Skill.
 - `50-core-utils/archify/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
+- `50-core-utils/humanizer/SKILL.md`: fixed third-party prose-editing Skill.
+- `50-core-utils/humanizer/UPSTREAM.md`: immutable upstream source, licensing, and scope record.
 - Shortcut files are convenience navigation only and are not canonical source;
   their tracked category READMEs describe the boundary without relying on a
   machine-specific target path.
 
 ## Current Facts
 
-- The fourteen direct project-build and reusable core Skills span two category directories:
+- The fifteen direct project-build and reusable core Skills span two category directories:
   `experiment-protocol-audit`, `project-agent-generator-skill`,
   `project-submission-audit`, `research-management-pipeline`, `research-project-pipeline`, and
   `research-workspace-governance` are maintained under `20-project-build/`;
-  `archify`, `design-taste-frontend`, `find-skills`, `handoff`, `logic-chain-tutor`,
+  `archify`, `design-taste-frontend`, `find-skills`, `handoff`, `humanizer`, `logic-chain-tutor`,
   `neat-freak`, `skill-audit-refactor`, and `training-code-architecture-skill` remain under
   `50-core-utils/`.
 - `research-workspace-governance` owns domain-neutral governance of asset roles,
@@ -155,7 +157,11 @@ independent state axes, without duplicating the repository overview.
 - `archify` is the fixed Apache-2.0 Archify v3.2.0 snapshot under `50-core-utils/archify/`.
   It renders interactive standalone HTML diagrams and optional explainers, but its source-only
   import neither globally installs it nor authorizes future browser, update-check, or global-rule actions.
-- `skill-registry` is infrastructure, not one of the fourteen direct project-build and reusable core Skills.
+- `humanizer` is the fixed MIT-licensed Humanizer v3.1.0 snapshot under
+  `50-core-utils/humanizer/`. It reduces formulaic prose only within an authorized
+  text-editing task, preserves factual content and citations, and neither performs
+  scientific review nor guarantees detector evasion.
+- `skill-registry` is infrastructure, not one of the fifteen direct project-build and reusable core Skills.
   `.pipeline-interface-backups/` contains rollback material and is not an active
   Skill source.
 - The registry retains `reader-learner` version `1.0.0` as historical release

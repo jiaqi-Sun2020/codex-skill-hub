@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [Back to the root README](../README.en.md)
 
-`50-core-utils/` stores eight active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
+`50-core-utils/` stores nine active Skills reusable across projects plus version-registry infrastructure that is not counted as an active Skill. These components do not define domain research methods or replace the project-governance ownership in `20-project-build`.
 
 ## Overall framework
 
@@ -26,6 +26,9 @@ Public-facing web design
 
 Interactive diagrams and explanation
   └─ archify: HTML diagrams of systems, workflows and relationships; on-demand one-page explainers
+
+Prose editing
+  └─ humanizer: preserve meaning while reducing redundant, inflated and formulaic prose
 ```
 
 ## Component responsibilities
@@ -40,6 +43,7 @@ Interactive diagrams and explanation
 | [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | Active Skill | Build prerequisites, derivations, examples, and understanding checks from the current gap | Replacing research execution or scientific review, or changing external learning profiles without approval |
 | [`design-taste-frontend`](taste-skill/SKILL.md) | Active Skill | Taste v2: public-page art direction, layout, imagery, motion, and visual checks | Dashboards, app screens, universal design rules, or unauthorized downloads and browser operations |
 | [`archify`](archify/SKILL.md) | Active Skill | Interactive HTML diagrams and on-demand one-page explainers from descriptions or repository evidence | Scientific certification, academic figure delivery, automatic global installation, or unauthorized global-rule edits |
+| [`humanizer`](humanizer/SKILL.md) | Active Skill | Reduce formulaic prose while preserving facts and the writer's voice | Scientific review, authorship detection, detector-evasion guarantees, or unauthorized manuscript edits |
 | [`skill-registry`](skill-registry/README.md) | Infrastructure | Maintain editable source, version metadata, immutable release snapshots, and consumer relationships | Counting as an active Skill or overwriting project-owned forks |
 
 ## When to use
@@ -56,6 +60,8 @@ Interactive diagrams and explanation
 
 When `.agents` is missing, use `20-project-build/project-agent-generator-skill` rather than asking Neat-Freak to regenerate a framework. Auditing the final change surface belongs to `20-project-build/project-submission-audit`, not Handoff.
 
+- For redundant or formulaic prose, read `humanizer/SKILL.md`, invoked as `humanizer`; see [provenance](humanizer/UPSTREAM.md). This is central source, not a global installation.
+
 ## Boundaries and safety
 
 - “audit / check / review” is read-only by default; writing requires an explicit initialization, synchronization, repair, or maintenance request.
@@ -67,6 +73,8 @@ When `.agents` is missing, use `20-project-build/project-agent-generator-skill` 
 - Find Skills uses network search only to collect candidates and evidence; a discovery result never modifies local Skills, user-level Codex configuration, or this Hub.
 - Full Taste checks need Node 22+ and a browser; future runs create project working files and screenshots and may download assets. Importing the source grants none of those actions; user intent and project rules take precedence.
 - Future Archify runs may create `.archify/`, HTML and review receipts; some commands launch a browser and check upstream updates. Importing it grants none of those actions and does not enable proactive explanation or edit global rules.
+
+Humanizer's upstream file mode writes text back and needs an actual edit authorization. Its punctuation and wording preferences are not universal scientific standards. Preserve scientific qualifiers, numbers, terms and citations; prose editing does not replace `paper-audit`.
 
 ## Verification
 
@@ -82,6 +90,8 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 The corresponding `SKILL.md` or Registry README remains authoritative for commands, approval gates, inputs, and outputs.
 
 ## Provenance and license
+
+[`Humanizer`](https://github.com/blader/humanizer), maintained by Siqi Chen (blader), is MIT licensed, version `3.1.0`, pinned to `8c307f367c91bd974002f10f2be2965d642c13df`. Nine execution, documentation, license and offline-validation files were selected from the owner-provided local copy and matched to that commit. Only two README trailing spaces were removed, and [provenance](humanizer/UPSTREAM.md) was added. Plugin JSON remains for the original validator; no plugin/global installation or private paper material is included.
 
 [`Archify`](https://github.com/tt-a1i/archify), maintained by tt-a1i and originating from Cocoon AI, is pinned to `81c6be8d87090670c45d08a8f97f9d29c5af0bec` (v3.2.0). All 206 files in its single `archify/` directory are retained. Apache-2.0 applies, with historical MIT grants and separate font/icon terms retained. LICENSE, NOTICE and third-party notices remain intact; see [UPSTREAM.md](archify/UPSTREAM.md). The website, repository development tooling and global integrations are excluded.
 

@@ -2,7 +2,7 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`50-core-utils/` 保存八个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
+`50-core-utils/` 保存九个可跨项目复用的活动 Skill，以及一套不计入活动 Skill 的版本注册基础设施。这些组件不定义研究领域方法，也不替代 `20-project-build` 的项目治理所有权。
 
 ## 整体框架
 
@@ -26,6 +26,9 @@ neat-freak：重复维护项目信息与加载一致性
 
 交互式图解与解释
   └─ archify：系统、流程和关系的 HTML 图解与按需一页解释
+
+文本表达润色
+  └─ humanizer：保留原意，减少冗余、空泛拔高和模板化表达
 ```
 
 ## 组件职责
@@ -40,6 +43,7 @@ neat-freak：重复维护项目信息与加载一致性
 | [`logic-chain-tutor`](logic-chain-tutor/SKILL.md) | 活动 Skill | 从当前卡点建立前置知识、推导、例子和理解检查 | 替代研究执行、科学结论审核或擅自修改外部学习画像 |
 | [`design-taste-frontend`](taste-skill/SKILL.md) | 活动 Skill | Taste v2：公开网页艺术方向、版式、配图、动效和视觉检查 | 仪表盘、应用屏幕、通用设计标准或未经授权的素材下载与浏览器操作 |
 | [`archify`](archify/SKILL.md) | 活动 Skill | 由描述或代码证据生成交互式 HTML 图解及按需一页解释 | 科学事实认证、学术图件交付、自动全局安装或擅自修改全局规则 |
+| [`humanizer`](humanizer/SKILL.md) | 活动 Skill | 在保留事实和作者声音的前提下减少模板化表达 | 科学审稿、作者身份判定、绕过检测保证或未经授权改稿 |
 | [`skill-registry`](skill-registry/README.md) | 基础设施 | 维护可编辑源码、版本元数据、不可变发布快照和消费关系 | 计为活动 Skill 或覆盖项目拥有的 fork |
 
 ## 何时使用
@@ -53,6 +57,7 @@ neat-freak：重复维护项目信息与加载一致性
 - 设计或改进公开网页：读取 `taste-skill/SKILL.md`，调用名为 `design-taste-frontend`；准备、许可和固定版本见 [来源记录](taste-skill/UPSTREAM.md)。本仓库只保存中央源码，与 `find-skills` 一样不自动全局加载。
 - 解释系统、流程、关系、状态或代码架构，或明确要求一页解释：读取 `archify/SKILL.md`；固定版本、运行边界及许可见 [来源记录](archify/UPSTREAM.md)。不替代论文分类的 `academic-figure-workflow`。
 - 需要检查、发布或同步 Registry 管理的版本：使用 `skill-registry` 工具。
+- 文本需要减少冗余或模板化表达：读取 `humanizer/SKILL.md`，调用名 `humanizer`；版本及写入边界见 [来源记录](humanizer/UPSTREAM.md)。仅收录中央源码，不自动全局安装。
 
 首次缺失 `.agents` 框架时，应使用 `20-project-build/project-agent-generator-skill`，而不是让 Neat-Freak 重新生成框架。提交前变更面审核属于 `20-project-build/project-submission-audit`，不属于 Handoff。
 
@@ -68,6 +73,8 @@ neat-freak：重复维护项目信息与加载一致性
 - Taste 的完整检查需要 Node 22+ 和浏览器；未来运行会产生项目工作文件、截图，并可能下载素材。导入源码不代表批准这些操作；保持用户和项目规范优先。
 - Archify 将来运行可生成 `.archify/`、HTML 和审核回执，部分命令会启动浏览器并检查上游更新；导入不授权这些动作，不自动启用主动解释模式或改写全局规则。
 
+Humanizer 的原版文件模式会写回文本，使用时必须有对应编辑授权。其标点和措辞偏好不是通用科学标准；保留论文限定、数字、术语和引用，不将润色当作 `paper-audit` 的科学预审。
+
 ## 验证
 
 从仓库根目录运行：
@@ -82,6 +89,8 @@ python -X utf8 -B ".\50-core-utils\skill-registry\tests\test_skill_registry.py"
 具体命令、审批门和输入输出以相应 `SKILL.md` 或 Registry README 为准。
 
 ## 来源与许可
+
+[`Humanizer`](https://github.com/blader/humanizer) 由 Siqi Chen（blader）维护，MIT 许可，版本 `3.1.0`，固定提交 `8c307f367c91bd974002f10f2be2965d642c13df`。从用户提供的本地副本选取9个执行、说明、许可及离线校验文件，全部与固定提交比对；本地仅清理 README 两处行尾空格并添加 [来源记录](humanizer/UPSTREAM.md)。保留插件 JSON 供原版校验器读取，不安装插件、全局 Skill 或导入外部论文材料。
 
 [`Archify`](https://github.com/tt-a1i/archify) 是 tt-a1i 维护、源自 Cocoon AI 的图解 Skill，固定提交 `81c6be8d87090670c45d08a8f97f9d29c5af0bec`（v3.2.0）。完整保留单个 `archify/` 目录的206个文件；采用 Apache-2.0，历史 MIT 授权、字体与图标的独立许可继续有效。许可证、NOTICE 和第三方声明均保留，详见 [UPSTREAM.md](archify/UPSTREAM.md)。未导入网站、仓库开发工具或全局集成。
 

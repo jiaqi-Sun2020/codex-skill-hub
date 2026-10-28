@@ -4,7 +4,7 @@
 
 `codex-skill-hub` 是可复用 Codex Skill 的中央源码与导航仓库。它把项目治理、论文交付、跨项目工具（包括逻辑链教学）和实时视觉计算能力分开维护，使每项能力只有一个正式源码位置，同时让使用者能够从一个简洁入口找到正确流程。
 
-本仓库当前直接维护 36 个活动 Skill：`10-paper-build` 13 个、`20-project-build` 6 个、`50-core-utils` 8 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
+本仓库当前直接维护 37 个活动 Skill：`10-paper-build` 13 个、`20-project-build` 6 个、`50-core-utils` 9 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
@@ -41,7 +41,7 @@
 
 `.agents/` 保存项目 Agent 上下文与长期知识，`.codex/` 保存项目级启动加载。二者不是人类总览的替代品，也不会在根目录生成另一份 `AGENTS.md`。
 
-## 36 个活动 Skill
+## 37 个活动 Skill
 
 | 分类 | Skill | 一句话职责 |
 |---|---|---|
@@ -72,6 +72,7 @@
 | 核心工具 | `logic-chain-tutor` | 从当前卡点建立前置知识到目标概念的逻辑链 |
 | 核心工具 | `design-taste-frontend` | Taste v2：为公开网页提供艺术方向、版式、配图、动效与视觉检查 |
 | 核心工具 | `archify` | 将描述或代码证据转为可交互的独立 HTML 图解及按需的一页解释 |
+| 核心工具 | `humanizer` | 在保留原意和事实的前提下减少模板化表达，按授权润色文本 |
 | 实时视觉计算 | `celestial-body-formation-skill` | 构建、改进或审核网页中的实时天体视觉效果 |
 | 实时视觉计算 | `gsap-core` | 使用 GSAP 核心补间、缓动、交错和响应式动画 API |
 | 实时视觉计算 | `gsap-timeline` | 用 GSAP 时间线编排多步骤动画与播放控制 |
@@ -97,6 +98,7 @@
 | 需要寻找、核验或比较外部 Skill | 使用 [50-core-utils](50-core-utils/README.md) 中的 `find-skills`；安装候选仍须先取得明确授权 |
 | 设计或改进落地页、作品集、品牌或产品展示页 | 使用 [Taste Skill](50-core-utils/taste-skill/SKILL.md)；仪表盘和应用屏幕不属于其默认范围 |
 | 将系统、流程、关系或代码架构解释为交互图，或明确要求一页解释 | 使用 [Archify](50-core-utils/archify/SKILL.md)；中央快照不等于全局安装或运行授权 |
+| 去除文本中的冗余、空泛拔高或模板化表达 | 使用 [Humanizer](50-core-utils/humanizer/SKILL.md)；文件改写需授权，不替代科学审稿 |
 | 构建实时网页图形，或用 GSAP 实现交互、滚动和框架动画 | 使用 [60-visual-computing](60-visual-computing/README.md) 的图形与动画入口 |
 | 准备提交、交付或换会话 | 分别使用提交审计与任务交接，不把二者视为自动提交授权 |
 | 学习陌生概念、公式或论文方法 | 使用核心工具中的 [logic-chain-tutor](50-core-utils/logic-chain-tutor/SKILL.md) |

@@ -63,6 +63,7 @@ My_skills/
 |   |-- archify/
 |   |-- find-skills/
 |   |-- handoff/
+|   |-- humanizer/
 |   |-- neat-freak/
 |   |-- skill-audit-refactor/
 |   |-- skill-registry/
@@ -153,6 +154,8 @@ My_skills/
 - `50-core-utils/taste-skill/UPSTREAM.md`
 - `50-core-utils/archify/SKILL.md`
 - `50-core-utils/archify/UPSTREAM.md`
+- `50-core-utils/humanizer/SKILL.md`
+- `50-core-utils/humanizer/UPSTREAM.md`
 - `50-core-utils/skill-registry/README.md`
 - `60-visual-computing/celestial-body-formation-skill/SKILL.md`
 - `60-visual-computing/gsap-core/SKILL.md`
@@ -212,7 +215,7 @@ My_skills/
 ## Boundary Notes
 
 - The root README pair owns repository-wide purpose, category routing, and the
-  compact thirty-six-Skill index. Every numbered category README pair owns only the
+  compact thirty-seven-Skill index. Every numbered category README pair owns only the
   human-facing map and boundaries for that category; `SKILL.md` files own formal
   execution contracts.
 - `20-project-build/` owns the six direct project-build Skill sources: Protocol
@@ -221,7 +224,7 @@ My_skills/
   Its bilingual README pair is a local technical map of those components, their
   four contract categories, independent state axes, and lifecycle routing; the
   root README pair remains the repository-wide overview.
-  `50-core-utils/` owns the eight reusable core Skills plus the non-Skill
+  `50-core-utils/` owns the nine reusable core Skills plus the non-Skill
   `skill-registry` infrastructure and `.pipeline-interface-backups/` rollback directory.
   `find-skills` is a fixed MIT-licensed upstream snapshot: it discovers and
   inspects external candidates but does not install them without explicit user
@@ -231,6 +234,8 @@ My_skills/
   `archify` is a fixed Apache-2.0 snapshot for interactive HTML diagrams and optional
   explainers; it does not authorize a global installation, browser launch, update check,
   or global-rule change.
+  `humanizer` is a fixed MIT-licensed prose-editing snapshot; its source-only import
+  does not authorize file edits, detector-evasion claims, or scientific review.
 - `60-visual-computing/` owns `celestial-body-formation-skill` plus eight
   GreenSock GSAP Skill contracts for core animation, timelines, scroll, plugins,
   utilities, React, performance, and other frameworks. Celestial sources retain
@@ -251,7 +256,7 @@ My_skills/
   boundaries only; project runtimes or dedicated execution Skills own execution.
 - `50-core-utils/logic-chain-tutor/` is the centrally stored logic-chain teaching
   Skill; its former external source, personal category, and personal shortcut are retired.
-- The fourteen direct project-build and reusable core Skills are used from their
+- The fifteen direct project-build and reusable core Skills are used from their
   designated central category directories and are not vendored into projects.
 - `research-workspace-governance` owns domain-neutral asset roles, governance
   locations, status, provenance, migration, retention, deletion, and comparison

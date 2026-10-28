@@ -176,12 +176,12 @@ class PaperAuditIntegrationTests(unittest.TestCase):
         active = [p for section in ("10-paper-build", "20-project-build", "50-core-utils", "60-visual-computing")
                   for p in (ROOT / section).glob("*/SKILL.md")
                   if p.parent.name != "skill-registry"]
-        self.assertEqual(len(active), 36)
+        self.assertEqual(len(active), 37)
         self.assertEqual(len(list(HUB.glob("*/SKILL.md"))), 13)
         for root_name in ("README.md", "README.en.md"):
             root_doc = (ROOT / root_name).read_text(encoding="utf-8")
             paper_doc = (HUB / root_name).read_text(encoding="utf-8")
-            self.assertIn("36", root_doc)
+            self.assertIn("37", root_doc)
             self.assertIn("13", paper_doc)
             self.assertIn("paper-audit", root_doc)
             self.assertIn("paper-audit", paper_doc)
