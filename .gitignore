@@ -10,6 +10,7 @@
 !99-archive/README.en.md
 50-core-utils/.pipeline-interface-backups/
 .agents/.project-agent-generator-backups/
+10-paper-build/_backups/
 **/.skill-registry/backups/
 *.bundle
 

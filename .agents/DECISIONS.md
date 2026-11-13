@@ -197,6 +197,12 @@
   Any prose edit requires explicit authority, must preserve supported claims and
   citations, and does not perform scientific review or guarantee detector evasion.
 
+- 2026-11-13: Publish the paper-audit reference expansion for object/parameter
+  identity, reading dependencies, two-way figure/text correspondence, final-PDF
+  readability and supplied bilingual meaning. Keep the same read-only single-report
+  workflow, stable concern IDs and human author gate; active Skill counts and
+  Pipeline stage/configuration interfaces remain unchanged.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

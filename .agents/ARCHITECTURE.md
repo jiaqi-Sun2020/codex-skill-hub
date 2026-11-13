@@ -176,6 +176,8 @@ My_skills/
 - `10-paper-build/research-html-report/SKILL.md`
 - `10-paper-build/latex-paper-build-skill/SKILL.md`
 - `10-paper-build/paper-audit/SKILL.md`
+- `10-paper-build/paper-audit/references/technical-consistency.md`
+- `10-paper-build/paper-audit/references/figure-review.md`
 - `10-paper-build/paper-polishing-skill/SKILL.md`
 - `10-paper-build/prl-manuscript-polisher/SKILL.md`
 - `10-paper-build/interactive-skill-builder/SKILL.md`

@@ -4,6 +4,9 @@ Locally adapted on 2026-10-28 from the MIT and Apache-2.0 sources listed in
 [LICENSE](../LICENSE). This report shape replaces their multi-file, fixed-panel
 and ledger outputs; it does not grant writing permission.
 
+Local content update 2026-11-13: made dependency, figure and bilingual
+findings actionable within the existing single-report and stable-ID contract.
+
 Use one report per invocation, inline by default. Include only applicable parts;
 do not create empty matrices, supplementary ledgers or separate lens reports.
 Write in the user's language and clearly label any illustrative rewrite.
@@ -12,8 +15,10 @@ Write in the user's language and clearly label any illustrative rewrite.
 
 - Initial whole-manuscript review or revision re-review.
 - Manuscript identity and version; prior report/version for re-review.
-- Actually read sections, figures and supplement; inaccessible or unreliable
-  content, including extraction problems.
+- Actually read sections, figures, supplied language versions and supplement;
+  inaccessible or unreliable content, including extraction problems. For visual
+  findings, identify whether the final PDF layout was inspected and any applicable
+  author-selected benchmark; a source-image preview alone is not that check.
 - Source/evidence boundary, applicable venue criteria or venue fit unchecked.
 - Same-agent review passes; any separately authorized isolation and its limits.
 - Relevant external checks actually completed, unchecked or failed.
@@ -35,16 +40,43 @@ strengths only where supported; do not invent compliments to balance concerns.
 For each substantive concern:
 
 - **ID:** PA-001 (stable across rounds and severity changes).
-- **Location / claim:** faithful section, page, table, formula or quotation.
-- **Evidence:** inspectable pointer and what it establishes; mark missing anchors.
-- **Finding:** distinguish known fact, inference and missing evidence. For logic
-  or narrative concerns, name the broken support/reading relation at the cited
-  location and its effect on evaluation or understanding, not merely "poor flow."
+- **Location and evidence:** faithful section, page, formula, algorithm line,
+  figure/table or quotation, with an inspectable source and what it establishes.
+  Mark missing anchors. Anchor a first-use concern to both use and definition,
+  a figure/text mismatch to both representations, and a bilingual discrepancy to
+  both passages. When using a reviewer comment, keep the exact quotation
+  separate from your interpretation; group verified associated markup without
+  counting linked popups as further issues.
+- **Reader's question:** explain plainly what the reader cannot determine or what
+  appears contradictory, such as "Are these the same learned weights?" Avoid
+  labels like "notation inconsistency" without saying which meanings conflict.
+- **Finding:** distinguish confirmed error, definition ambiguity, insufficient
+  evidence/provenance gap, suspected anomaly, local reading problem or an
+  unassessable check. State the known fact and label any inference; a reviewer's
+  question alone does not prove a defect.
+- **Why it matters:** explain the consequence for understanding the method,
+  judging the evidence or interpreting the claim. For logic/narrative concerns,
+  name the broken relation, not merely "poor flow."
 - **Severity / blocking:** major or minor; whether and why it blocks the central
   case, not whether it is easy to fix.
-- **Minimum remedy / closure condition:** what would resolve the criticism.
+- **Minimum remedy and linked locations:** state the smallest adequate change
+  and the other definitions, formulas, algorithms, captions or claims that must
+  agree with it. Avoid a generic "clarify" or "unify notation." Preserve correct
+  existing detail and state what can remain when that prevents an overbroad fix.
+  Separate a repair supported by evidence from a choice needing author clarification.
+- **Closure condition:** specify observable revised text, definitions or supplied
+  evidence that would resolve the issue, including the linked locations. A claim
+  that something was fixed is not enough.
 - **Counter-review:** decisive reasonable rebuttal and its disposition when
   material; avoid displaying unnecessary debate for minor corrections.
+
+Keep these elements concise; closely related ones may share a sentence or table
+cell. For a practical findings list, prefer columns for location/evidence, reader
+question, impact, minimum remedy with linked locations, and completion condition;
+retain the finding category and severity where relevant. Do not add empty rows.
+The report should be usable without technical review jargon. If a short
+illustrative rewrite is needed, label it as a suggestion and do not invent missing
+scientific facts or expand the report into a rewritten manuscript.
 
 If no grounded concern exists at a level, say so without filling a quota.
 One root problem gets one stable ID even when it affects several sections or

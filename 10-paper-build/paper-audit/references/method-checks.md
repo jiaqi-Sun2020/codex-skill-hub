@@ -5,6 +5,9 @@ Locally adapted on 2026-10-28 from the review sources identified in
 claim/evidence and consistency methods. This is a narrowed implementation,
 not their multi-reviewer, editing or research-execution workflow.
 
+Local content update 2026-11-13: integrated reading dependencies, citation
+scope, figure evidence and bilingual meaning into the existing review lenses.
+
 Use only checks relevant to the manuscript's actual claims. The Skill entry
 owns permissions and handoff; this file owns review methods. There is no minimum
 concern count, fixed IMRAD form, training requirement or universal journal style.
@@ -41,7 +44,11 @@ Use supplied sources first. Source identity/DOI registration, metadata matching,
 located content support, retraction screening and scientific quality are
 different checks. Mark each unperformed relevant check as unchecked.
 Abstract access is not full-text verification. A valid DOI does not establish
-that a source supports the claim.
+that a source supports the claim. Identify whether the cited passage supplies a
+definition, an existing method or the specific conclusion being asserted. Check
+assumptions and transformations such as normalization, powers and roots before
+calling two formulas equivalent. A source for a definition does not prove the
+paper's new bound or empirical benefit; locate the manuscript's own reasoning.
 
 External checks must follow the entry's authority and confidentiality rules.
 Record what was actually searched/read, failures and coverage limits in the
@@ -66,19 +73,28 @@ is answered, and why each central result matters. As applicable, check:
 - **Method rationale:** is it clear why the method can address that question
   under the stated assumptions, rather than merely listing modules/operations?
   Distinguish an unexplained choice from a demonstrably unsuitable method.
+  For a consequential projection, convolution or state update, identify its
+  purpose, input/output and required preceding definitions using
+  [technical consistency](technical-consistency.md#purpose-and-reading-order).
+  Request the minimum explanation that resolves the gap, not a general tutorial.
 - **Result progression:** does each key result advance an answer, with the
   relevant comparison and interpretation, rather than only report numbers or
   experiments? Do not invent a mechanism to fill an interpretive gap.
 - **Paragraph dependencies:** what job does a relevant paragraph do, what must
-  the reader already know, and what does it add? Locate background without a
-  later role, undefined terms at first use, inferential jumps, repeated work or
-  misplaced prerequisites; a nonstandard order alone is not a defect.
-- **Figure/text cooperation:** can the reader connect the decisive comparison
-  in a figure/table and its caption to the claim in the prose? Do not demand that
-  prose repeat every plotted value or assume an unread figure supplies an answer.
+  the reader already know, and what does it add? Use the
+  [first-use and transition checks](technical-consistency.md#purpose-and-reading-order)
+  to locate inferential gaps, misplaced prerequisites and background without a
+  later role. Nonstandard order or a clearly signposted preview is not itself a
+  defect; necessary reminders are not automatically redundant.
+- **Figure/text cooperation:** use
+  [figure review](figure-review.md) to connect a decisive comparison or method
+  step with the prose in both directions, and assess readability at its supplied
+  publication size. Keep content judgments distinct from layout judgments.
 - **Discussion closure:** does it synthesize the answers, consider relevant
   alternatives and boundaries, rather than repeat results or introduce an
   unsupported claim? Related numerical checks remain in Internal consistency.
+  Before recommending deletion or broader terminology, check the
+  [claim and deletion dependencies](technical-consistency.md#claim-scope-and-deletion-dependencies).
 
 Use a short reverse outline or known-to-new information check only to expose a
 concrete dependency break; do not require a per-paragraph table or separate
@@ -100,16 +116,57 @@ smallest repair direction; do not turn this check into manuscript rewriting.
 
 ## Internal consistency
 
+For technical claims, first establish the objects being compared with
+[technical consistency](technical-consistency.md): symbol meanings and scopes,
+operator/output distinctions, parameter ownership, dimensions, and the actual
+computation across representations. A matching glyph or formula does not prove
+identical parameters, data or numerical instances; an apparent typography mismatch
+must be checked against a readable source.
+
 Before comparing values, identify the entity and conditions: dataset, scale,
 configuration, batch/version, metric definition, denominator, aggregation level,
 independent unit, units, selection and uncertainty convention where applicable.
 Different objects need not share a value. Reasonable rounding and equivalent
 unit conversions are not errors; do not invent a tolerance to resolve ambiguity.
 
+For reported repetitions, identify what varies between runs and what counts as
+an independent unit. A random seed controls a pseudo-random sequence; different
+seed labels alone do not establish independent or otherwise comparable runs.
+Distinguish seed variation from configuration variation, successful/selected runs
+from attempted runs, and between-run SD from SE, confidence intervals or paired
+difference uncertainty. Check what a plotted point and its error bar summarize
+before comparing them. Do not assume equal sample counts to make labels uniform
+or pool differently configured runs by folder/model names alone. For a difference,
+distinguish a fixed reference from a random comparator and identify pairing or
+dependence before interpreting uncertainty; subtracting a fixed constant does
+not add sampling variation. Require these details only when they affect the claim.
+
+Trace key numbers to available tables, logs or other authorized evidence and
+record missing links without assuming the numbers are false. Transparent arithmetic
+on supplied values is not statistical reanalysis or verification of underlying
+experiments. Large spread or surprising values can motivate a specific check;
+they do not establish a model failure, data error or misconduct.
+
 Check supplied counts, percentages, differences, ranges, rankings and cross-
 references with reproducible intermediate reasoning. Compare the same claim
 across abstract, text, tables, figures and conclusions. Do not infer exact values
-from indistinct plots.
+from indistinct plots. A plot of an intermediate quantity does not alone establish
+an effect, or negligible effect, on a downstream outcome. Separate the observed
+pattern, a proposed mechanism and a tested outcome; locate evidence for the last
+or recommend a bounded claim without inventing a favorable explanation.
+
+### Bilingual meaning
+
+When corresponding language versions are supplied, compare their scientific
+meaning rather than word order: objects, assumptions, quantifiers, negation,
+counts, units, formulas, named variants and claim strength. Align passages by
+their role or stable labels, not identical page or equation numbers. Identify
+which language contains an omission or stronger assertion; a translation must
+not silently add commentary as if it were in the source. Equivalent idiom and
+different pagination are not discrepancies. A single-language paper does not
+require a translation audit.
+
+### Evidence categories
 
 Distinguish:
 - **Confirmed internal error:** a contradiction is demonstrable from reliable

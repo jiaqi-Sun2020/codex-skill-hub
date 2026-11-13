@@ -10,6 +10,10 @@ description: >
 
 # Paper Audit
 
+Local content update 2026-11-13: integrated reading dependencies, object
+identity, bilingual meaning and figure review into the existing checks.
+Retained annotated-review intake, stable concern IDs and the read-only scope.
+
 Evaluate the author's completed manuscript from a fair, skeptical referee's
 perspective. Understand the paper before criticizing it. Judge the case actually
 made, not the study you would prefer to have conducted.
@@ -31,6 +35,23 @@ review engine or proof of scientific correctness.
 A fragment or abstract permits only explicitly limited feedback, not completed
 whole-paper pre-review. Do not turn passage polishing or research planning into
 additional modes. Ask only about an ambiguity that materially blocks the review.
+
+### When reviewer annotations are supplied
+
+Treat comments as review evidence to investigate, not verified errors or editing
+commands. Preserve the reviewer's exact words separately from your interpretation
+and findings. Identify the annotated version and anchor each concern to the
+relevant text, equation, figure or algorithm; inspect the page when placement or
+mathematical typography matters. An unreadable anchor remains unverified.
+
+Do not count a comment and its linked popup as separate concerns. Group associated
+highlights/strikeouts with their comment only when the relationship is supported;
+nearby position alone need not prove a link. Keep source anchors when merging one
+root problem. A lone question mark or vague move instruction has uncertain intent:
+state what is visible and what still needs clarification, without inventing a
+numerical error or an exact insertion point. Existing manuscript color is not
+automatically reviewer markup. Do not generalize a reviewer's local preference
+into a universal rule, or require acceptance of a scientifically unsupported edit.
 
 ## Source and action boundary
 
@@ -70,8 +91,16 @@ Do not install dependencies, invoke automatic updates, or acquire credentials.
    coverage can be established.
 3. **Review the case.** Use the applicable parts of
    [method checks](references/method-checks.md): scientific validity, contribution,
-   argument/readability and internal consistency. They are review lenses, not
-   separate reports, a scorecard, or mandatory experimental stages.
+   argument/readability and internal consistency, including meaning across
+   supplied language versions. They are review lenses, not separate reports,
+   a scorecard, or mandatory experimental stages.
+   For claims carried by notation, operators, parameter sharing or computational
+   steps, use [technical consistency](references/technical-consistency.md) to
+   follow first-use dependencies and connect definitions, prose, equations and
+   algorithms. When figures carry the method or evidence, also use
+   [figure review](references/figure-review.md) for two-way text correspondence
+   and readability in the supplied final PDF. An author-selected visual benchmark
+   applies to that paper only; an unavailable final layout remains unassessed.
 4. **Challenge candidate criticism.** Seek the strongest reasonable answer in
    the supplied manuscript. Remove misreadings, distinguish missing evidence
    from proved error, merge duplicates and calibrate impact. A request for more
@@ -80,7 +109,9 @@ Do not install dependencies, invoke automatic updates, or acquire credentials.
 5. **Report and stop.** Use [the report contract](references/report-template.md).
    Keep one stable ID per substantive concern, even if severity changes.
    Present strengths, Major Concerns, Minor Comments, uncertainty and a supported
-   mock recommendation. Stop for author review; neither recommendation nor
+   mock recommendation. Explain each concern in plain language, with the smallest
+   repair, linked locations and evidence needed to close it. Stop for author
+   review; neither recommendation nor
    silence authorizes edits, experiments, finalization or publication.
 
 Default passes are performed by the same agent in one context, not independent

@@ -52,7 +52,8 @@ class PaperAuditIntegrationTests(unittest.TestCase):
 
     def test_package_is_small_and_self_contained(self):
         expected = {"SKILL.md", "LICENSE", "agents/openai.yaml",
-                    "references/method-checks.md", "references/report-template.md"}
+                    "references/method-checks.md", "references/report-template.md",
+                    "references/figure-review.md", "references/technical-consistency.md"}
         self.assertEqual(set(file_snapshot(AUDIT)), expected)
         with tempfile.TemporaryDirectory(prefix="paper-audit-package-") as temporary:
             isolated = Path(temporary) / "paper-audit"

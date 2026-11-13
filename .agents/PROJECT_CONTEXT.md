@@ -130,6 +130,10 @@ independent state axes, without duplicating the repository overview.
   `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
   They are separate from the thirteen project-build and reusable core Skills and
   are maintained as hub source rather than Registry releases.
+- `paper-audit` routes applicable technical claims to its technical-consistency
+  reference and figure evidence to its figure-review reference. It checks supplied
+  language versions for scientific meaning and returns evidence-anchored concerns
+  with linked repair locations and observable closure conditions in one report.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
   does not own experiment execution, runners, adapters, or runtime gates.
