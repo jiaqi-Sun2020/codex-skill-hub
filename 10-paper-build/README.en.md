@@ -104,6 +104,8 @@ For mathematical or computational claims, [technical consistency](paper-audit/re
 
 Stage 6 returns the report to the human gate. The Stage 7 shortcut and both direct polishers check applicable pre-review or equivalent human review before final whole-manuscript delivery; local edits, translation drafts and explicitly pending-review versions are exempt. After polishing, check semantic impact and reopen affected methods, data, evidence, formulas, figure meaning or claim strength. Permission to continue work does not make unchecked science pass.
 
+Results writing and English polishing use the shared [claim-safety reference](paper-polishing-skill/references/claim-safety.md) to match evidence type, claim strength and necessary conditions. Review handoffs distinguish confirmed problems, risks to verify and optional suggestions; optional experiments stay in the report or author notes. Passage polishing proposes wording in chat by default; file output follows the actual authorization, and author-locked wording stays verbatim.
+
 The generator adds navigation only, never reviews or empty reports. When saving is authorized and no location exists, use `06_review_gate/paper_audit_report.md`; reuse legacy workspaces and reports without a new ledger. Copying the standalone package neither globally installs it nor verifies host auto-discovery.
 
 ## Optional literature lane and scientific checks

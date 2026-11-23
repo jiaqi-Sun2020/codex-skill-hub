@@ -35,12 +35,12 @@ Include:
 - For Chinese PRA author-review drafts, use `\documentclass[aps,pra,reprint,groupedaddress]{revtex4-2}` with `ctex`, explicit `fontspec`, `amsmath`, `amssymb`, `graphicx`, and `xcolor`.
 - For final English PRA drafts, use `\documentclass[aps,pra,reprint,superscriptaddress]{revtex4-2}` with `amsmath`, `amssymb`, `graphicx`, and `xcolor`, and do not load `ctex` or `fontspec` unless the English manuscript still contains Chinese text.
 - XeLaTeX-friendly Chinese support with `ctex` or `fontspec` when Chinese text is present.
-- A QCT/QWCT-specific title, author placeholders, abstract placeholder, and keyword placeholders driven by `paper_config.json` when available. The abstract must follow `qct-writing-methodology.md`: scoped opening, explicit contribution, method summary, evidence hierarchy, and formal limitation language.
+- A QCT/QWCT-specific title, author placeholders, abstract placeholder, and keyword placeholders driven by `paper_config.json` when available. As in `qct-writing-methodology.md`, the abstract must identify the contribution, method and evidence with enough scope to stand alone.
 - A notation table or short notation paragraph for coin dimension, step count, position basis, measurement probability, transfer matrix, and reconstruction variable.
 - Core problem equations: coin state, walk unitary, measurement map, vectorized linear system, inverse or regularized estimator, and fidelity metric.
 - A current-evidence table populated only with values verified from local outputs or reports.
-- Results subsections that read each planned or available figure/table in the main text: state the trend, comparison, interpretation, mechanism, and scoped caveat instead of only reporting numbers.
-- Separate sections for introduction, related work/theoretical background, method, experimental protocol, current results, next experiments, discussion/limitations, and conclusion.
+- Results subsections that interpret available figures/tables: state the decisive comparison and the scope needed to understand it. Describe a mechanism only to the extent supported; a planned figure provides no result.
+- Separate sections for introduction, related work/theoretical background, method, experimental protocol, current results, discussion/limitations, and conclusion. Include planned work only when it belongs to the requested draft.
 - TODO markers for missing baselines, statistics, ablations, noise robustness, figure generation, and references.
 - A BibTeX hook such as `\bibliographystyle{apsrev4-2}` and `\bibliography{references/references}`; all references must be maintained in `.bib` files.
 - A figure-path convention or TODO list for planned figures; all image assets should live in `figures/`.
@@ -54,7 +54,7 @@ Use this order unless the user's paper structure is more specific:
 3. Reconstruction method and numerical implementation.
 4. Experimental protocol and datasets/configurations.
 5. Results from completed experiments, expanded as figure-by-figure and table-by-table analysis rather than a short numeric report.
-6. Planned validation and ablation experiments.
+6. Planned validation and ablation experiments, if requested; a reviewer's optional test is not a manuscript commitment.
 7. Discussion, limitations, and scope of claims.
 8. Conclusion.
 

@@ -63,7 +63,7 @@ generator to update old goal records; generator changes affect new templates onl
    - New paper with similar conventions: copy or adapt `assets/revtex-qwct-template/`.
    - Standalone editable `main.tex`: when requested, create a fresh non-destructive manuscript directory and put the preamble, frontmatter, sections, evidence tables, TODO markers, and BibTeX hook in one file.
    - Compile/debug request: preserve the current file layout, then run the build command and fix only the failing surface.
-   - Writing-only request: defer to the user's writing skill or local paper-writing rules; this skill owns architecture, paths, and build mechanics.
+   - Writing-only request: defer to the user's writing skill or local paper-writing rules; this skill owns architecture, paths, and build mechanics. When drafting results in the hub without a more specific writing rule, use the shared [claim safety](../paper-polishing-skill/references/claim-safety.md). Do not start polishing for a build-only task.
 
 3. Generate the framework non-destructively.
    - Never overwrite the original manuscript unless the user explicitly asks.
@@ -141,9 +141,9 @@ Useful options:
 
 Apply these rules whenever generating or revising the scientific content of a QCT/QWCT manuscript, not only when editing prose by hand:
 
-- Preserve a clear positive throughline. Put scope limits in designated boundary paragraphs, discussion, or limitations, rather than interrupting every claim with defensive caveats. A scoped claim should still read as a claim.
-- Expand results as analysis, not as a numeric ledger. Each major result paragraph should state the question, describe the comparison, interpret the trend, connect it to the walk/measurement mechanism, and only then give representative numbers.
-- Read every figure and table in the main text. Captions and tables are not substitutes for prose interpretation. For each figure/table, the main text should identify the axes or columns, the dominant trend, the key comparison, the scientific implication, and any local caveat.
+- State the supported result with the conditions needed to interpret it.
+- Explain the decisive comparison with representative evidence. Discuss a walk or measurement mechanism only when relevant, distinguishing an interpretation from a demonstrated mechanism.
+- Read argument-bearing figures and tables in the text: explain what is compared and what follows. Keep a local condition when removing it changes the reading, not as a per-figure requirement.
 - When rebuilding `main.tex`, create enough result-section scaffolding for figure-by-figure reading paragraphs, even if some numeric slots remain TODOs.
 
 

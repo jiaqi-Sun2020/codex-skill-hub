@@ -82,6 +82,8 @@ Do not wrap math delimiters, citation commands, labels, references, or paragraph
 
 ### Step 1 — Preflight and compilation safety
 
+For passage-only work, return proposed prose in chat; do not create files or run manuscript preflight. Preserve author-locked text verbatim. For authorized file editing:
+
 1. Make a backup copy.
 2. Identify document class, REVTeX version, journal option, compiler assumptions, packages, external figures, bibliography, and custom commands.
 3. Compile before editing when a complete source package is available.
@@ -103,9 +105,7 @@ Estimate length using the APS method, not plain prose count alone. Displayed mat
 
 ### Step 3 — Define the one-sentence Letter claim
 
-Write one sentence in this form:
-
-> We show that **[physical mechanism or result]** leads to **[quantified or demonstrable consequence]**, revealing **[broader physical implication]**.
+State the principal result in one sentence with its evidence and necessary scope. Use causal language only for a supported causal relation; a measured association or a numerical observation can stand as the result. For polishing inside the hub, use the shared [claim-safety decisions](../paper-polishing-skill/references/claim-safety.md) when deciding which qualifiers to retain. Standalone, keep any condition whose removal changes what the evidence supports.
 
 Reject or revise the sentence when:
 
@@ -208,11 +208,11 @@ Present the minimum chain of equations needed to establish the mechanism. Define
 
 #### Results
 
-Lead with the decisive figure or test. Report effect sizes and uncertainty. Explain what result discriminates the proposed physical mechanism from classical or alternative explanations. Put exhaustive benchmark tables and hyperparameters in End Matter/SM.
+Lead with the decisive figure or test. Report effect sizes and uncertainty when applicable. If the paper claims a mechanism, identify what evidence distinguishes it from alternatives; present an untested explanation as such. Put exhaustive benchmark tables and hyperparameters in End Matter/SM.
 
 #### Conclusion
 
-Do not repeat the architecture. State what was learned physically, the range of validity, the strongest limitation, and the next falsifiable or experimentally actionable step.
+State what was learned physically and preserve limits that affect that conclusion. Do not repeat the architecture or require a future experiment in the conclusion. Keep a referee's proposed test in the audit or author notes unless an outlook is requested.
 
 ### Step 7 — Sentence-level PRL English
 
@@ -233,7 +233,7 @@ Apply these rules:
 Preferred transformations:
 
 - “The results show that …” → “We find/show that …”
-- “provides a physically motivated design” → state the mechanism and observed consequence;
+- “provides a physically motivated design” → name the design rationale and the observed result, without implying the former caused the latter;
 - “achieves better performance” → give the metric, comparator, effect size, and uncertainty;
 - “in order to” → “to”;
 - “it can be seen that” → delete or state the observation directly.

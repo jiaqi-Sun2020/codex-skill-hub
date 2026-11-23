@@ -11,7 +11,7 @@ For each paragraph, identify:
 - the core claim;
 - the evidence or equation supporting it;
 - the contrast with prior work or baseline;
-- the boundary, limitation, or TODO;
+- any condition needed to interpret the claim, separately from an author TODO;
 - terms that must enter the terminology ledger.
 
 ## Pass 2: Logic Reconstruction
@@ -23,7 +23,7 @@ Chinese academic drafts often leave links implicit. Rebuild only the links that 
 - consequence: therefore, as a result, this enables;
 - boundary: under this condition, within this parameter regime, for the tested cases.
 
-Do not add a new premise to make a paragraph sound smoother.
+Do not add a new premise to make a paragraph sound smoother. Keep the translation as definite (or uncertain) as the original evidence warrants. Extraction is not an instruction to put a TODO in the translation; use [claim safety](claim-safety.md) for its disposition.
 
 ## Pass 2.5: Paragraph Argumentation
 

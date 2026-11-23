@@ -203,6 +203,13 @@
   workflow, stable concern IDs and human author gate; active Skill counts and
   Pipeline stage/configuration interfaces remain unchanged.
 
+- 2026-11-23: Publish the shared claim-safety alignment across LaTeX results writing,
+  translation, general polishing, PRL polishing and review handoffs. Preserve
+  material scope and author-locked text; distinguish observations, measurements,
+  proofs and tentative explanations. Optional review experiments remain in notes,
+  while unsupported claims need narrowing or verification. No Skill count,
+  Pipeline stage, configuration or execution-authority expansion is introduced.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

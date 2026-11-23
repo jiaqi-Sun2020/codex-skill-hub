@@ -42,7 +42,7 @@ Do not create a competing review ledger or overwrite an old report.
 - Do not change the manuscript's scientific logic, argument architecture, section order, equations, experimental design, table values, figure evidence, or claim hierarchy when the user asks only for translation or polishing.
 - Preserve numeric values, units, equations, figure/table references, LaTeX labels, citation keys, and BibTeX workflow unless the user explicitly asks for a technical correction.
 - Treat Chinese manuscripts, `.tex` sources, and skill guidance as UTF-8 by default; on Windows, set `PYTHONUTF8=1` before Python-based reading, validation, or transformation.
-- When evidence is incomplete, keep the boundary visible in the polished output and revision notes.
+- Preserve qualifiers that change the meaning; use the claim-safety reference below to decide what belongs in prose and what needs only an author note. Keep author-locked wording verbatim; propose substantive changes to approved content for confirmation.
 
 ## Workflow
 
@@ -86,4 +86,4 @@ For passage-level work, return:
 3. `Revision notes:` with 3-5 short bullets on logic, style, and claim-boundary changes.
 4. `Needs author check:` only for unresolved scientific or terminology decisions.
 
-For whole-manuscript or LaTeX work, preserve the user's file structure unless they ask for a rewrite. Prefer creating a sibling English file such as `<main>_EN.tex` and keep the original source untouched. If editing files, keep references in `.bib` files and figures in `figures/` according to the paper-build rules.
+For whole-manuscript or LaTeX work, preserve the user's file structure unless they ask for a rewrite. Return proposed wording in chat unless file output is authorized; prefer a sibling English file such as `<main>_EN.tex` to overwriting the original. Keep each citation and cross-reference attached to the proposition it supports. If editing files, keep references in `.bib` files and figures in `figures/` according to the paper-build rules.

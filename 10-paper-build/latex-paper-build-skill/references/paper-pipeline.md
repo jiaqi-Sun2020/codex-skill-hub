@@ -327,8 +327,9 @@ Exit gate:
 - labels and citation keys are preserved.
 - applicable figures come from the canonical figure packages and have caption,
   evidence-trace, and QA state available;
-- manuscript prose identifies what each included figure shows, the decisive
-  comparison, its scientific implication, and its local boundary.
+- manuscript prose explains what each included figure shows and the comparison
+  it supports; conditions that change that reading are clear at the point of use.
+  There is no separate caveat or mechanism requirement for every figure.
 
 ## Stage 6: User Scientific/Content Review Gate
 

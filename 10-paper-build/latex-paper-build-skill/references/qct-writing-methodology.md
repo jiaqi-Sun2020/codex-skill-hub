@@ -21,16 +21,14 @@ Use this hierarchy when choosing wording:
 2. Question: ask whether a restricted position-probability vector retains enough information to reconstruct the coin state within that setting.
 3. Method contribution: define the keep-k sparse-position diagnostic, including how positions are ranked or chosen.
 4. Evidence: report the strongest completed regime first, then comparative regimes, then inconclusive extensions.
-5. Boundary: state what remains unproved, such as arbitrary states outside the training distribution, finite-shot noise, random masks, strong baselines, independent seeds, and formal identifiability.
+5. Boundary: identify which distinctions matter to this claim, e.g. finite-shot versus noiseless probabilities, mask selection, training distribution or formal identifiability. An untested extension is not automatically a limitation of the stated result.
 
 ## Throughline Without Repeated Self-Limitation
 
 When a manuscript repeatedly says what it cannot claim, the reader loses the main scientific line. Use this repair pattern:
 
-- State the positive scoped claim first. Example: "In the studied Grover-walk setting, sparse position probabilities provide an empirical diagnostic of coin-state observability."
-- Put caveats in planned locations: the end of the abstract, the final introduction paragraph, the end of each major results subsection, and the discussion/limitations section.
-- Avoid caveat chains inside the same sentence as the main claim. Replace "we cannot prove X; we only show Y" with "within this specified regime, the evidence shows Y; X remains outside the present scope."
-- Use boundary paragraphs instead of defensive parentheticals. One strong limitation paragraph is better than five interrupted claims.
+- Name the actual evidence: for example, report reconstruction on the tested noiseless simulations as a numerical result, not an experimental measurement or proof of identifiability.
+- Put a condition with the first claim whose meaning depends on it; let later comparisons share it only while the regime is unambiguous. Keep the abstract and standalone captions interpretable in isolation. Do not schedule a disclaimer at every section ending.
 - Separate author-review honesty from manuscript voice. Internal status such as missing checkpoints, partial eval files, pipeline names, and TODO reasoning belongs in notes, not in formal manuscript prose.
 
 ## Abstract Method
@@ -42,7 +40,7 @@ A good abstract should follow this order:
 3. Contribution sentence. Name the reusable contribution, e.g. "keep-k sparse-position observability diagnostic".
 4. Method summary. Explain that the work trains/evaluates an inverse estimator on simulated quantum-walk probability distributions; do not mention internal code names unless the software artifact is formally defined.
 5. Evidence hierarchy. Put interpretation before numbers. Use numbers sparingly and only for completed evidence.
-6. Formal limitation. Use publication language such as "high-dimensional extension remains to be validated" instead of process language such as "only partial eval exists" or "not finished yet".
+6. Check the abstract alone: if only a lower-dimensional subset was evaluated, name it with the finding. Do not append an outlook merely because higher dimensions remain untested.
 
 ## Introduction Method
 
@@ -67,7 +65,7 @@ Avoid vague phrases such as "diagnosis" alone unless the diagnostic procedure an
 
 ## Result Section Expansion Method
 
-Do not write results as a list of fidelities. Each results subsection should have a minimum narrative unit:
+Do not write results as a list of fidelities. Use the following questions to develop the comparisons the subsection actually makes:
 
 1. Question: what physical or methodological question does this figure/table answer?
 2. Setup: which dimension, coin, step range, mask policy, initial position, noise regime, and baseline are being compared?
@@ -75,7 +73,7 @@ Do not write results as a list of fidelities. Each results subsection should hav
 4. Interpretation: what does the trend imply about position-probability information, interference, mixing, or observability?
 5. Comparison: how does it differ across keep-k, step, coin, initial position, or dimension?
 6. Mechanism: offer a plausible walk-level explanation when supported by the setup.
-7. Boundary: close with a scoped limitation or a next comparison, not with an apology.
+7. Boundary: would a change of regime or a known counterexample alter the interpretation here? Keep that information with the comparison, not necessarily at the end.
 
 Use representative numbers to anchor the interpretation, but never let numbers replace interpretation. A weak results paragraph says "the fidelity is 0.98, 0.95, and 0.91". A stronger paragraph says what changes across masks or steps, why that pattern matters, and then reports the numbers as evidence.
 
@@ -89,7 +87,7 @@ For each figure, the main text should include:
 - Dominant trend: describe the main shape before giving values.
 - Key comparison: state the contrast that supports the claim, such as position-superposition vs single-position initial states, RX vs non-RX coins, all-position vs sparse keep-k observations, or low vs high step.
 - Scientific implication: connect the visual trend to observability, information loss, interference, or failure modes.
-- Local caveat: mention noise, missing baselines, insufficient seeds, or partial coverage only after the figure has been interpreted.
+- If noise, selection or partial coverage changes what the figure shows, identify it at the point of interpretation. Do not invent a mechanism or add a disclaimer to every figure.
 
 For each table, the main text should include:
 
@@ -108,7 +106,7 @@ Do not let a table be a storage device for unprocessed numbers. Tables summarize
   - "QCT_run_all" -> "simulated quantum-walk probability distributions" or a formally defined software artifact only after definition.
   - "partial eval aggregation" -> "the evaluated subset".
   - "step 4 has no checkpoint" -> "step-4 evidence is not included in the present comparison".
-  - "next experiment" in body prose -> "limitations and future work".
+  - an optional next experiment -> an author/review note, unless a scientific outlook is actually requested.
   - "PRA-style organization" -> remove from manuscript body.
 
 ## Terminology Rules
@@ -142,13 +140,13 @@ Do not use these unless explicitly defined and supported:
 
 Before finalizing, check:
 
-- The abstract's first sentence has a setting qualifier.
+- The abstract names the relevant setting by the first claim that depends on it.
 - The abstract names one reusable contribution.
-- The abstract separates method, evidence, and limitation.
+- The abstract distinguishes the method from its evidence and makes material limits clear.
 - The introduction explains why influence does not imply invertibility.
 - keep-k has a physical or diagnostic meaning, not only a machine-learning feature-selection meaning.
 - The manuscript has a positive throughline that is not interrupted by repeated self-limitations.
-- Each major results subsection contains interpretation, comparison, and mechanism-level analysis, not only numbers.
-- Every figure and table is read in the main text with trend, comparison, implication, and caveat.
+- The results explain the decisive comparison; distinguish an observed pattern from a supported mechanism or a tentative interpretation.
+- The text explains each argument-bearing figure or table and any condition needed to read it correctly.
 - Negative or inconclusive evidence is framed as boundary mapping.
 - No internal writing-process terms appear in the manuscript body.

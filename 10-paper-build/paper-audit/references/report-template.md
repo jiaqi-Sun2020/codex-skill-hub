@@ -63,7 +63,7 @@ For each substantive concern:
   and the other definitions, formulas, algorithms, captions or claims that must
   agree with it. Avoid a generic "clarify" or "unify notation." Preserve correct
   existing detail and state what can remain when that prevents an overbroad fix.
-  Separate a repair supported by evidence from a choice needing author clarification.
+  For the author handoff, distinguish a **confirmed problem** from a **risk to verify** and an **optional suggestion**. A demonstrated counterexample that changes a conclusion needs a located correction or narrower claim, not just a note. For a possible counterexample, identify what is unknown and whether the present claim already depends on resolving it. Keep optional experiments in the report: say what they would distinguish and consider a smaller remedy first. Neither a suspected objection nor an optional extension is a required manuscript disclaimer or permission to edit.
 - **Closure condition:** specify observable revised text, definitions or supplied
   evidence that would resolve the issue, including the linked locations. A claim
   that something was fixed is not enough.

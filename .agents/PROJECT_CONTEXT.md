@@ -134,6 +134,11 @@ independent state axes, without duplicating the repository overview.
   reference and figure evidence to its figure-review reference. It checks supplied
   language versions for scientific meaning and returns evidence-anchored concerns
   with linked repair locations and observable closure conditions in one report.
+- Results-writing and polishing entrypoints share
+  `10-paper-build/paper-polishing-skill/references/claim-safety.md` for evidence type,
+  claim strength and material qualifiers. Review reports distinguish confirmed
+  problems, risks to verify and optional suggestions; passage-only polishing stays
+  in chat by default, and file edits require applicable authorization.
 - `experiment-design` owns research questions, hypotheses, evidence gaps,
   datasets, baselines, ablations, metrics, controls, and claim boundaries. It
   does not own experiment execution, runners, adapters, or runtime gates.
