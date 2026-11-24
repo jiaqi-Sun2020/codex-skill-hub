@@ -8,49 +8,50 @@
 
 ## Overall framework
 
-Use evidence to answer the research question, then write the claim it supports. An existing project enters at its current stage; intake is not a restart button.
+**What does the paper ask, and what evidence would answer it?** Stage 1 defines the question, Stage 2 plans the evidence, and Stage 3 checks what the results support. Write up the claims the evidence supports; revisit only the questions that still need work. Existing projects need not restart at 0. [See owners, deliverables and exit conditions for all eight stages](#stage-guide).
 
 ```mermaid
 ---
 config:
   flowchart:
-    nodeSpacing: 18
-    rankSpacing: 36
-    padding: 10
+    nodeSpacing: 14
+    rankSpacing: 34
+    padding: 8
 ---
 flowchart TD
-    accTitle: From research question to author review
-    accDescr: Stay at 3 to verify suspect data or code. Return to 2 for an unplanned control; stay at 3 if the plan, budget and authorization already cover it. Reliable counterevidence reopens only the affected hypothesis at 1, then goes to 2 to design a discriminating test. Move to 5 with a bounded answer.
-    intake["0 · Intake"]
-    hypothesis["1 · Question<br/>and hypotheses"]
-    design["2 · Design a test"]
-    analysis(["3 · Analyze evidence"])
-    verify["Data or code in doubt?<br/>Stay at 3 and verify"]
-    draft["5 · Draft in Chinese<br/>within evidence limits"]
-    gate["6 · Mock review<br/>and author review"]
-    finish["7 · English polish<br/>and submission checks"]
-    intake --> hypothesis
-    hypothesis --> design
-    design --> analysis
-    analysis -.-> verify
-    analysis -.->|Unplanned<br/>control| design
-    analysis -.->|Reliable<br/>counterevidence:<br/>revisit that hypothesis| hypothesis
-    analysis --> draft
-    draft --> gate
-    gate -->|Author approves| finish
+    accTitle: Paper stages 0–7, from intake and evidence to an author-reviewed manuscript
+    accDescr: The main path is 0, 1, 2, 3, 5, 6, 7. Stage 4 is an optional research brief. At 3, verify suspect data or code in place. Return to 2 for an unplanned control, or to 1 for reliable counterevidence against a hypothesis, then to 2 to design a discriminating test. A control covered by the plan, budget and authorization stays at 3. English polishing follows author approval.
+    s0["0 · Intake<br/>and inventory"]
+    s1["1 · Logic and<br/>optional literature"]
+    s2["2 · Experiment and<br/>evidence design<br/>Claim → evidence"]
+    s3(["3 · Research execution<br/>and analysis<br/>↺ Suspect data/code?<br/>Stay at 3 to verify"])
+    s4["4 · Research brief<br/>Optional HTML"]
+    s5["5 · Figures and<br/>Chinese manuscript"]
+    s6["6 · Mock pre-review<br/>and author gate"]
+    s7["7 · English polishing<br/>and submission checks"]
+    s0 --> s1
+    s1 --> s2
+    s2 --> s3
+    s3 -.->|Unplanned<br/>control| s2
+    s3 -.->|Reliable<br/>counterevidence:<br/>revisit hypothesis| s1
+    s2 -.-> s4
+    s3 -.-> s4
+    s3 -->|Bounded answer| s5
+    s5 --> s6
+    s6 -->|Author approves| s7
     classDef stage fill:#EAF0F1,stroke:#546A70,color:#182C32
     classDef focus fill:#115852,stroke:#115852,color:#FFFFFF
-    class intake,hypothesis,design,verify,draft,gate,finish stage
-    class analysis focus
+    classDef optional fill:#F8FAFA,stroke:#65787D,color:#33484D,stroke-dasharray:4 3
+    class s0,s1,s2,s5,s6,s7 stage
+    class s3 focus
+    class s4 optional
 ```
 
-Solid lines show the main path; dashed lines show what to revisit. If the plan, budget and authorization already cover a missing control, add it at 3 without returning to 2.
+**Stage 2 delivers an evidence plan, not results.** In `experiment_plan.md`, map each claim to existing evidence or a specific gap. Which conditions need comparing? What control, derivation or source is missing? What result would narrow the claim? If reliable counterevidence sends you back from 3, revisit the affected hypothesis at 1, then design a test at 2 that distinguishes the alternatives. If only a control is missing and the plan, budget and authorization already cover it, stay at 3.
 
-**Optional branches:**
-
-- **Literature** can refine the question or hypotheses. If nothing changes, return to the stage that requested the check.
-- **Stage 4 · HTML brief** presents existing findings. Go straight from 3 to 5 when no progress report is needed.
-- **Figures** start with a question at Stage 2. Once evidence is ready, `academic-figure-workflow` hands the Chinese draft editable sources, exports, captions, provenance and QA.
+- **Literature (1)** is consulted as needed. A check that leaves the question, hypotheses and contribution unchanged returns to the stage that requested it.
+- **The brief (4)** can share the plan at 2 or progress at 3. It is not an approval gate; drafting does not depend on it.
+- **Figures (2 → 5)** are optional. Decide what each figure should answer at 2. Once evidence is ready, `academic-figure-workflow` delivers editable sources, exports, captions, provenance and QA for the Chinese manuscript.
 
 ### Where do I resume after analysis?
 
@@ -107,6 +108,8 @@ The four directories locate Skill packages; they are not four workflow stages. I
 | `manuscript-review` | [`prl-manuscript-polisher`](manuscript-review/prl-manuscript-polisher/SKILL.md) | PRL compression, adaptation, and evidence calibration for a technically complete physics manuscript | Hiding weak evidence with stronger prose |
 
 `latex-paper-build-skill` is the paper-pipeline orchestrator but does not own the other Skills' specialist capabilities. `interactive-skill-builder` is a peer utility, not a mandatory paper-lifecycle stage.
+
+<a id="stage-guide"></a>
 
 ## Stages 0–7
 

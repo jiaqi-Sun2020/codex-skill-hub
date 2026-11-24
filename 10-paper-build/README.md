@@ -8,49 +8,50 @@
 
 ## 整体框架
 
-先用证据回答研究问题，再把能成立的结论写成论文。已有项目从当前阶段进入，不必回到接入环节。
+**这篇论文要回答什么？什么证据足以回答？** 阶段 1 定问题，阶段 2 定所需证据，阶段 3 检查实际结果支持什么。能回答的部分进入写稿与审核；还不能回答的，只回到需要补的那一步。已有项目不必从 0 重来。[查看八个阶段的负责人、产物与退出条件](#stage-guide)。
 
 ```mermaid
 ---
 config:
   flowchart:
-    nodeSpacing: 18
-    rankSpacing: 36
-    padding: 10
+    nodeSpacing: 14
+    rankSpacing: 34
+    padding: 8
 ---
 flowchart TD
-    accTitle: 论文从研究问题到作者审核的主线
-    accDescr: 数据或代码存疑，留在阶段 3 核查。只缺计划外的对照，回 2 补设计；原方案、预算和授权已覆盖就留在 3。可靠反证只重开 1 的相关假设，再到 2 设计判别检验。已有范围明确的答案才能接 5。
-    intake["0 · 项目接入"]
-    hypothesis["1 · 问题与假设"]
-    design["2 · 设计判别检验"]
-    analysis(["3 · 取证与分析"])
-    verify["数据或代码存疑<br/>留在 3 核查、复验"]
-    draft["5 · 中文稿件<br/>只写证据支持的结论"]
-    gate["6 · 模拟审稿与作者审核"]
-    finish["7 · 英文润色与投稿检查"]
-    intake --> hypothesis
-    hypothesis --> design
-    design --> analysis
-    analysis -.-> verify
-    analysis -.->|缺计划外对照| design
-    analysis -.->|可靠反证<br/>只重审该假设| hypothesis
-    analysis --> draft
-    draft --> gate
-    gate -->|作者批准| finish
+    accTitle: 论文阶段 0–7：从工作目标、研究问题和证据到作者审定的稿件
+    accDescr: 常规主线为 0、1、2、3、5、6、7。阶段 4 是可选的研究简报。阶段 3 发现数据或代码存疑，留在 3；缺计划外对照，回 2；可靠反证只重开 1 的相关假设，再到 2 设计判别检验。原方案、预算和授权已覆盖的对照留在 3。英文润色须经作者批准。
+    s0["0 · 接收与盘点"]
+    s1["1 · 研究逻辑与<br/>可选文献支线"]
+    s2["2 · 实验与证据设计<br/>主张 → 所需证据"]
+    s3(["3 · 研究执行与分析<br/>↺ 数据或代码存疑<br/>留在 3 核查"])
+    s4["4 · 研究简报<br/>可选 HTML"]
+    s5["5 · 图件与中文稿"]
+    s6["6 · 整稿预审与<br/>作者审核"]
+    s7["7 · 英文润色与<br/>投稿检查"]
+    s0 --> s1
+    s1 --> s2
+    s2 --> s3
+    s3 -.->|缺计划外对照| s2
+    s3 -.->|可靠反证<br/>只重审该假设| s1
+    s2 -.-> s4
+    s3 -.-> s4
+    s3 -->|证据足以作答| s5
+    s5 --> s6
+    s6 -->|作者批准| s7
     classDef stage fill:#EAF0F1,stroke:#546A70,color:#182C32
     classDef focus fill:#115852,stroke:#115852,color:#FFFFFF
-    class intake,hypothesis,design,verify,draft,gate,finish stage
-    class analysis focus
+    classDef optional fill:#F8FAFA,stroke:#65787D,color:#33484D,stroke-dasharray:4 3
+    class s0,s1,s2,s5,s6,s7 stage
+    class s3 focus
+    class s4 optional
 ```
 
-实线是主线，虚线是分析后的回路。若缺的对照已在方案、预算和授权内，直接在 3 补证，不回 2。
+**阶段 2 交付的是证据计划，不是实验结果。** 在 `experiment_plan.md` 中，把每项主张连到已有证据或具体缺口：要比较哪些条件、需要什么对照、推导或来源，什么结果会迫使作者收窄主张？若是从阶段 3 带着可靠反证回来，先在 1 重审受影响的假设，再在 2 设计能区分候选解释的检验。若只是缺对照，且原方案、预算和授权已经覆盖，直接留在 3 补证。
 
-**主线之外，按需使用：**
-
-- **文献**用于校准问题与假设。若核查未改变判断，回到发起核查的阶段。
-- **阶段 4 · HTML 简报**只展示已有进展。阶段 3 可以直接接 5，不必先做报告。
-- **图件**在阶段 2 确定要回答的问题；证据就绪后，`academic-figure-workflow` 将可编辑源、导出、图注、来源与 QA 交给中文稿。
+- **文献（1）**按需发现或比对。核查未改变问题、假设或贡献边界，就回发起核查的阶段。
+- **简报（4）**可以分享阶段 2 的计划，也可以分享阶段 3 的进展。它不是审批门，写稿不必经过 4。
+- **图件（2 → 5）**按需规划和制作：先决定图要回答什么；证据就绪后，`academic-figure-workflow` 将可编辑源、导出、图注、来源和 QA 交给中文稿。
 
 ### 分析结束后，从哪里接续？
 
@@ -107,6 +108,8 @@ flowchart TD
 | `manuscript-review` | [`prl-manuscript-polisher`](manuscript-review/prl-manuscript-polisher/SKILL.md) | 技术完整物理稿件的 PRL 压缩、适配和证据校准 | 用措辞掩盖证据不足 |
 
 `latex-paper-build-skill` 是论文 Pipeline 的编排入口，但不拥有其他 Skill 的专业能力。`interactive-skill-builder` 是同级辅助工具，不是论文生命周期的强制阶段。
+
+<a id="stage-guide"></a>
 
 ## 阶段 0–7
 
