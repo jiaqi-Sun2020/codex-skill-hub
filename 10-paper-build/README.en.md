@@ -8,46 +8,61 @@
 
 ## Overall framework
 
-```text
-0  Intake and inventory (existing projects enter at their current stage)
-↓
-1  Define the question, candidate hypotheses and contribution ↔ consult literature as needed
-↓
-2  Design evidence that distinguishes explanations; plan what each figure should answer, if needed
-↓
-3  Project executor produces evidence → analyze it → revisit the affected claim (see diagram below)
-   ├─ Open research question → return to 1, 2 or 3; pause this branch if no feasible next step
-   ├─ Progress update only → 4 optional HTML brief (shows existing findings, not a new round)
-   └─ Bounded answer → 5 Chinese LaTeX manuscript
-                         └─ If figures are needed: academic-figure-workflow returns
-                            editable sources, exports, captions, evidence trace and QA
-5  Complete Chinese draft → 6 mock peer review → author reviews the science and figures
-                                                  └─ After author approval → 7 English polishing and submission checks
+Use evidence to answer the research question, then write the claim it supports. An existing project enters at its current stage; intake is not a restart button.
+
+```mermaid
+---
+config:
+  flowchart:
+    nodeSpacing: 18
+    rankSpacing: 36
+    padding: 10
+---
+flowchart TD
+    accTitle: From research question to author review
+    accDescr: Stay at 3 to verify suspect data or code. Return to 2 for an unplanned control; stay at 3 if the plan, budget and authorization already cover it. Reliable counterevidence reopens only the affected hypothesis at 1, then goes to 2 to design a discriminating test. Move to 5 with a bounded answer.
+    intake["0 · Intake"]
+    hypothesis["1 · Question<br/>and hypotheses"]
+    design["2 · Design a test"]
+    analysis(["3 · Analyze evidence"])
+    verify["Data or code in doubt?<br/>Stay at 3 and verify"]
+    draft["5 · Draft in Chinese<br/>within evidence limits"]
+    gate["6 · Mock review<br/>and author review"]
+    finish["7 · English polish<br/>and submission checks"]
+    intake --> hypothesis
+    hypothesis --> design
+    design --> analysis
+    analysis -.-> verify
+    analysis -.->|Unplanned<br/>control| design
+    analysis -.->|Reliable<br/>counterevidence:<br/>revisit that hypothesis| hypothesis
+    analysis --> draft
+    draft --> gate
+    gate -->|Author approves| finish
+    classDef stage fill:#EAF0F1,stroke:#546A70,color:#182C32
+    classDef focus fill:#115852,stroke:#115852,color:#FFFFFF
+    class intake,hypothesis,design,verify,draft,gate,finish stage
+    class analysis focus
 ```
+
+Solid lines show the main path; dashed lines show what to revisit. If the plan, budget and authorization already cover a missing control, add it at 3 without returning to 2.
+
+**Optional branches:**
+
+- **Literature** can refine the question or hypotheses. If nothing changes, return to the stage that requested the check.
+- **Stage 4 · HTML brief** presents existing findings. Go straight from 3 to 5 when no progress report is needed.
+- **Figures** start with a question at Stage 2. Once evidence is ready, `academic-figure-workflow` hands the Chinese draft editable sources, exports, captions, provenance and QA.
 
 ### Where do I resume after analysis?
 
-Suppose a results table says “A's advantage is close to zero on large inputs.” **First ask whether you can trust that observation. Only then decide whether it challenges a prediction or leaves a comparison missing.** Enter here from an existing analysis or report; no HTML brief or restart at Stage 0 is required.
+Suppose A’s advantage is close to zero on large inputs. That number alone cannot tell you to change hypotheses. **First check whether the result is trustworthy. Then ask: is a control missing, or did a key prediction fail?**
 
-```mermaid
-flowchart TD
-    T{"Is there a concrete concern about the data, code or analysis behind this judgment?"}
-    T -->|Yes| V["Stay at 3: check samples, versions or implementation before interpreting the anomaly"]
-    V -->|Checks or reanalysis complete| T
-    T -->|No| H{"Does reliable evidence challenge a key prediction within its stated scope?"}
-    H -->|Yes| R["Return to 1: keep the question and reopen only the affected hypothesis"]
-    R --> D["Return to 2: design a check that distinguishes the candidate explanations"]
-    H -->|No| Q{"What is still needed to answer the original question?"}
-    Q -->|Unplanned control| E["Return to 2: add only that comparison and its decision criterion"]
-    Q -->|Control already planned| N["Proceed to 3 for evidence and analysis once plan, budget and permission cover it"]
-    D --> N
-    E --> N
-    N -->|Next round analyzed| T
-    Q -->|Bounded answer available| M["Enter 5: write only what the evidence supports"]
-    Q -->|Insufficient evidence and no feasible check| P["Pause this branch and keep the alternatives open"]
-```
+| What you know | Where to go |
+| :--- | :--- |
+| **Suspect result.** Check sample, version or aggregation. | **Stay at 3.** Withhold the affected inference. Fix code that deviates from the plan. If the code followed an unfair design, repair that design at 2. |
+| **Missing control.** The question and hypothesis still stand. | **Back to 2** for that comparison and its criterion. Go straight to 3 if the plan, budget and authorization already cover it. |
+| **Failed prediction.** Reliable evidence contradicts the prediction within its scope. | **Back to 1, then 2.** Keep the question; reopen the affected hypothesis and design a test of rival explanations. Execute at 3 when authorized. Non-significance alone is not a refutation. |
 
-Apply the same [after-analysis rule](workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis) when the next round yields a result. If code deviated from the plan, correct and recheck at 3; if it faithfully implemented an unfair comparison, return to 2 to repair the design. A literature check that leaves the question, hypotheses and contribution boundary unchanged returns to the requesting stage. An author can raise a new question at 1 without authorizing execution. Theory, qualitative work and reviews can use derivations or sources instead of new experiments.
+**Another round or a stopping point?** Apply the same [after-analysis rule](workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis) to new evidence. Draft at 5 when the answer has a clear scope, even if it is negative. Pause the branch if evidence is insufficient and no feasible test remains. A derivation or a source check may suffice instead of an experiment. The author may open a separate question at 1; that does not authorize execution.
 
 ## Repeatable goal-clarification loop
 
