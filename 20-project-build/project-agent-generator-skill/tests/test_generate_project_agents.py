@@ -94,6 +94,34 @@ class GeneratorSafetyTests(unittest.TestCase):
                 {"AGENTS.md"},
             )
 
+    def test_new_bundle_routes_to_the_local_architecture_without_building_it(self) -> None:
+        for has_precedent in (False, True):
+            with self.subTest(has_precedent=has_precedent), tempfile.TemporaryDirectory() as raw:
+                project = Path(raw) / "archive"
+                project.mkdir()
+                if has_precedent:
+                    (project / "scripts").mkdir()
+                    (project / "scripts" / "catalogue.py").write_bytes(b"# synthetic intake\n")
+                    (project / "README.md").write_bytes(
+                        b"Reviewed route: scripts/catalogue.py -> shelf cards -> curator.\r\n")
+                before = {p.relative_to(project): p.read_bytes()
+                          for p in project.rglob("*") if p.is_file()}
+                self.assertEqual(generator.main([str(project), "--without-codex-bootstrap"]), 0)
+                bundle = project / ".agents"
+                rules = (bundle / "AGENTS.md").read_text(encoding="utf-8")
+                self.assertIn("(ARCHITECTURE.md)", rules.split("## Operating Rules", 1)[1]
+                              .split("\n## ", 1)[0])
+                architecture = (bundle / "ARCHITECTURE.md").read_text(encoding="utf-8")
+                if has_precedent:
+                    self.assertIn("scripts/catalogue.py", architecture)
+                else:
+                    self.assertIn("TODO(agent): identify entry points", architecture)
+                self.assertEqual({p.relative_to(project): p.read_bytes()
+                                  for p in project.rglob("*") if p.is_file()
+                                  and bundle not in p.parents}, before)
+                self.assertEqual({p.name for p in project.iterdir() if p.is_dir()},
+                                 {".agents", "scripts"} if has_precedent else {".agents"})
+
     def test_synced_temp_has_bounded_identity_name_at_long_path_boundary(self) -> None:
         with tempfile.TemporaryDirectory() as raw:
             parent = Path(raw)
@@ -579,8 +607,8 @@ class GeneratorSafetyTests(unittest.TestCase):
             project = self.make_project(Path(raw))
             bundle = project / ".agents"
             bundle.mkdir()
-            original = "# Owner-authored instructions\n"
-            (bundle / "AGENTS.md").write_text(original, encoding="utf-8")
+            original = b"\xef\xbb\xbf# Owner-authored instructions\r\nKeep the curator route.\r\n"
+            (bundle / "AGENTS.md").write_bytes(original)
 
             preview_stream = io.StringIO()
             with redirect_stdout(preview_stream):
@@ -592,7 +620,7 @@ class GeneratorSafetyTests(unittest.TestCase):
             manifest = preview["manifest"]
             self.assertEqual(manifest["conflict_count"], 0)
             self.assertFalse((project / ".codex").exists())
-            self.assertEqual((bundle / "AGENTS.md").read_text(encoding="utf-8"), original)
+            self.assertEqual((bundle / "AGENTS.md").read_bytes(), original)
 
             apply_stream = io.StringIO()
             with redirect_stdout(apply_stream):
@@ -604,7 +632,7 @@ class GeneratorSafetyTests(unittest.TestCase):
             applied = json.loads(apply_stream.getvalue())
             self.assertEqual(applied["status"], "applied")
             self.assertEqual(len(applied["changed_paths"]), 4)
-            self.assertEqual((bundle / "AGENTS.md").read_text(encoding="utf-8"), original)
+            self.assertEqual((bundle / "AGENTS.md").read_bytes(), original)
 
     def test_bootstrap_only_refuses_existing_different_target(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

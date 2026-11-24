@@ -7,6 +7,7 @@ import io
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -526,19 +527,31 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
         contract = PIPELINE / 'references/paper-pipeline.md'
         anchor = 'after-analysis'
         with tempfile.TemporaryDirectory() as directory:
+            # Run the paper entry from its own package, with no management package beside it.
+            package = Path(directory) / PIPELINE.name
+            shutil.copytree(PIPELINE, package, ignore=shutil.ignore_patterns('tests', '__pycache__'))
             root = Path(directory) / 'paper'
+            result = root / '03_results' / 'curator-reviewed.md'
+            result.parent.mkdir(parents=True)
+            original = b'# Synthetic finding R2\r\nScope: reviewed shelf cards only.\r\n'
+            result.write_bytes(original)
             run = subprocess.run([sys.executable, '-X', 'utf8', '-B',
-                str(PIPELINE / 'scripts/create_paper_pipeline.py'), '--project', str(root),
+                str(package / 'scripts/create_paper_pipeline.py'), '--project', str(root),
                 '--title', 'Synthetic research round', '--no-template'],
                 cwd=directory, capture_output=True, text=True)
             self.assertEqual(run.returncode, 0, run.stderr)
             context = (root / 'pipeline_context.md').read_text(encoding='utf-8')
             refs = re.findall(r'`([^`\n]+)#after-analysis`', context)
-            self.assertEqual([(PIPELINE.parent / ref).resolve() for ref in refs], [contract])
+            local_contract = package / 'references/paper-pipeline.md'
+            self.assertEqual([(package.parent / ref).resolve() for ref in refs], [local_contract])
+            self.assertEqual(local_contract.read_bytes(), contract.read_bytes())
             self.assertEqual({p.name for p in root.iterdir() if p.is_dir()},
                              set(self.pipeline.STAGE_DIRS))
-            for empty_stage in ('03_results', '04_reports'):
-                self.assertEqual(list((root / empty_stage).iterdir()), [])
+            self.assertEqual(result.read_bytes(), original)
+            self.assertEqual(list(result.parent.iterdir()), [result])
+            self.assertEqual(list((root / '04_reports').iterdir()), [])
+            self.assertEqual([p.name for p in (root / '06_review_gate').iterdir()],
+                             ['author_review_checklist.md'])
 
         for entry in (PIPELINE / 'SKILL.md', RESEARCH / 'data-analysis/SKILL.md',
                       HUB / 'figures-and-reports/research-html-report/SKILL.md',

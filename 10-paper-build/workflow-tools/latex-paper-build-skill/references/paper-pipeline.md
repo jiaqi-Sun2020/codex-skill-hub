@@ -244,7 +244,15 @@ For an inference that depends on an anomalous result, check its reliability firs
 | Same question, no key premise challenged; only a condition, comparison or source is missing | Use existing evidence first. If a new comparison is needed, return to **Stage 2** for just that comparison and its decision criterion. If the design already covers it, skip redesign: hand off to **Stage 3** within the approved budget and authority, or pause for the missing permission. Do not reopen Stage 1. |
 | A bounded answer is sufficient, no useful discriminator remains, or resources/permission are missing | Hand off what the evidence warrants (including a negative or inconclusive result), or pause with a condition for resuming. Keep unresolved alternatives; do not run until a positive result appears. Other claims need not wait. |
 
-A proposed route is not permission to run, edit or publish. If saving a change is authorized, link the evidence version and reason in the existing question or design artifact (or its formal equivalent); preserve the earlier decision and mark post-outcome changes. If the gap came from a figure, manuscript or review, return to that item and reopen only what depended on the changed evidence. Use the [goal-clarification protocol](goal-clarification.md) only for a consequential blocker, not as a routine second review.
+For a gap found while writing or reviewing, keep its exact return location (paragraph, figure/panel or review ID). Choose the smallest response:
+
+- **The evidence already answers the question:** cite the current analysis within its supported scope or narrow the wording accordingly. A withdrawn finding is not support, even if the data version is unchanged. Do not rerun an applicable analysis just because the work changed hands.
+- **Existing data could answer a different question:** request only that analysis from the analyst, with the question, evidence version and what the current analysis does not cover. No new experiment is implied.
+- **New data or changes to formal experiment code are needed:** apply the stage decision above and hand the specific gap and decision criterion to the project's research manager (`research-management-pipeline` if in use) or directly to its authorized executor. A paper-only project does not need to install a management Pipeline.
+
+Carry the original claim and its location with the request. On return, locate that claim in the **current draft** using an existing review ID, figure label, or the claim in context; an old paragraph number alone is not a match. If you cannot identify one unique target, ask the author to locate it; do not edit the draft or close the issue. Once located, check that the returned finding and evidence version actually address the question before revisiting the item and its dependents. If the gap remains, keep it open or narrow the claim. No second report is required.
+
+A proposed route is not permission to run, edit or publish. If saving a change is authorized, link the evidence version and reason in the existing question or design artifact (or its formal equivalent); preserve the earlier decision and mark post-outcome changes. Use the [goal-clarification protocol](goal-clarification.md) only for a consequential blocker, not as a routine second review.
 
 ## Stage 4: Research HTML Report
 

@@ -15,6 +15,24 @@ for one approval at every step.
 | Review claims | supporting and contradictory evidence, ceiling, limitations | independent domain reviewer | current claim review with reviewer and evidence references |
 | Deliver, correct, or archive | current claim and evidence links, editable deliverable, retention duties | Submission Audit, Handoff, Governance | delivery points to current valid records; notifications need separate authority |
 
+## After a research round
+
+Management coordinates the decision; the project analyst, domain expert or an
+available analysis Skill (such as `data-analysis`) does the analysis. Neither a
+paper Pipeline nor a new report is required. First inspect the existing analysis:
+if it is still current and admissible for this use, and the evidence version,
+question, method and scope match, use its finding and limits by reference.
+Checking whether that finding supports a sentence is
+not a reason to rerun it. If the inputs are disputed, verify them first; if
+something material changed, request only the affected analysis.
+
+For a gap raised by a manuscript, keep its return location. Use existing data
+for a new comparison if they can answer it; request new evidence only if needed.
+Route formal implementation through the project's agreed executor and approval
+process. Return the evidence version, bounded finding (including a negative or
+unresolved result) and remaining gap to the originating item. Reuse the current
+analysis or decision record; the request itself does not authorize execution.
+
 ## Routing rules
 
 - Missing Agent scaffolding: return to the one-time onboarding Pipeline; only the

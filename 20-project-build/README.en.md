@@ -40,6 +40,8 @@ Agent framework is not regenerated. Passing onboarding satisfies only the
 onboarding contract and grants no experiment, publication, or scientific-claim
 authority.
 
+**Inherit this project's way of working.** At onboarding, start from its current rules or runbook and trace one comparable, accepted task: where it started, where its outputs went, and which tool or person accepted them. Cite that route in the preview. If there is no precedent, say so; if two routes conflict, ask the owner. Directory names alone do not establish the architecture, and another project's layout is not a default.
+
 ### Repeated post-onboarding research management
 
 ```text
@@ -64,6 +66,16 @@ The Management Pipeline repeatedly reads facts and routes the next action, but
 does not execute Adapters, create `.agents`, choose a domain method, or grant
 authority. `neat-freak` and `handoff` live under `50-core-utils`; they are
 explicit external integration points, not contract owners in this directory.
+
+### Handling an evidence request from a manuscript
+
+**Who analyzes a finished experiment?** `research-management-pipeline` coordinates the next step; the project analyst, domain expert or an applicable analysis tool does the analysis. No paper is required. When [a specific manuscript question arrives](../10-paper-build/README.en.md#returning-an-evidence-gap-from-a-manuscript), retain the original claim and draft location, then:
+
+1. **Check for an existing analysis.** If the evidence version, question, method and scope match and the finding is still valid for this use, return it with its limits. If the data or code are in doubt, verify them before interpreting an anomaly as contrary evidence.
+2. **Fill only the gap.** If existing data can answer a new comparison, ask the analyst for that comparison. Route a new control, data collection or formal code change through the project's own entry point and approvals only when needed. Without authority, stop at the request.
+3. **Return the answer to the original question.** Send the evidence version, what the finding supports and what remains unresolved. A negative or inconclusive finding is a valid reply. The paper side locates the original claim in the current draft and checks whether the evidence is sufficient. Finishing the experiment does not close the manuscript issue or require a second report.
+
+See the [after-round decision rules](research-management-pipeline/references/lifecycle-interface.md#after-a-research-round).
 
 ### Engineering repair loop
 

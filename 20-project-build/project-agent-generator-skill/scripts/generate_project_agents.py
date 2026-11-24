@@ -920,6 +920,15 @@ These instructions apply to the project rooted at:
 - Read this bundle's `memory/MEMORY.md` when present, then only the topic files
   relevant to the task, then this bundle's `README.md`.
 - Prefer repository files over chat memory.
+- When extending existing work, start with the [project architecture map](ARCHITECTURE.md).
+  Follow the current project rules and one accepted example: where work enters,
+  who carries it out, where results belong, and which person or tool accepts them.
+  The map is a starting point, not proof that a discovered path is still in use.
+- If no precedent exists, propose the smallest workable route. If precedents
+  conflict or a departure is needed, confirm the choice before implementing it.
+  A sandbox result is not a production handoff: report integration only when the
+  intended consumer can identify and use the new work through the agreed route.
+  That check is not permission to run or release it.
 - Do not invent project goals, commands, APIs, metrics, or config semantics.
 - Do not open, print, copy, summarize, upload, or modify any suspected key, password, token, or credential file. Record at most the filename/path and state that contents were not inspected.
 - Before changing generated outputs or large experiment/data folders, ask the user.

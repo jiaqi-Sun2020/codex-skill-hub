@@ -70,6 +70,20 @@ Suppose A’s advantage is close to zero on large inputs. That number alone cann
 
 **Another round or a stopping point?** Apply the same [after-analysis rule](workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis) to new evidence. Draft at 5 when the answer has a clear scope, even if it is negative. Pause the branch if evidence is insufficient and no feasible test remains. A derivation or a source check may suffice instead of an experiment. The author may open a separate question at 1; that does not authorize execution.
 
+### Returning an evidence gap from a manuscript
+
+Note the **original claim and where it appears** (draft version, paragraph, figure label or review ID). Then ask: what is missing for this particular sentence?
+
+| Evidence available | Smallest next step |
+|---|---|
+| A current, valid analysis answers this question | Stay on the paper side. Cite that version and phrase the claim within its scope; do not rerun it. |
+| The existing data can answer it, but this comparison has not been made | Give the analyst the question, data version and missing comparison. Request only that analysis, not a new experiment. |
+| New observations, a control or changes to formal experiment code are needed | Send the original claim, location, gap and decision criterion to [research project management](../20-project-build/README.en.md#handling-an-evidence-request-from-a-manuscript) or directly to the project's authorized executor. A request is not permission to start. |
+
+**Example: the same sampling rule need not select the same locations.** If the paper only says both groups used the same rule, cite the existing method. If it claims the groups were compared at the same locations, first see whether their recorded locations can be paired. Request new observations only if existing material cannot answer the question and the claim is still needed.
+
+**Return to the claim, not the old page number.** If the sentence moved from P4 to P6, use the claim in context, a figure label or a review ID to establish that P6 is the unique match. If there is no match or two plausible ones, ask the author; do not edit or close the issue. Even at P6, check the returned evidence version, finding and scope. If they establish only “same rule,” keep “same locations” open or propose narrower wording to the author.
+
 ## Repeatable goal-clarification loop
 
 Enter as needed at any stage: existing material/decisions → current blockers → smallest next action → return to the requested stage. Start with a light check; clear goals do not require an interview. This adds neither a stage nor a Skill.

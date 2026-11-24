@@ -252,6 +252,11 @@ My_skills/
   previews bound to pre-migration tool paths must be reviewed and regenerated.
 - `experiment-design-skill/` plans required evidence, controls, and claim
   boundaries only; project runtimes or dedicated execution Skills own execution.
+- Paper and research-management entrypoints remain independently usable. Manuscript
+  evidence requests preserve the original claim and return location, reuse a current
+  applicable analysis, and request only the missing analysis or evidence. The paper
+  side uniquely locates the claim in the current draft and checks returned support;
+  completing research does not close the manuscript issue or grant execution authority.
 - `50-core-utils/logic-chain-tutor/` is the centrally stored logic-chain teaching
   Skill; its former external source, personal category, and personal shortcut are retired.
 - The fifteen direct project-build and reusable core Skills are used from their
@@ -282,6 +287,10 @@ My_skills/
 - The Generator creates a missing context bundle once. Its retained forced-refresh
   path is explicitly authorized legacy recovery; ordinary updates belong to
   Neat-Freak. Do not regenerate the root `README.md` or `50-core-utils/`.
+- Onboarding and newly generated Agent rules start from current project rules and
+  one accepted comparable task, not directory names. Missing precedent stays unknown;
+  conflicting routes need an owner decision. Integration requires that the intended
+  consumer can identify and use the result through the agreed route.
 - Keep the root limited to repository entry files; place maintained skill and
   operational artifacts in their designated subdirectories.
 - Keep `.agents/AGENTS.md` as the canonical Agent entrypoint and load it through

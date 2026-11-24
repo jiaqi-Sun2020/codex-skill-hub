@@ -109,10 +109,16 @@ independent state axes, without duplicating the repository overview.
   Protocol Audit Skill, final change-surface audit to Submission Audit, and
   continuation documents to Handoff; routine project-information maintenance is
   outside the Pipeline.
+  Its preview cites the project's current rule and one accepted comparable task,
+  or states that no precedent exists; conflicting routes need an owner decision.
 - `research-management-pipeline` is the repeated post-onboarding research-lifecycle
   router. It locates the unique Governance registry, summarizes SCI/STAT/ENG/GOV
   coverage and seven independent state axes, and selects one smallest next action
   without executing research, adapters, Agent generation, or authorization.
+  It reuses current admissible analysis when evidence, question, method and scope
+  match. Manuscript requests retain the original claim and location; only the missing
+  analysis or evidence is requested, and the paper side checks the current draft
+  before closing an issue. Neither workflow requires installation of the other.
 - `experiment-protocol-audit` independently reads explicit normalized project data,
   emits a fingerprint-bound validation record, and neither executes experiments nor
   turns a validated protocol into a supported scientific claim.

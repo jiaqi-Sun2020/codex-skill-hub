@@ -22,6 +22,8 @@ External and compatibility entry points    → 30-papertrace / 40-skill-registry
 Unreviewed and historical material         → 98-inbox / 99-archive
 ```
 
+**Choose by what you need to deliver.** To decide whether to trust an experimental result or add a control, use [20: research project management](20-project-build/README.en.md#handling-an-evidence-request-from-a-manuscript). To decide what the manuscript can say on the available evidence, use [10: writing and paper delivery](10-paper-build/README.en.md#returning-an-evidence-gap-from-a-manuscript). Either works on its own. If writing exposes a gap, send the **original claim, its location and the missing evidence** to the research team. Match the finding to the same claim in the current draft; changing workflows is not a reason to repeat an analysis.
+
 The three documentation layers have distinct responsibilities:
 
 1. This README explains the repository-wide framework, categories, and entry selection.

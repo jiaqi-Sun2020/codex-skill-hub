@@ -38,6 +38,9 @@ orchestrator into a research-lifecycle executor.
 
 1. **Discover, read-only.** Collect Generator inspection and Governance inventory;
    resolve canonical, legacy, absent, ambiguous, or unsafe governance state.
+   For the work in scope, trace one comparable, accepted task from the current
+   project rules or runbook through its entry point and outputs to the person or
+   tool that accepted them. A directory listing alone does not establish that path.
 2. **Design.** Let Governance propose only evidenced roles, paths, lifecycle
    extensions, approvals, and optional opaque method Profile IDs. When scientific
    validation matters, declare whether a separate domain-validation record is
@@ -45,6 +48,9 @@ orchestrator into a research-lifecycle executor.
 3. **Human review.** Present exact component actions, blockers, evidence,
    fingerprint, rollback, and a plain-language summary in the user's current
    language. No approval means no mutation.
+   In that preview, cite the local rule and example to inherit, or say no
+   precedent yet. If two routes conflict, ask which is authoritative before
+   basing dependent work on either. Do not create infrastructure to fill a blank.
    Machine-readable plan and preview outputs use a short, identity-bound sibling
    temporary and atomic no-clobber publication; a competing final target or an
    unsafe link component stops the write without deleting external content.

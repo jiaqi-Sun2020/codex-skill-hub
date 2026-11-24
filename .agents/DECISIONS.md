@@ -218,6 +218,13 @@
   then distinguish challenged hypotheses from missing comparisons. Reuse current
   decisions, keep HTML optional, and route one next action without granting execution.
 
+- 2026-11-25: Align onboarding and new Agent rules with each project's current rules
+  and an accepted task path; absent precedent remains unknown and conflicts need
+  an owner decision. Keep paper and research-management workflows independent.
+  Evidence requests reuse applicable current analysis, preserve the original claim
+  and return location, and close only after matching the current draft and checking
+  returned support. No new report, infrastructure or execution authority is implied.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic
