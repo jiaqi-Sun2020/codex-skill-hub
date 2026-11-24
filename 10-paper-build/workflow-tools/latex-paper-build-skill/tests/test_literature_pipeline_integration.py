@@ -543,7 +543,7 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
             context = (root / 'pipeline_context.md').read_text(encoding='utf-8')
             refs = re.findall(r'`([^`\n]+)#after-analysis`', context)
             local_contract = package / 'references/paper-pipeline.md'
-            self.assertEqual([(package.parent / ref).resolve() for ref in refs], [local_contract])
+            self.assertEqual([(package.parent / ref).resolve() for ref in refs], [local_contract.resolve()])
             self.assertEqual(local_contract.read_bytes(), contract.read_bytes())
             self.assertEqual({p.name for p in root.iterdir() if p.is_dir()},
                              set(self.pipeline.STAGE_DIRS))
