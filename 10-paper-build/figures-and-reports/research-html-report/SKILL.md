@@ -15,7 +15,7 @@ Use this flow:
 research idea -> claim -> innovation -> mechanism -> experiment evidence -> risk boundary -> HTML report
 ```
 
-This skill is an output-design layer. Use research-logic first when the contribution is unclear, and experiment-design first when the validation plan is weak.
+This skill presents research; it does not choose a new direction. In a Pipeline report, reference the existing [after-analysis decision](../../workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis) in risks/next steps. If no decision was supplied, mark it open; do not reopen research merely to render the same evidence. For a separate request to resolve a scientific question or design gap, hand it back to the Pipeline if in use. A standalone report needs no Pipeline.
 
 ## Design Principles
 

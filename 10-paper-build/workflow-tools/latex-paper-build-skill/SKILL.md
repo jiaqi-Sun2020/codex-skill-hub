@@ -1,6 +1,6 @@
 ---
 name: latex-paper-build-skill
-description: Build, restructure, and maintain complete research-paper delivery pipelines centered on LaTeX manuscripts. Use when Codex needs to inspect an existing .tex paper, generate a project-specific LaTeX scaffold, create a standalone editable main.tex, split a monolithic manuscript into modular files, preserve revtex/ctex/fontspec/BibTeX conventions, enforce .bib reference management and a single figures/ folder, check figure and bibliography paths, choose XeLaTeX/latexmk build commands, or orchestrate a full paper workflow from research logic, experiment design, evidence analysis, optional academic-figure production, HTML research reports, config-driven paper metadata, manuscript architecture, compilation, and submission checks. Also use for QCT/QWCT coin-state tomography manuscripts derived from experiment-code outputs or research reports, especially when the manuscript needs narrative QA for self-interrupted claims, thin result sections, or figures/tables that are not sufficiently read in the main text.
+description: Build and maintain LaTeX-centered research-paper pipelines. Use to inspect or restructure .tex sources, generate modular scaffolds or standalone main.tex, preserve revtex/ctex/fontspec/BibTeX conventions, manage .bib references and one figures/ folder, check paths, or choose XeLaTeX/latexmk build commands. Route completed analysis to follow-up evidence design or revised research questions without restarting the project. Orchestrate research logic, evidence analysis, optional figures and HTML reports, manuscript metadata, author review, and submission checks. Also use for QCT/QWCT coin-state tomography manuscripts from experiment outputs or reports, including narrative QA for interrupted claims, thin results, and underexplained figures or tables.
 ---
 
 # LaTeX Paper Build Skill
@@ -15,12 +15,14 @@ Inside the hub's `10-paper-build` workflow, paper-pipeline author-review output 
 
 ## Workflow
 
+When a round of analysis is in, or the author asks “what next?” or wants to add an experiment, use the [after-analysis route](references/paper-pipeline.md#after-analysis) with the existing question and evidence. Return the next action without running it or scaffolding a workspace. A request solely to render a figure, format a report, polish text or scaffold a project stays at that entry.
+
 For a completed manuscript's mock peer review or revision re-review, read
-[paper-audit](../paper-audit/SKILL.md) and return its single report to the author
+[paper-audit](../../manuscript-review/paper-audit/SKILL.md) and return its single report to the author
 gate. Do not continue into the authoring, scaffolding or compilation steps below
 merely to perform that review. Standalone paper-audit needs no Pipeline.
 For whole-manuscript final delivery, including a direct Stage 7 route, follow its
-[final-manuscript handoff](../paper-audit/SKILL.md#final-manuscript-handoff).
+[final-manuscript handoff](../../manuscript-review/paper-audit/SKILL.md#final-manuscript-handoff).
 Local edits and explicitly pending-review drafts remain available; permission
 to proceed does not turn missing review into approval.
 
@@ -63,7 +65,7 @@ generator to update old goal records; generator changes affect new templates onl
    - New paper with similar conventions: copy or adapt `assets/revtex-qwct-template/`.
    - Standalone editable `main.tex`: when requested, create a fresh non-destructive manuscript directory and put the preamble, frontmatter, sections, evidence tables, TODO markers, and BibTeX hook in one file.
    - Compile/debug request: preserve the current file layout, then run the build command and fix only the failing surface.
-   - Writing-only request: defer to the user's writing skill or local paper-writing rules; this skill owns architecture, paths, and build mechanics. When drafting results in the hub without a more specific writing rule, use the shared [claim safety](../paper-polishing-skill/references/claim-safety.md). Do not start polishing for a build-only task.
+   - Writing-only request: defer to the user's writing skill or local paper-writing rules; this skill owns architecture, paths, and build mechanics. When drafting results in the hub without a more specific writing rule, use the shared [claim safety](../../manuscript-review/paper-polishing-skill/references/claim-safety.md). Do not start polishing for a build-only task.
 
 3. Generate the framework non-destructively.
    - Never overwrite the original manuscript unless the user explicitly asks.
@@ -152,22 +154,22 @@ Apply these rules whenever generating or revising the scientific content of a QC
 Borrow the staged-writing discipline from `alfonso0512/research-writing-skill`: literature/context intake, outline, section expansion, abstract/introduction/method drafting, result interpretation, figure/table captioning, logic checking, and reviewer simulation. In this skill, translate those prompt stages into durable artifacts under the paper pipeline rather than copying prompt templates verbatim. Preserve the local rule that Chinese author-review output comes first and English polishing is approval-gated.
 ## Pipeline Integration
 
-When this skill lives inside a skill hub such as `10-paper-build`, treat sibling skills as pipeline stages rather than duplicated content. Read only the sibling `SKILL.md` needed for the active stage:
+In this hub the paths below are relative to this Skill. Read only the package needed for the active stage. In a flat installation, use the installed Skill with the same frontmatter name; if it is absent, report the missing capability rather than silently substituting another Skill.
 
 - `../paper-project-initializer/SKILL.md` for bounded project initialization and recovery.
-- `../research-logic-skill/SKILL.md` for question ideation, logic challenge and conditional method integration.
-- `../literature-review/SKILL.md` for optional discovery, screening, evidence appraisal and thematic synthesis.
-- `../literature-triage-matrix/SKILL.md` for optional comparison of a known source set.
-- `../experiment-design-skill/SKILL.md` for paper-grade validation plans.
-- `../data-analysis/SKILL.md` for data integrity, statistical analysis,
+- `../../research-cycle/research-logic-skill/SKILL.md` for question ideation, logic challenge and conditional method integration.
+- `../../research-cycle/literature-review/SKILL.md` for optional discovery, screening, evidence appraisal and thematic synthesis.
+- `../../research-cycle/literature-triage-matrix/SKILL.md` for optional comparison of a known source set.
+- `../../research-cycle/experiment-design-skill/SKILL.md` for paper-grade validation plans.
+- `../../research-cycle/data-analysis/SKILL.md` for data integrity, statistical analysis,
   uncertainty, and claim-support assessment before quantitative figure work.
-- `../academic-figure-workflow/SKILL.md` for the optional figure-evidence lane:
+- `../../figures-and-reports/academic-figure-workflow/SKILL.md` for the optional figure-evidence lane:
   figure arguments, editable sources, style, exports, captions, source trace,
   and rendered QA. Inside a generated pipeline, its single figure root is
   `05_manuscript_zh/figures/`.
-- `../research-html-report/SKILL.md` for shareable research briefs and publication-style HTML reports.
-- `../paper-audit/SKILL.md` for completed-paper mock peer review and revision re-review; author approval remains separate.
-- `../paper-polishing-skill/SKILL.md` for post-approval Chinese-to-English translation and Nature/PRL/PRA manuscript polishing.
+- `../../figures-and-reports/research-html-report/SKILL.md` for shareable research briefs and publication-style HTML reports.
+- `../../manuscript-review/paper-audit/SKILL.md` for completed-paper mock peer review and revision re-review; author approval remains separate.
+- `../../manuscript-review/paper-polishing-skill/SKILL.md` for post-approval Chinese-to-English translation and Nature/PRL/PRA manuscript polishing.
 - `references/paper-config.md` for config-driven title, author, affiliation, correspondence, keyword, acknowledgment, and abstract metadata.
 - `references/qct-writing-methodology.md` for reusable QCT/QWCT abstract, introduction, contribution, result-framing, terminology, and claim-boundary methodology.
 

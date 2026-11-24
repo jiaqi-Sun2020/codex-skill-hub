@@ -66,7 +66,7 @@ Do not create a competing review ledger or overwrite an old report.
    - For Nature, PRL, PRA, or target-style work, read `references/journal-styles.md`.
    - For Chinese drafts or Chinese-influenced English, read `references/translation-workflow.md`.
    - For `.tex` files or LaTeX snippets, read `references/latex-preservation.md`.
-   - For whole-paper `.tex` translation or English-version generation, read `references/latex-full-paper-translation.md` and, when available, the sibling `../latex-paper-build-skill/SKILL.md`.
+   - For whole-paper `.tex` translation or English-version generation, read `references/latex-full-paper-translation.md` and, when available, the sibling `../../workflow-tools/latex-paper-build-skill/SKILL.md`.
 5. Rewrite in controlled passes.
    - Extract propositions and evidence before drafting prose.
    - Reconstruct missing logical links without adding new science.

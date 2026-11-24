@@ -43,8 +43,8 @@ jobs:
           $env:PYTHONNOUSERSITE = '1'
           $env:PYTHONHASHSEED = '0'
           $suites = @(
-            (Join-Path $repoRoot '10-paper-build\academic-figure-workflow\tests'),
-            (Join-Path $repoRoot '10-paper-build\latex-paper-build-skill\tests'),
+            (Join-Path $repoRoot '10-paper-build\figures-and-reports\academic-figure-workflow\tests'),
+            (Join-Path $repoRoot '10-paper-build\workflow-tools\latex-paper-build-skill\tests'),
             (Join-Path $repoRoot '20-project-build\experiment-protocol-audit\tests'),
             (Join-Path $repoRoot '20-project-build\project-agent-generator-skill\tests'),
             (Join-Path $repoRoot '20-project-build\research-management-pipeline\tests'),
@@ -132,7 +132,11 @@ jobs:
           }
 
           $active = @()
-          foreach ($category in @('10-paper-build', '20-project-build', '60-visual-computing')) {
+          foreach ($group in @('workflow-tools', 'research-cycle', 'figures-and-reports', 'manuscript-review')) {
+            $active += Get-ChildItem -LiteralPath (Join-Path '10-paper-build' $group) -Directory -ErrorAction Stop | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md') -PathType Leaf }
+          }
+          if ($active.Count -ne 13) { throw "Expected 13 grouped paper Skills, found $($active.Count)" }
+          foreach ($category in @('20-project-build', '60-visual-computing')) {
             $active += Get-ChildItem $category -Directory | Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'SKILL.md') }
           }
           $active += Get-ChildItem '50-core-utils' -Directory | Where-Object {
@@ -241,8 +245,8 @@ jobs:
             Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'tests') -PathType Container } |
             ForEach-Object { Join-Path $_.FullName 'tests' }
           $suites = @(
-            (Join-Path $repoRoot '10-paper-build/academic-figure-workflow/tests')
-            (Join-Path $repoRoot '10-paper-build/latex-paper-build-skill/tests')
+            (Join-Path $repoRoot '10-paper-build/figures-and-reports/academic-figure-workflow/tests')
+            (Join-Path $repoRoot '10-paper-build/workflow-tools/latex-paper-build-skill/tests')
           ) + @($projectSuites) + @((Join-Path $repoRoot '50-core-utils/skill-registry/tests'))
           $standaloneScripts = @(
             (Join-Path $repoRoot '50-core-utils/find-skills/evals/test_inspect_patterns.py')

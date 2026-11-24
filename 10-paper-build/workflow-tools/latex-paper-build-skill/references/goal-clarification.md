@@ -136,6 +136,6 @@ the figure's unresolved message, reuse confirmed goals and permissions, then
 return to the figure workflow. Do not regenerate the workspace."
 
 The dependency-frontier interview idea is adapted from the pinned Matt Pocock
-source documented in [third-party notices](../../THIRD_PARTY_NOTICES.md).
+source documented in [third-party notices](../../../THIRD_PARTY_NOTICES.md).
 Local stopping, scientific boundaries and managed reentry are adaptations, not
 an installation of `grill-me` or its `grilling` dependency.

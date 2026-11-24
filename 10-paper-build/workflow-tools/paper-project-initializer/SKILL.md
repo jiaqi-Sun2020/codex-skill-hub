@@ -20,7 +20,7 @@ unknowns remain unknown; negative and inconclusive results are valid outcomes.
    or material change, read the sole
    [goal clarification protocol](../latex-paper-build-skill/references/goal-clarification.md).
    Do not duplicate its interview rules. Scientific questions belong to
-   [research-logic](../research-logic-skill/SKILL.md).
+   [research-logic](../../research-cycle/research-logic-skill/SKILL.md).
 3. Before writing/resuming, read
    [initialization-contract.md](references/initialization-contract.md).
    Preview exact created/referenced paths, content, rules, stage, next action,
@@ -52,10 +52,10 @@ Never use `--force` to resume an existing paper.
 
 ## Agent framework is a separate step
 
-Read [Generator](../../20-project-build/project-agent-generator-skill/SKILL.md)
+Read [Generator](../../../20-project-build/project-agent-generator-skill/SKILL.md)
 only for wanted missing framework creation. Use its public preview/CLI, not copied
 templates or internal writers. Reuse safe existing frameworks; routine updates go
-to [Neat-Freak](../../50-core-utils/neat-freak/SKILL.md). Partial damaged frameworks
+to [Neat-Freak](../../../50-core-utils/neat-freak/SKILL.md). Partial damaged frameworks
 need a separate repair decision. Consider the existing bootstrap-only mode only
 around a verified intact old bundle.
 
@@ -73,8 +73,8 @@ Do not execute launchers, install dependencies or begin external research operat
 From the hub root, with an existing approved project and Python 3.11+:
 
 ```powershell
-python -X utf8 -B .\10-paper-build\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<project>"
-python -X utf8 -B .\10-paper-build\paper-project-initializer\scripts\initialize_paper_project.py preview --project "<project>" --work-goal "Compare supplied literature" --acceptance "Traceable comparison; gaps retained" --goal-source "User request reference" --start-stage 0 --next-action "Review supplied source passages"
+python -X utf8 -B .\10-paper-build\workflow-tools\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<project>"
+python -X utf8 -B .\10-paper-build\workflow-tools\paper-project-initializer\scripts\initialize_paper_project.py preview --project "<project>" --work-goal "Compare supplied literature" --acceptance "Traceable comparison; gaps retained" --goal-source "User request reference" --start-stage 0 --next-action "Review supplied source passages"
 ```
 
 Preview emits stdout. Save only with permission. Apply and same-plan receipt recovery

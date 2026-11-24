@@ -50,7 +50,7 @@
    semantics or interpret the result; `claim_ceiling`, evidence, work completion,
    and authorization remain independent axes.
 5. Run the smallest relevant syntax or unit-test command first.
-6. For paper-build changes, validate all thirteen Skill directories under `10-paper-build/`,
+6. For paper-build changes, validate all thirteen Skill directories across the four source groups under `10-paper-build/`,
    compile their Python scripts, and smoke-test documented CLI entry points.
 7. Escalate to full builds, training, migrations, deployment, or network calls only with user approval.
 8. Do not open, print, copy, summarize, upload, or modify suspected credential files.
@@ -59,7 +59,7 @@
    inline unless a real reusable test module is later justified.
 
 Paper initialization: from repository root, run
-`python -X utf8 -B .\10-paper-build\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<existing-project>"`.
+`python -X utf8 -B .\10-paper-build\workflow-tools\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<existing-project>"`.
 Read its contract before preview/apply/resume. Zero discovered tests fail CI.
 This helper does not create or enable Agent/memory/Hook.
 

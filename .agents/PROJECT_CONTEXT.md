@@ -68,7 +68,7 @@ independent state axes, without duplicating the repository overview.
 - `99-archive/README.md` and `README.en.md`: inactive archive safety rules.
 - `.agents/memory/MEMORY.md`: compact index of durable project knowledge.
 - `.codex/hooks/load_project_agents.py`: deterministic Codex startup loader.
-- `10-paper-build/*/SKILL.md`, `20-project-build/*/SKILL.md`,
+- `10-paper-build/<group>/*/SKILL.md`, `20-project-build/*/SKILL.md`,
   `50-core-utils/*/SKILL.md`, and `60-visual-computing/*/SKILL.md`: active Skill
   entry points grouped by paper-build, project-build, reusable-utility, or visual-computing ownership.
 - `50-core-utils/skill-registry/tools/skill_registry.py`: version release and synchronization tool.
@@ -123,19 +123,24 @@ independent state axes, without duplicating the repository overview.
 - Optional policy-topology declarations are boundary-checked by the Pipeline and
   audited for content only by `neat-freak`, which also owns narrowly scoped repair
   of existing marked Bootstrap wiring after explicit authorization.
-- Thirteen peer paper-building Skills are stored directly under `10-paper-build/`:
+- Thirteen peer paper-building Skills are stored in four source groups under `10-paper-build/`:
   `academic-figure-workflow`, `research-logic`, `experiment-design`,
   `data-analysis`, `research-html-report`, `latex-paper-build-skill`, `paper-audit`,
   `paper-polishing-skill`, `prl-manuscript-polisher`, and
   `interactive-skill-builder`, `literature-review`, `literature-triage-matrix`, and `paper-project-initializer`.
   They are separate from the thirteen project-build and reusable core Skills and
   are maintained as hub source rather than Registry releases.
+- The four paper source groups contain 3 workflow tools, 5 research-cycle Skills,
+  2 figure/report Skills and 3 manuscript-review Skills. The Pipeline owns the
+  sole Stage 3 after-analysis route: check unreliable evidence before using it,
+  distinguish a challenged hypothesis from a missing comparison, and return one
+  next action within existing authority. HTML reporting is optional.
 - `paper-audit` routes applicable technical claims to its technical-consistency
   reference and figure evidence to its figure-review reference. It checks supplied
   language versions for scientific meaning and returns evidence-anchored concerns
   with linked repair locations and observable closure conditions in one report.
 - Results-writing and polishing entrypoints share
-  `10-paper-build/paper-polishing-skill/references/claim-safety.md` for evidence type,
+  `10-paper-build/manuscript-review/paper-polishing-skill/references/claim-safety.md` for evidence type,
   claim strength and material qualifiers. Review reports distinguish confirmed
   problems, risks to verify and optional suggestions; passage-only polishing stays
   in chat by default, and file edits require applicable authorization.

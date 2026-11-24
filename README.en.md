@@ -6,6 +6,8 @@
 
 The repository directly maintains 37 active Skills: thirteen under `10-paper-build`, six under `20-project-build`, nine under `50-core-utils`, and nine under `60-visual-computing`. Version-registry infrastructure, external shortcuts, staging, and archives are not counted as active Skills.
 
+The [paper index](10-paper-build/README.en.md) groups its entries by purpose: workflow tools, research and evidence, figures and reports, and manuscript review. Grouping changes neither invocation names nor paper stages.
+
 > Reusable instructions, scripts, tests, templates, and documentation may be public. Manuscripts, experimental data, learning profiles, conversation records, credentials, tokens, and machine-private state are not public repository content.
 
 ## Overall framework
@@ -87,13 +89,13 @@ The three documentation layers have distinct responsibilities:
 
 | Current goal | Entry point |
 |---|---|
-| Initialize or check a paper-project entry | Use [paper-project-initializer](10-paper-build/paper-project-initializer/SKILL.md); Agent/memory/Hook need scoped approval |
+| Initialize or check a paper-project entry | Use [paper-project-initializer](10-paper-build/workflow-tools/paper-project-initializer/SKILL.md); Agent/memory/Hook need scoped approval |
 | New research project or a legacy project not yet onboarded | Start with the one-time onboarding flow in [20-project-build](20-project-build/README.en.md) |
 | Contracts, evidence, or state changed in an onboarded project | Use the repeated research-management flow in the project-build framework |
 | Discover research context or compare known papers | Use the literature-review or matrix entry in [10-paper-build](10-paper-build/README.en.md) |
 | Turn existing research into a paper | Enter [10-paper-build](10-paper-build/README.en.md) at the earliest missing stage |
 | Update README, `.agents`, or durable knowledge in an initialized project | Use the repeated maintenance tools in [50-core-utils](50-core-utils/README.en.md) |
-| A completed manuscript needs mock peer review or revision re-review | Use [paper-audit](10-paper-build/paper-audit/SKILL.md); read-only report by default, no automatic edits |
+| A completed manuscript needs mock peer review or revision re-review | Use [paper-audit](10-paper-build/manuscript-review/paper-audit/SKILL.md); read-only report by default, no automatic edits |
 | Audit a Skill or reorganize training code | Choose the corresponding core utility |
 | Find, verify, or compare an external Skill | Use `find-skills` in [50-core-utils](50-core-utils/README.en.md); candidate installation still needs explicit authorization |
 | Design or improve a landing page, portfolio, brand site, or product showcase | Use [Taste Skill](50-core-utils/taste-skill/SKILL.md); dashboards and app screens are outside its default scope |

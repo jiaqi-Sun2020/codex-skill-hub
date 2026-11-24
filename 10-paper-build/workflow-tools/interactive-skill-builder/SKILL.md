@@ -100,4 +100,4 @@ Remaining notes
 
 ## Hub Handling
 
-When working inside this hub, choose the numbered category that owns the new Skill's public contract and keep the Skill directly under that category. For paper-building Skills, use `10-paper-build/<skill-directory>/`; do not recreate a `util_skills/` wrapper. After creating or renaming a Skill, update the category README and both root README indexes with its path, purpose, and validation command.
+When working inside this hub, choose the numbered category that owns the new Skill's public contract. For paper-building Skills, use `10-paper-build/<group>/<skill-directory>/`; choose one of the four source groups in the [paper index](../../README.en.md). Other categories retain their existing layout. After creating or renaming a Skill, update the category README and both root README indexes with its path, purpose, and validation command.

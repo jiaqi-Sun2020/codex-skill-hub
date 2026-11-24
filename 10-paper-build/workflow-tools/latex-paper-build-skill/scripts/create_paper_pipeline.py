@@ -358,7 +358,7 @@ relevant artifact and approval source before relying on any stage's readiness.
 | Experiment design | `01_experiment_design/experiment_plan.md` | `experiment-design` | TODO |
 | Evidence production | `02_training_code/`, `03_results/` | project/domain workflow | TODO/N/A |
 | Data integrity and analysis | `03_results/` | `data-analysis` | TODO/N/A |
-| HTML research report | `04_reports/` | `research-html-report` | TODO |
+| HTML research report | `04_reports/` | `research-html-report` | N/A until requested |
 | Optional figure-evidence lane | `05_manuscript_zh/figures/` | `academic-figure-workflow` | N/A until activated |
 | Chinese LaTeX manuscript | `05_manuscript_zh/` | `latex-paper-build-skill` | TODO |
 | Mock pre-review and author gate | `06_review_gate/` | `paper-audit` then author | TODO |
@@ -374,13 +374,22 @@ goals or maintain their current state. For a blocking ambiguity or material
 change, use the installed `latex-paper-build-skill` reference
 `references/goal-clarification.md`, then return to the requested stage.
 
+After a round of analysis, use the Skill reference
+`latex-paper-build-skill/references/paper-pipeline.md#after-analysis`.
+For example, if an apparent reversal might come from mismatched inputs or code,
+check it at Stage 3 first. If only a control is missing, reuse the approved plan
+or extend its design. If reliable evidence contradicts a key prediction,
+revisit that hypothesis at Stage 1, then design a discriminating check at
+Stage 2. Keep the paper's question if it still stands.
+No new workspace, HTML report or automatic execution is required.
+
 Edit `paper_config.json` before finalizing title, authors, affiliations, correspondence, acknowledgments, and keywords. Activate the figure-evidence lane only when the paper needs figures; do not create empty figure packages for figure-free work. Figure/package QA and scientific claim review remain separate states.
 
 Unknown context routes to literature-review; a known paper set routes to
-literature-triage-matrix. Research-logic can form initial candidates and reopen
-them after source checks. The generator creates routing/scaffolding only; agents
-invoke these literature Skills on demand. It performs no searches or source
-appraisal. Create literature artifacts only when requested;
+literature-triage-matrix. Return source checks to the requesting stage when the
+question, hypotheses and contribution boundary are unchanged. The generator
+creates routing/scaffolding only; agents invoke these literature Skills on
+demand. It performs no searches or source appraisal. Create literature artifacts only when requested;
 DOI registration, metadata matching, source support, retraction screening,
 scientific quality, search coverage and author claim approval
 are separate judgments. Theory, qualitative and literature work may use direct

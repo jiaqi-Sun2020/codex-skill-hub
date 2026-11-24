@@ -168,4 +168,4 @@ Use $experiment-design. Turn my model idea into a paper-grade experimental valid
 
 A defensible evidence plan specifies what could support or challenge the scoped claim and which conclusions would remain unjustified.
 
-Evidence appraisal adaptations: [third-party notices](../THIRD_PARTY_NOTICES.md).
+Evidence appraisal adaptations: [third-party notices](../../THIRD_PARTY_NOTICES.md).

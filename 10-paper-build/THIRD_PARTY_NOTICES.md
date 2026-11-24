@@ -2,10 +2,10 @@
 
 ## Paper Audit sources (2026-10-28)
 
-The standalone [paper-audit](paper-audit/SKILL.md) locally adapts bounded
+The standalone [paper-audit](manuscript-review/paper-audit/SKILL.md) locally adapts bounded
 whole-manuscript mock review and revision re-review. Exact source notices,
 license scope and full MIT / Apache-2.0 texts travel with
-[its LICENSE](paper-audit/LICENSE). The root MIT license does not override them.
+[its LICENSE](manuscript-review/paper-audit/LICENSE). The root MIT license does not override them.
 
 | Fixed source | Selected input and local use | Excluded |
 |---|---|---|
@@ -15,9 +15,9 @@ license scope and full MIT / Apache-2.0 texts travel with
 | [Yuan1z0825/nature-skills](https://github.com/Yuan1z0825/nature-skills/tree/c1637a89c7097d486ba1c6e755e34d01cbb24998), Apache-2.0 | `skills/nature-reviewer/SKILL.md` and `references/forensic-consistency-audit.md` beneath it: claim/evidence anchors, severity versus blocking, conditional consistency | Three mandatory reviewers, Nature-wide criteria, punctuation bans, research execution, reproduced journal policies |
 | [blader/humanizer](https://github.com/blader/humanizer/tree/8c307f367c91bd974002f10f2be2965d642c13df), MIT, Siqi Chen | `SKILL.md`: redundant inflation and preservation of scientific meaning | Automatic file writeback, punctuation/word bans, AI-authorship claims, full rewriting |
 
-These fixed sources inform `paper-audit/SKILL.md`,
-`paper-audit/references/method-checks.md` and
-`paper-audit/references/report-template.md`; local modification notices identify
+These fixed sources inform `manuscript-review/paper-audit/SKILL.md`,
+`manuscript-review/paper-audit/references/method-checks.md` and
+`manuscript-review/paper-audit/references/report-template.md`; local modification notices identify
 the adaptation. They are not installed or called at runtime.
 
 Method inspiration only, with no source text, worksheets or assets copied:
@@ -75,7 +75,7 @@ approval or an actual editorial decision.
 - naplesblue, [apple-design-skill](https://github.com/naplesblue/apple-design-skill/tree/e81692da299d64b9bf38ae26db2d709fc60c8bf3),
   commit `e81692da299d64b9bf38ae26db2d709fc60c8bf3`, MIT: independently adapted
   restrained cool neutrals, clear hierarchy, spacing, and reduced fragmentation
-  into `academic-figure-workflow/references/apple-inspired-academic-figure-style.md`.
+  into `figures-and-reports/academic-figure-workflow/references/apple-inspired-academic-figure-style.md`.
   Glass, UI, font, and motion recipes are excluded.
 - 2TheFar, [apple-inspired-design-skill](https://github.com/2TheFar/apple-inspired-design-skill/tree/f709388017307d8cefcdab4b9bc0f9f54e32bb8e),
   commit `f709388017307d8cefcdab4b9bc0f9f54e32bb8e`, MIT: independently adapted
@@ -85,7 +85,7 @@ approval or an actual editorial decision.
 - Nicolas P. Rougier, Michael Droettboom, and Philip E. Bourne, [*Ten Simple
   Rules for Better Figures*](https://doi.org/10.1371/journal.pcbi.1003833),
   PLOS Computational Biology 10(9): e1003833 (2014), CC0 Public Domain
-  Dedication: retained as `academic-figure-workflow/Ten Simple Rules for Better
+  Dedication: retained as `figures-and-reports/academic-figure-workflow/Ten Simple Rules for Better
   Figures.pdf` (SHA-256 `95B6714AA1CE1E058475C9A807FA85E058BDAA5C3261E792DC5E8DFD9AE83AD6`).
   It is an optional general-design reading source, not a venue rule, scientific
   evidence input, or a substitute for the local figure contracts.

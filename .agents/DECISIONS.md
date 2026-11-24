@@ -210,6 +210,14 @@
   while unsupported claims need narrowing or verification. No Skill count,
   Pipeline stage, configuration or execution-authority expansion is introduced.
 
+- 2026-11-24: Publish the thirteen paper packages under four source groups
+  (workflow tools, research cycle, figures/reports and manuscript review) while
+  preserving invocation names, licenses and generated workspaces. Update source
+  paths and CI discovery; inspect and regenerate previews tied to old tool paths.
+  The Pipeline owns one after-analysis return rule at Stage 3: reliability first,
+  then distinguish challenged hypotheses from missing comparisons. Reuse current
+  decisions, keep HTML optional, and route one next action without granting execution.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

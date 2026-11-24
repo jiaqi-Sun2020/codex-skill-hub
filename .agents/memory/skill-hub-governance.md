@@ -40,10 +40,11 @@ type: project
 - On 2026-10-17, the owner approved Leonxlnx's MIT-licensed Taste Skill v2 as the seventh direct `50-core-utils` Skill, named `design-taste-frontend` and fixed to upstream commit `f624f37a8c650b9cc550253104925efe4c8de246`. The Hub retains its complete 29-file execution source, upstream MIT notice, and `UPSTREAM.md` provenance record. It provides art direction and visual checks for public-facing pages, not dashboards or app screens; the source-only integration does not globally install it or authorize its later working-file, asset-download, browser, or local-server actions.
 - On 2026-10-21, the owner approved a figure-workflow update that adds an optional, explicitly selected Apple-inspired academic styling reference and a CC0 PLOS general-design reading source. The Apple-inspired reference independently adapts fixed MIT sources from naplesblue (`e81692da299d64b9bf38ae26db2d709fc60c8bf3`) and 2TheFar (`f709388017307d8cefcdab4b9bc0f9f54e32bb8e`); it is not an Apple standard or asset source, never becomes the default, and cannot alter the Style Manifest's protected science, delivery, or QA boundaries. `Ten Simple Rules for Better Figures` is retained as a verified CC0 reference PDF (SHA-256 `95B6714AA1CE1E058475C9A807FA85E058BDAA5C3261E792DC5E8DFD9AE83AD6`), not a venue or scientific-evidence gate. Counts and canonical Skill locations remain unchanged.
 - On 2026-10-26, the owner approved Archify v3.2.0 as the eighth direct `50-core-utils` Skill, fixed to tt-a1i/archify commit `81c6be8d87090670c45d08a8f97f9d29c5af0bec`. The Hub retains the upstream `archify/` source unchanged plus `UPSTREAM.md`; Apache-2.0, NOTICE, historical MIT, font and brand-mark obligations remain intact. Archify renders interactive standalone HTML diagrams and optional explainers, but does not replace scientific validation, academic-figure delivery, global installation, browser launch, update checks, or global-rule changes.
-- On 2026-10-28, the owner approved `paper-audit` as the thirteenth `10-paper-build` Skill. It performs a read-only, evidence-grounded mock peer review of a completed manuscript or revision re-review and returns one report to the human author gate; it never edits manuscripts, runs research, grants approval, or makes a real editorial decision. The local adaptation records fixed MIT and Apache-2.0 sources and retained notices in `10-paper-build/paper-audit/LICENSE`; the pipeline checks applicable whole-manuscript review before final delivery while keeping review, scientific support, author approval and action authority separate.
+- On 2026-10-28, the owner approved `paper-audit` as the thirteenth `10-paper-build` Skill. It performs a read-only, evidence-grounded mock peer review of a completed manuscript or revision re-review and returns one report to the human author gate; it never edits manuscripts, runs research, grants approval, or makes a real editorial decision. The local adaptation records fixed MIT and Apache-2.0 sources and retained notices in `10-paper-build/manuscript-review/paper-audit/LICENSE`; the pipeline checks applicable whole-manuscript review before final delivery while keeping review, scientific support, author approval and action authority separate.
 - On 2026-10-28, the owner approved Humanizer v3.1.0 as the ninth direct `50-core-utils` Skill, fixed to blader/humanizer commit `8c307f367c91bd974002f10f2be2965d642c13df`. The Hub retains nine selected MIT-licensed source files plus `UPSTREAM.md`; its original offline validator remains available, while workflows, maintainer instructions, Git metadata, and external manuscript material are excluded. This source-only snapshot does not install globally, authorize file edits, perform scientific review, identify authorship, or guarantee detector evasion. Authorized use must preserve supported claims, numbers, terms, and citations.
 - On 2026-11-13, the paper-audit update adds conditional technical-consistency and figure-review references for object/parameter identity, reading dependencies, two-way figure/text correspondence, final-PDF readability and supplied bilingual meaning. Findings retain one report and stable IDs with located evidence, linked minimum remedies and observable closure conditions. Read-only authority, the author gate and the 37-Skill inventory remain unchanged.
 - On 2026-11-23, results writing and polishing were aligned to the shared paper-polishing claim-safety reference: match evidence type and claim strength, keep conditions where interpretation needs them, and preserve author-locked text. Review handoffs distinguish confirmed problems, risks to verify and optional suggestions. Optional tests stay in review/author notes; unsupported claims require narrowing or verification. Passage-only polishing proposes chat text; file edits need applicable authorization. Counts, Pipeline stages and scientific approval remain unchanged.
+- On 2026-11-24, the 13 paper packages moved into four source groups (workflow-tools 3, research-cycle 5, figures-and-reports 2, manuscript-review 3). Invocation names and generated workspaces stay unchanged; review and regenerate previews tied to old tool paths. The Pipeline owns the sole Stage 3 after-analysis route: check evidence reliability, distinguish a challenged hypothesis from a missing comparison, and route one next action under existing authority. Reuse prior judgments and keep HTML optional.
 - `.agents/AGENTS.md` is the single project Agent entrypoint. Trusted project-local `.codex/` hooks load it at supported lifecycle events; do not add a root `AGENTS.md`.
 - The Skill Registry accepts only portable 1–64 character lowercase identifiers with single `.`, `_`, or `-` separators and rejects Windows reserved basenames; all identifier-bearing inputs are validated before filesystem side effects, while every derived filesystem path remains independently root-confined.
 - Repository CI lives only in `.github/workflows/ci.yml`: Windows core tests are required, Linux compatibility is informational, action dependencies are pinned by commit SHA, and Gitleaks scans committed history. Integrity assertions stay inline; do not add a root `tests/` directory merely to hold repository checks.
@@ -66,9 +67,9 @@ type: project
 - `10-paper-build/README.en.md`
 - `10-paper-build/S_PAPER_SKILLS_LICENSE`
 - `10-paper-build/THIRD_PARTY_NOTICES.md`
-- `10-paper-build/literature-review/SKILL.md`
-- `10-paper-build/literature-triage-matrix/SKILL.md`
-- `10-paper-build/experiment-design-skill/SKILL.md`
+- `10-paper-build/research-cycle/literature-review/SKILL.md`
+- `10-paper-build/research-cycle/literature-triage-matrix/SKILL.md`
+- `10-paper-build/research-cycle/experiment-design-skill/SKILL.md`
 - `20-project-build/README.md`
 - `20-project-build/README.en.md`
 - `30-papertrace/README.md`
@@ -116,15 +117,15 @@ type: project
 - `50-core-utils/taste-skill/SKILL.md`
 - `50-core-utils/taste-skill/UPSTREAM.md`
 - `50-core-utils/taste-skill/LICENSE`
-- `10-paper-build/paper-audit/SKILL.md`
-- `10-paper-build/paper-audit/references/method-checks.md`
-- `10-paper-build/paper-audit/references/report-template.md`
-- `10-paper-build/paper-audit/references/technical-consistency.md`
-- `10-paper-build/paper-audit/references/figure-review.md`
-- `10-paper-build/paper-audit/LICENSE`
-- `10-paper-build/paper-polishing-skill/references/claim-safety.md`
-- `10-paper-build/paper-polishing-skill/references/translation-workflow.md`
-- `10-paper-build/latex-paper-build-skill/references/qct-writing-methodology.md`
+- `10-paper-build/manuscript-review/paper-audit/SKILL.md`
+- `10-paper-build/manuscript-review/paper-audit/references/method-checks.md`
+- `10-paper-build/manuscript-review/paper-audit/references/report-template.md`
+- `10-paper-build/manuscript-review/paper-audit/references/technical-consistency.md`
+- `10-paper-build/manuscript-review/paper-audit/references/figure-review.md`
+- `10-paper-build/manuscript-review/paper-audit/LICENSE`
+- `10-paper-build/manuscript-review/paper-polishing-skill/references/claim-safety.md`
+- `10-paper-build/manuscript-review/paper-polishing-skill/references/translation-workflow.md`
+- `10-paper-build/workflow-tools/latex-paper-build-skill/references/qct-writing-methodology.md`
 - `50-core-utils/archify/SKILL.md`
 - `50-core-utils/archify/UPSTREAM.md`
 - `50-core-utils/archify/LICENSE`

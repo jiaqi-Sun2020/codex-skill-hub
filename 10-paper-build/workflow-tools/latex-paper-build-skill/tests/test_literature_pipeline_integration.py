@@ -15,9 +15,10 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
-HUB = Path(__file__).resolve().parents[2]
-REVIEW = HUB / "literature-review"
-PIPELINE = HUB / "latex-paper-build-skill"
+PIPELINE = Path(__file__).resolve().parents[1]
+HUB = PIPELINE.parent.parent
+RESEARCH = HUB / "research-cycle"
+REVIEW = RESEARCH / "literature-review"
 
 
 def load(name, path):
@@ -471,8 +472,8 @@ class LiteraturePipelineTests(unittest.TestCase):
             self.assertEqual(output.read_text(), "owner")
 
     def test_markdown_routes_resolve_for_changed_skills_and_notices(self):
-        roots = [REVIEW, HUB / "literature-triage-matrix", HUB / "research-logic-skill",
-                 HUB / "experiment-design-skill", HUB / "data-analysis"]
+        roots = [REVIEW, RESEARCH / "literature-triage-matrix", RESEARCH / "research-logic-skill",
+                 RESEARCH / "experiment-design-skill", RESEARCH / "data-analysis"]
         broken = []
         for root in roots:
             for file in root.rglob("*.md"):
@@ -486,7 +487,7 @@ class LiteraturePipelineTests(unittest.TestCase):
     def test_new_skill_layout_excludes_paid_and_pdf_generators(self):
         files = {p.name for p in (REVIEW / "scripts").glob("*.py")}
         self.assertEqual(files, {"search_databases.py", "verify_citations.py"})
-        self.assertEqual(len([p for p in HUB.iterdir() if (p / "SKILL.md").is_file()]), 13)
+        self.assertTrue((REVIEW / 'SKILL.md').is_file())
 
 
 class GoalClarificationIntegrationTests(unittest.TestCase):
@@ -518,6 +519,36 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
             self.assertIn('references/goal-clarification.md', context)
             self.assertIn('## Focal Question and Mode', logic)
             self.assertEqual(json.loads((root / 'paper_config.json').read_text())['schema_version'], 1)
+
+    def test_after_analysis_handoffs_resolve_to_one_stage_3_exit(self):
+        # Exercise the real CLI and resolve its package-relative navigation outside
+        # the repository. This checks wiring, not scientific route selection.
+        contract = PIPELINE / 'references/paper-pipeline.md'
+        anchor = 'after-analysis'
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / 'paper'
+            run = subprocess.run([sys.executable, '-X', 'utf8', '-B',
+                str(PIPELINE / 'scripts/create_paper_pipeline.py'), '--project', str(root),
+                '--title', 'Synthetic research round', '--no-template'],
+                cwd=directory, capture_output=True, text=True)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            context = (root / 'pipeline_context.md').read_text(encoding='utf-8')
+            refs = re.findall(r'`([^`\n]+)#after-analysis`', context)
+            self.assertEqual([(PIPELINE.parent / ref).resolve() for ref in refs], [contract])
+            self.assertEqual({p.name for p in root.iterdir() if p.is_dir()},
+                             set(self.pipeline.STAGE_DIRS))
+            for empty_stage in ('03_results', '04_reports'):
+                self.assertEqual(list((root / empty_stage).iterdir()), [])
+
+        for entry in (PIPELINE / 'SKILL.md', RESEARCH / 'data-analysis/SKILL.md',
+                      HUB / 'figures-and-reports/research-html-report/SKILL.md',
+                      HUB / 'README.md', HUB / 'README.en.md'):
+            with self.subTest(entry=entry):
+                refs = re.findall(r'\]\(([^)#]+)#after-analysis\)', entry.read_text(encoding='utf-8'))
+                self.assertEqual([(entry.parent / ref).resolve() for ref in refs], [contract])
+        stage_3 = contract.read_text(encoding='utf-8').split('## Stage 3:', 1)[1].split('## Stage 4:', 1)[0]
+        headings = re.findall(r'^### (.+)$', stage_3, re.M)
+        self.assertEqual([h.lower().replace(' ', '-') for h in headings].count(anchor), 1)
 
     def test_legacy_goal_artifacts_preserve_raw_bytes_and_tree_without_force(self):
         with tempfile.TemporaryDirectory() as directory:
@@ -557,7 +588,7 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
     def test_changed_goal_documents_have_resolvable_local_links(self):
         paths = [PIPELINE / 'SKILL.md', PIPELINE / 'references/paper-pipeline.md',
                  PIPELINE / 'references/goal-clarification.md',
-                 HUB / 'research-logic-skill/SKILL.md', HUB / 'README.md',
+                 RESEARCH / 'research-logic-skill/SKILL.md', HUB / 'README.md',
                  HUB / 'README.en.md', HUB / 'THIRD_PARTY_NOTICES.md']
         broken = []
         for file in paths:
@@ -575,8 +606,7 @@ class GoalClarificationIntegrationTests(unittest.TestCase):
         heading_levels = lambda text: [len(m) for m in re.findall(r'^(#+) ', text, re.M)]
         self.assertEqual(heading_levels(chinese), heading_levels(english))
         for text in (chinese, english):
-            self.assertEqual(text.count('(latex-paper-build-skill/references/goal-clarification.md)'), 1)
-        self.assertEqual(len([p for p in HUB.iterdir() if (p / 'SKILL.md').is_file()]), 13)
+            self.assertEqual(text.count('(workflow-tools/latex-paper-build-skill/references/goal-clarification.md)'), 1)
 
 
 if __name__ == "__main__":

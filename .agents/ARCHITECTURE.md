@@ -32,18 +32,10 @@ My_skills/
 |   |-- README.md / README.en.md
 |   |-- S_PAPER_SKILLS_LICENSE
 |   |-- THIRD_PARTY_NOTICES.md
-|   |-- literature-review/
-|   |-- literature-triage-matrix/
-|   |-- academic-figure-workflow/
-|   |-- research-logic-skill/
-|   |-- experiment-design-skill/
-|   |-- data-analysis/
-|   |-- research-html-report/
-|   |-- latex-paper-build-skill/
-|   |-- paper-audit/
-|   |-- paper-polishing-skill/
-|   |-- prl-manuscript-polisher/
-|   `-- interactive-skill-builder/
+|   |-- workflow-tools/
+|   |-- research-cycle/
+|   |-- figures-and-reports/
+|   `-- manuscript-review/
 |-- 20-project-build/
 |   |-- experiment-protocol-audit/
 |   |-- README.md / README.en.md
@@ -167,20 +159,20 @@ My_skills/
 - `60-visual-computing/gsap-performance/SKILL.md`
 - `60-visual-computing/gsap-frameworks/SKILL.md`
 - `60-visual-computing/GSAP_SKILLS_LICENSE`
-- `10-paper-build/academic-figure-workflow/SKILL.md`
-- `10-paper-build/research-logic-skill/SKILL.md`
-- `10-paper-build/literature-review/SKILL.md`
-- `10-paper-build/literature-triage-matrix/SKILL.md`
-- `10-paper-build/experiment-design-skill/SKILL.md`
-- `10-paper-build/data-analysis/SKILL.md`
-- `10-paper-build/research-html-report/SKILL.md`
-- `10-paper-build/latex-paper-build-skill/SKILL.md`
-- `10-paper-build/paper-audit/SKILL.md`
-- `10-paper-build/paper-audit/references/technical-consistency.md`
-- `10-paper-build/paper-audit/references/figure-review.md`
-- `10-paper-build/paper-polishing-skill/SKILL.md`
-- `10-paper-build/prl-manuscript-polisher/SKILL.md`
-- `10-paper-build/interactive-skill-builder/SKILL.md`
+- `10-paper-build/figures-and-reports/academic-figure-workflow/SKILL.md`
+- `10-paper-build/research-cycle/research-logic-skill/SKILL.md`
+- `10-paper-build/research-cycle/literature-review/SKILL.md`
+- `10-paper-build/research-cycle/literature-triage-matrix/SKILL.md`
+- `10-paper-build/research-cycle/experiment-design-skill/SKILL.md`
+- `10-paper-build/research-cycle/data-analysis/SKILL.md`
+- `10-paper-build/figures-and-reports/research-html-report/SKILL.md`
+- `10-paper-build/workflow-tools/latex-paper-build-skill/SKILL.md`
+- `10-paper-build/manuscript-review/paper-audit/SKILL.md`
+- `10-paper-build/manuscript-review/paper-audit/references/technical-consistency.md`
+- `10-paper-build/manuscript-review/paper-audit/references/figure-review.md`
+- `10-paper-build/manuscript-review/paper-polishing-skill/SKILL.md`
+- `10-paper-build/manuscript-review/prl-manuscript-polisher/SKILL.md`
+- `10-paper-build/workflow-tools/interactive-skill-builder/SKILL.md`
 - `50-core-utils/logic-chain-tutor/SKILL.md`
 
 ## Tests
@@ -201,7 +193,7 @@ My_skills/
 - `50-core-utils/skill-registry/sources/reader-learner/tests/test_profile_safety.py`
 - `50-core-utils/skill-registry/sources/reader-learner/tests/test_visible_wiki.py`
 - `50-core-utils/skill-registry/tests/test_skill_registry.py`
-- `10-paper-build/latex-paper-build-skill/tests/test_paper_audit_integration.py`
+- `10-paper-build/workflow-tools/latex-paper-build-skill/tests/test_paper_audit_integration.py`
 
 ## Generated / Output Areas
 
@@ -254,6 +246,10 @@ My_skills/
   `dcd573b1768e48e794975100f8548dc0f1bcb50e`; they do not retain the old Git
   history and are not Registry releases. `S_PAPER_SKILLS_LICENSE` preserves the
   source repository's MIT notice.
+- Those thirteen sources live in `workflow-tools/`, `research-cycle/`,
+  `figures-and-reports/`, and `manuscript-review/`. These are source groups, not
+  additional research stages. Existing generated paper workspaces stay in place;
+  previews bound to pre-migration tool paths must be reviewed and regenerated.
 - `experiment-design-skill/` plans required evidence, controls, and claim
   boundaries only; project runtimes or dedicated execution Skills own execution.
 - `50-core-utils/logic-chain-tutor/` is the centrally stored logic-chain teaching

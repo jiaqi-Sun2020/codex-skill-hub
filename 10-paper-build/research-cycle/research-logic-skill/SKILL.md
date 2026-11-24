@@ -25,7 +25,7 @@ new experiments onto an unrelated question.
 ## Shared workflow
 
 In the paper hub, use the Pipeline's
-[shared goal-clarification protocol](../latex-paper-build-skill/references/goal-clarification.md)
+[shared goal-clarification protocol](../../workflow-tools/latex-paper-build-skill/references/goal-clarification.md)
 when a consequential ambiguity or changed decision needs a repeatable interview.
 The Pipeline owns scope and stage return; this Skill handles the scientific
 question, hypotheses and contribution only, not delivery choices or permissions.
@@ -75,4 +75,4 @@ holdout where applicable. Do not invent retroactive preregistration.
 `Use $research-logic to compare explanations of this observation and propose
 the smallest evidence plan that could distinguish them.`
 
-See [third-party notices](../THIRD_PARTY_NOTICES.md) for adaptation provenance.
+See [third-party notices](../../THIRD_PARTY_NOTICES.md) for adaptation provenance.

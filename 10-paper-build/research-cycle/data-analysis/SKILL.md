@@ -55,7 +55,7 @@ Use this skill to turn raw experimental outputs or result tables into defensible
   owns computations on explicitly supplied data. Neither signs final scientific
   approval on behalf of the author/domain expert.
 
-See [third-party notices](../THIRD_PARTY_NOTICES.md) for critique provenance.
+See [third-party notices](../../THIRD_PARTY_NOTICES.md) for critique provenance.
 
 ## Output Contract (applicable analysis only)
 
@@ -67,6 +67,8 @@ For a complete analysis, include:
 - Integrity status: pass/warn/fail for provenance, metric validity, result existence, and scope.
 - Claim impact: supported, partially supported, unsupported, or requires more evidence.
 - Reproducible artifacts: generated script paths, tables, figures, or JSON summaries if files are created.
+
+Inside the paper Pipeline, hand the original question, evidence version, integrity finding and claim impact back to its [after-analysis route](../../workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis). Standalone analysis ends with its requested output; it does not require the Pipeline or start another round.
 
 Use `references/report-template.md` when writing a report-style answer.
 

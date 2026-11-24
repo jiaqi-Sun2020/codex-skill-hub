@@ -9,10 +9,11 @@ import tempfile
 import unittest
 from pathlib import Path
 
-HUB = Path(__file__).resolve().parents[2]
+PIPELINE = Path(__file__).resolve().parents[1]
+HUB = PIPELINE.parent.parent
 ROOT = HUB.parent
-AUDIT = HUB / "paper-audit"
-PIPELINE = HUB / "latex-paper-build-skill"
+REVIEW = HUB / "manuscript-review"
+AUDIT = REVIEW / "paper-audit"
 SCRIPT = PIPELINE / "scripts" / "create_paper_pipeline.py"
 
 
@@ -148,14 +149,14 @@ class PaperAuditIntegrationTests(unittest.TestCase):
         self.assertNotIn("paper_audit_report.md", "\n".join(entries.values()))
 
     def test_all_final_entrances_link_the_same_handoff(self):
-        for relative in (
-            "latex-paper-build-skill/SKILL.md",
-            "latex-paper-build-skill/references/paper-pipeline.md",
-            "paper-polishing-skill/SKILL.md",
-            "prl-manuscript-polisher/SKILL.md",
+        for entrance in (
+            PIPELINE / "SKILL.md",
+            PIPELINE / "references/paper-pipeline.md",
+            REVIEW / "paper-polishing-skill/SKILL.md",
+            REVIEW / "prl-manuscript-polisher/SKILL.md",
         ):
-            text = (HUB / relative).read_text(encoding="utf-8")
-            with self.subTest(entrance=relative):
+            text = entrance.read_text(encoding="utf-8")
+            with self.subTest(entrance=entrance):
                 self.assertIn("paper-audit/SKILL.md#final-manuscript-handoff", text)
         self.assertIn("## Final-manuscript handoff",
                       (AUDIT / "SKILL.md").read_text(encoding="utf-8"))
@@ -164,21 +165,34 @@ class PaperAuditIntegrationTests(unittest.TestCase):
         paths = list(AUDIT.rglob("*.md")) + [
             HUB / "README.md", HUB / "README.en.md",
             ROOT / "README.md", ROOT / "README.en.md",
-            HUB / "latex-paper-build-skill/SKILL.md",
-            HUB / "latex-paper-build-skill/references/paper-pipeline.md",
-            HUB / "paper-polishing-skill/SKILL.md",
-            HUB / "prl-manuscript-polisher/SKILL.md",
+            PIPELINE / "SKILL.md",
+            PIPELINE / "references/paper-pipeline.md",
+            REVIEW / "paper-polishing-skill/SKILL.md",
+            REVIEW / "prl-manuscript-polisher/SKILL.md",
         ]
         for markdown in paths:
             for target in local_targets(markdown):
                 self.assertTrue(target.exists(), f"{markdown} -> {target}")
 
     def test_counts_and_bilingual_indexes_match_actual_active_skills(self):
-        active = [p for section in ("10-paper-build", "20-project-build", "50-core-utils", "60-visual-computing")
+        groups = {
+            "workflow-tools": {"latex-paper-build-skill", "paper-project-initializer", "interactive-skill-builder"},
+            "research-cycle": {"research-logic-skill", "literature-review", "literature-triage-matrix", "experiment-design-skill", "data-analysis"},
+            "figures-and-reports": {"research-html-report", "academic-figure-workflow"},
+            "manuscript-review": {"paper-audit", "paper-polishing-skill", "prl-manuscript-polisher"},
+        }
+        paper = []
+        for group, directories in groups.items():
+            entries = list((HUB / group).glob("*/SKILL.md"))
+            self.assertEqual({p.parent.name for p in entries}, directories, group)
+            for entry in entries:
+                self.assertFalse((HUB / entry.parent.name).exists(), entry)
+            paper.extend(entries)
+        active = paper + [p for section in ("20-project-build", "50-core-utils", "60-visual-computing")
                   for p in (ROOT / section).glob("*/SKILL.md")
                   if p.parent.name != "skill-registry"]
         self.assertEqual(len(active), 37)
-        self.assertEqual(len(list(HUB.glob("*/SKILL.md"))), 13)
+        self.assertEqual(len(paper), 13)
         for root_name in ("README.md", "README.en.md"):
             root_doc = (ROOT / root_name).read_text(encoding="utf-8")
             paper_doc = (HUB / root_name).read_text(encoding="utf-8")
@@ -186,6 +200,8 @@ class PaperAuditIntegrationTests(unittest.TestCase):
             self.assertIn("13", paper_doc)
             self.assertIn("paper-audit", root_doc)
             self.assertIn("paper-audit", paper_doc)
+            for entry in paper:
+                self.assertIn(f"({entry.relative_to(HUB).as_posix()})", paper_doc)
 
 
 if __name__ == "__main__":

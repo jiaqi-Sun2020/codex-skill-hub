@@ -12,7 +12,7 @@ root `README.md` and `README.en.md` are the canonical Chinese and English
 repository overviews and inventories. Every numbered category has its own
 bilingual README pair for human navigation, while each Skill's `SKILL.md`
 remains the formal execution contract. Thirteen paper-build Skills live in
-`10-paper-build/`, six project-build core Skills live in `20-project-build/`,
+the four source groups under `10-paper-build/`, six project-build core Skills live in `20-project-build/`,
 nine reusable core Skills and the versioned skill registry live in
 `50-core-utils/`, and nine real-time visual-computing Skills live in
 `60-visual-computing/`.
@@ -22,7 +22,7 @@ remains in `.agents/` and project-scoped startup configuration remains in `.code
 `paper-project-initializer` owns minimal paper entry discovery, preview,
 create-only publication and same-plan recovery. It reuses the sole goal protocol
 and paper renderer; Agent/memory/Hook need scoped approval. Routine information
-updates remain with Neat-Freak. See `10-paper-build/paper-project-initializer/SKILL.md`.
+updates remain with Neat-Freak. See `10-paper-build/workflow-tools/paper-project-initializer/SKILL.md`.
 
 Recommended reading order:
 

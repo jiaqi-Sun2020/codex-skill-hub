@@ -2,41 +2,58 @@
 
 [中文](README.md) | [English](README.en.md) | [返回根 README](../README.md)
 
-`10-paper-build/` 直接维护十三个同级 Skill，用于把研究问题、证据和分析组织成可审核的图件、中文作者审阅稿及最终投稿材料。本目录是论文构建分类的人类入口；每个 Skill 的正式执行规则仍以其 `SKILL.md` 为准。
+`10-paper-build/` 按四个源码目录维护十三个 Skill，用于把研究问题、证据和分析组织成可审核的图件、中文作者审阅稿及最终投稿材料。本目录是论文构建分类的人类入口；每个 Skill 的正式执行规则仍以其 `SKILL.md` 为准。
 
 > 论文 Pipeline 管理研究论证和交付物，不执行具体研究任务，不虚构数据，也不会因为图件、编译或润色通过而宣告科学主张成立。
 
 ## 整体框架
 
 ```text
-确定范围与初始问题
-  ↓
-研究逻辑：初始候选（按需）
-  ↕
-文献发现与综述 / 已有文献比较矩阵
-  ↕
-研究逻辑：修正问题、假设和贡献边界
-  ↓
-实验与证据设计 ──→ 图件论点规划
-  ↓
-研究执行与数据分析 ──→ 可用证据
-  ↓                         ↓
-HTML 报告（可选）   academic-figure-workflow
-  ↓                         ↓
-中文 LaTeX 稿件 ← 图件包、图注、证据追踪、QA
-  ↓
-整稿模拟审稿 → 作者科学与视觉审核
-  ↓
-英文润色与投稿检查
+0  接入与盘点（已有项目从当前阶段进入）
+↓
+1  明确研究问题、候选假设与贡献边界 ←→ 按需查文献或比较已有论文
+↓
+2  设计能区分解释的证据；需要图时，先规划每幅图要回答的问题
+↓
+3  项目执行者取证 → 分析结果 → 轻量回看本轮涉及的主张（见下图）
+   ├─ 仍有研究问题 → 回 1、2 或 3；没有可行的下一步则暂停该支线
+   ├─ 只需展示进展 → 4 可选 HTML 简报（呈现已有判断，不触发新一轮）
+   └─ 已有范围明确的答案 → 5 中文 LaTeX 稿件
+                             └─ 需要图件时：academic-figure-workflow
+                                交回可编辑源、导出、图注、证据来源和 QA
+5  中文整稿完成 → 6 模拟审稿 → 作者审核科学内容与图件
+                               └─ 作者批准后 → 7 英文润色与投稿检查
 ```
 
-这不是必须从头执行的线性流水线。应从当前最早缺失或证据不足的阶段进入；文献、图件和 HTML 报告都是按需支线。理论、定性与综述可以直接形成论证或综合，不强制新实验。
+### 分析结束后，从哪里接续？
+
+假设结果表写着「A 在大规模输入上的优势接近零」。**先判断这个结果能不能用，再判断它是反证，还是只差一个对照。** 已有分析或报告可以直接从这里进入，不用先生成 HTML 或从阶段 0 重跑。
+
+```mermaid
+flowchart TD
+    T{"这项判断依赖的数据、代码或分析口径有疑点吗？"}
+    T -->|有| V["留在 3：核对样本、版本或实现，暂不解释异常"]
+    V -->|核查或复验完成| T
+    T -->|没有| H{"可靠证据挑战了原假设在其适用范围内的关键预测吗？"}
+    H -->|是| R["回 1：保留原问题，只重审受影响的假设"]
+    R --> D["回 2：设计能区分候选解释的检验"]
+    H -->|否| Q{"回答原问题还缺什么？"}
+    Q -->|缺计划外的对照| E["回 2：只补这个比较及其判断标准"]
+    Q -->|所缺对照已在方案内| N["方案、预算和授权覆盖后接 3：取证与分析"]
+    D --> N
+    E --> N
+    N -->|下一轮分析完成| T
+    Q -->|已有范围明确的答案| M["进入 5：只写证据支持的内容"]
+    Q -->|证据不足且无可行检验| P["暂停这条支线，保留未决解释"]
+```
+
+新一轮分析完成后，再按同一[回看规则](workflow-tools/latex-paper-build-skill/references/paper-pipeline.md#after-analysis)判断。代码偏离方案，留在 3 修正并复核；代码正确执行了不公平的比较，才回 2 修设计。文献核查未改变问题、假设或贡献边界，就回请求核查的阶段。作者另提新问题可进 1；这不等于授权执行实验。理论、定性和综述也可用推导或来源补证。
 
 ## 可重复调用的目标澄清回路
 
 任一阶段都可按需进入：已有材料与决定 → 当前阻塞问题 → 最小下一动作 → 返回原阶段。默认先轻量检查，目标清楚时不强制访谈；不是新增阶段或 Skill。
 
-`latex-paper-build-skill` 负责触发、范围和返回路由，`research-logic` 只处理科学问题。唯一执行协议见[目标澄清参考](latex-paper-build-skill/references/goal-clarification.md)，这里不复制提问规则。
+`latex-paper-build-skill` 负责触发、范围和返回路由，`research-logic` 只处理科学问题。唯一执行协议见[目标澄清参考](workflow-tools/latex-paper-build-skill/references/goal-clarification.md)，这里不复制提问规则。
 
 - 工作目标、科学问题、验收条件与行动权限分别判断；负结果和证据不足也是允许的研究结果。
 - 重入复用可定位的已有决定，只重开变化影响的分支；聊天新目标与正式合同冲突时先确认，不同时执行两套目标。
@@ -56,21 +73,23 @@ HTML 报告（可选）   academic-figure-workflow
 
 ## 十三个 Skill 的唯一职责
 
-| Skill | 负责 | 不负责 |
-|---|---|---|
-| [`paper-project-initializer`](paper-project-initializer/SKILL.md) | 发现、预览、受控初始化最小入口并交接阶段 | 完整研究规划、默认启用 Hook 或重建已有项目 |
-| [`literature-review`](literature-review/SKILL.md) | 文献发现、筛选、来源评价与主题综合 | 把有限搜索、DOI 注册或综述完成当成科学批准 |
-| [`literature-triage-matrix`](literature-triage-matrix/SKILL.md) | 已知集合的跨论文矩阵、来源与待核验项 | 宣称搜索完整或把相关性当成研究质量 |
-| [`research-logic`](research-logic-skill/SKILL.md) | 问题构思、逻辑挑战和条件性方法融合 | 自动选出获胜方案、实现代码或验证假设 |
-| [`experiment-design`](experiment-design-skill/SKILL.md) | 研究问题、证据缺口、对照、消融、指标和 claim boundary | 执行实验、实现运行器或授予执行权限 |
-| [`data-analysis`](data-analysis/SKILL.md) | 数据完整性、统计检验、效应量、区间、不确定性和可复核解释 | 把缺失或不可靠数据包装成肯定结论 |
-| [`research-html-report`](research-html-report/SKILL.md) | 独立 HTML 研究简报、证据计划和风险展示 | 替代研究设计或制造证据 |
-| [`academic-figure-workflow`](academic-figure-workflow/SKILL.md) | 图件论点、可编辑源、样式、导出、图注、证据追踪和渲染 QA | 虚构数据、机制、模块或科学支持 |
-| [`latex-paper-build-skill`](latex-paper-build-skill/SKILL.md) | Pipeline 编排、LaTeX 架构、图件装配、交叉引用和编译 | 重复实现统计分析或制图逻辑 |
-| [`paper-audit`](paper-audit/SKILL.md) | 完整稿件的模拟审稿与修订回审，一份证据定位报告 | 自动改稿、执行研究、替代作者批准或真实编辑决定 |
-| [`paper-polishing-skill`](paper-polishing-skill/SKILL.md) | 获批内容的翻译、结构修订和 Nature/PRL/PRA 风格润色 | 发明数据、引用或更强主张 |
-| [`prl-manuscript-polisher`](prl-manuscript-polisher/SKILL.md) | 技术完整物理稿件的 PRL 压缩、适配和证据校准 | 用措辞掩盖证据不足 |
-| [`interactive-skill-builder`](interactive-skill-builder/SKILL.md) | 通过访谈、规格确认、审批门和验证创建 Skill | 绕过作者确认生成最终 Skill |
+四个目录只用于找到 Skill；不是四个执行阶段。调用名、独立使用方式和生成的论文项目目录均不变。
+
+| 源码分组 | Skill | 负责 | 不负责 |
+|---|---|---|---|
+| `workflow-tools` | [`latex-paper-build-skill`](workflow-tools/latex-paper-build-skill/SKILL.md) | Pipeline 编排、LaTeX 架构、图件装配、交叉引用和编译 | 重复实现统计分析或制图逻辑 |
+| `workflow-tools` | [`paper-project-initializer`](workflow-tools/paper-project-initializer/SKILL.md) | 发现、预览、受控初始化最小入口并交接阶段 | 完整研究规划、默认启用 Hook 或重建已有项目 |
+| `workflow-tools` | [`interactive-skill-builder`](workflow-tools/interactive-skill-builder/SKILL.md) | 通过访谈、规格确认、审批门和验证创建 Skill | 绕过作者确认生成最终 Skill |
+| `research-cycle` | [`research-logic`](research-cycle/research-logic-skill/SKILL.md) | 问题构思、逻辑挑战和条件性方法融合 | 自动选出获胜方案、实现代码或验证假设 |
+| `research-cycle` | [`literature-review`](research-cycle/literature-review/SKILL.md) | 文献发现、筛选、来源评价与主题综合 | 把有限搜索、DOI 注册或综述完成当成科学批准 |
+| `research-cycle` | [`literature-triage-matrix`](research-cycle/literature-triage-matrix/SKILL.md) | 已知集合的跨论文矩阵、来源与待核验项 | 宣称搜索完整或把相关性当成研究质量 |
+| `research-cycle` | [`experiment-design`](research-cycle/experiment-design-skill/SKILL.md) | 研究问题、证据缺口、对照、消融、指标和 claim boundary | 执行实验、实现运行器或授予执行权限 |
+| `research-cycle` | [`data-analysis`](research-cycle/data-analysis/SKILL.md) | 数据完整性、统计检验、效应量、区间、不确定性和可复核解释 | 把缺失或不可靠数据包装成肯定结论 |
+| `figures-and-reports` | [`research-html-report`](figures-and-reports/research-html-report/SKILL.md) | 独立 HTML 研究简报、证据计划和风险展示 | 替代研究设计或制造证据 |
+| `figures-and-reports` | [`academic-figure-workflow`](figures-and-reports/academic-figure-workflow/SKILL.md) | 图件论点、可编辑源、样式、导出、图注、证据追踪和渲染 QA | 虚构数据、机制、模块或科学支持 |
+| `manuscript-review` | [`paper-audit`](manuscript-review/paper-audit/SKILL.md) | 完整稿件的模拟审稿与修订回审，一份证据定位报告 | 自动改稿、执行研究、替代作者批准或真实编辑决定 |
+| `manuscript-review` | [`paper-polishing-skill`](manuscript-review/paper-polishing-skill/SKILL.md) | 获批内容的翻译、结构修订和 Nature/PRL/PRA 风格润色 | 发明数据、引用或更强主张 |
+| `manuscript-review` | [`prl-manuscript-polisher`](manuscript-review/prl-manuscript-polisher/SKILL.md) | 技术完整物理稿件的 PRL 压缩、适配和证据校准 | 用措辞掩盖证据不足 |
 
 `latex-paper-build-skill` 是论文 Pipeline 的编排入口，但不拥有其他 Skill 的专业能力。`interactive-skill-builder` 是同级辅助工具，不是论文生命周期的强制阶段。
 
@@ -91,7 +110,7 @@ HTML 报告（可选）   academic-figure-workflow
 
 ## 整稿模拟审稿与修订回审
 
-[paper-audit](paper-audit/SKILL.md) 可独立调用，不依赖 Pipeline、配置或兄弟 Skill。只有摘要时可提供有限意见，但不能冒充整稿预审。默认只读、聊天交付一份报告；保存需授权，不自动修改论文、补实验或投稿。
+[paper-audit](manuscript-review/paper-audit/SKILL.md) 可独立调用，不依赖 Pipeline、配置或兄弟 Skill。只有摘要时可提供有限意见，但不能冒充整稿预审。默认只读、聊天交付一份报告；保存需授权，不自动修改论文、补实验或投稿。
 
 ```text
 完整稿件 → 理解论证 → 模拟审稿 → 反审自己的意见 → 一份报告 → 作者决定
@@ -100,18 +119,18 @@ HTML 报告（可选）   academic-figure-workflow
 
 报告区分科学有效性、贡献、表达和内部一致性；不凑问题数量，不要求负结果变成功，也不以流畅叙事替代证据。作者说“已修复”不足以关闭问题，必须对照新稿；缺历史则保留未知。模拟建议不是实际编辑决定。
 
-涉及公式或计算步骤时，通过[技术一致性](paper-audit/references/technical-consistency.md)核对对象、参数归属、首次定义和正文／公式／算法之间的对应；图件承载方法或证据时，通过[图件审查](paper-audit/references/figure-review.md)核对双向图文关系及最终 PDF 放置尺寸下的可读性。提供双语版本时核对科学含义。问题报告应给出定位、读者疑问、影响、最小修复及可观察的关闭条件；具体执行规则仍以 Skill 为准。
+涉及公式或计算步骤时，通过[技术一致性](manuscript-review/paper-audit/references/technical-consistency.md)核对对象、参数归属、首次定义和正文／公式／算法之间的对应；图件承载方法或证据时，通过[图件审查](manuscript-review/paper-audit/references/figure-review.md)核对双向图文关系及最终 PDF 放置尺寸下的可读性。提供双语版本时核对科学含义。问题报告应给出定位、读者疑问、影响、最小修复及可观察的关闭条件；具体执行规则仍以 Skill 为准。
 
 Stage 6 接收报告后停在作者门禁。Stage 7 快捷路由及两个直接润色入口在最终整稿交付前检查适用预审或等价人工审查；局部修改、译文草稿和明确的待审核版本不强制整稿预审。润色后复核语义影响，方法、数据、证据、公式、图义或主张强度改变时重开相关部分。已有授权允许继续工作，但不会使未核事项自动通过。
 
-结果写作和英文润色通过共享的[主张安全参考](paper-polishing-skill/references/claim-safety.md)匹配证据类型、主张强度与必要条件。审稿交接区分已确认问题、待核风险与可选建议；可选实验留在报告或作者笔记中。局部润色默认在聊天中提出措辞，文件输出按实际授权执行，作者锁定文字原样保留。
+结果写作和英文润色通过共享的[主张安全参考](manuscript-review/paper-polishing-skill/references/claim-safety.md)匹配证据类型、主张强度与必要条件。审稿交接区分已确认问题、待核风险与可选建议；可选实验留在报告或作者笔记中。局部润色默认在聊天中提出措辞，文件输出按实际授权执行，作者锁定文字原样保留。
 
 生成器只增加导航，不执行审稿或生成空报告。授权保存且没有已有位置时，可使用 `06_review_gate/paper_audit_report.md`；旧工作区与既有报告优先复用，不新增台账。只复制独立 Skill 包不会自动全局安装或验证宿主自动发现。
 
 ## 可选文献支线与科学检查
 
 - 研究背景未知：进入 `literature-review`；已有明确论文集合：进入 `literature-triage-matrix`。
-- `research-logic` 支持通用构思、方法融合和逻辑挑战；文献检查后允许返回构思，不将融合深度当成贡献等级。
+- `research-logic` 支持通用构思、方法融合和逻辑挑战，不将融合深度当成贡献等级。文献核查未改变问题、假设或贡献边界时，带着核查结果回原阶段，不重开选题。
 - Brainstorming 的假设、替代解释、反证与决策方法融入 logic；Critical Thinking 按阶段进入文献评价、证据设计和实际数据分析，不另建重复 Skill。
 - DOI 注册、引文内容支持、搜索覆盖、独立研究数量和作者批准分别判断。摘要或 AI 总结不能冒充全文审核；单代理多轮不冒充双人独立评审。
 - 保留反证、负结果、重叠样本、版本修订、未获取全文及未核验主张。简单方案可成立；理论与定性研究不强制训练、seed、统计或图件。
@@ -126,7 +145,7 @@ Stage 6 接收报告后停在作者门禁。Stage 7 快捷路由及两个直接�
 
 不机械创建三份文件，不增加隐藏 `.research/`，独立调用可输出聊天或复用指定目录。稿件已有活动 `.bib` 保留引文键；来源段落和审核记录不等于第二份书目。
 
-记录处理工具不搜索数据库，默认 stdout；文件输出必须显式指定且不能覆盖。年份未知为待审核，去重保留重复版本线索。DOI 工具只做可选注册与元数据检查，不自动装依赖、上传稿件或删除服务未解析的引用。具体命令见 [literature-review](literature-review/SKILL.md)。
+记录处理工具不搜索数据库，默认 stdout；文件输出必须显式指定且不能覆盖。年份未知为待审核，去重保留重复版本线索。DOI 工具只做可选注册与元数据检查，不自动装依赖、上传稿件或删除服务未解析的引用。具体命令见 [literature-review](research-cycle/literature-review/SKILL.md)。
 
 ## 可选图件证据支线
 
@@ -159,7 +178,7 @@ Stage 6 接收报告后停在作者门禁。Stage 7 快捷路由及两个直接�
 
 ## 最小初始化
 
-使用 [paper-project-initializer](paper-project-initializer/SKILL.md) 处理开始、接入检查与同一计划续补。默认只有 `00_research_logic/intake.md`、`pipeline_context.md`，不生成配置或空阶段。已有规则与目标优先引用、不覆盖；Agent／记忆基线和持久 Hook 分别披露并取得授权，入口完成不代表研究授权。交接到选定阶段；普通修改留在当前阶段。
+使用 [paper-project-initializer](workflow-tools/paper-project-initializer/SKILL.md) 处理开始、接入检查与同一计划续补。默认只有 `00_research_logic/intake.md`、`pipeline_context.md`，不生成配置或空阶段。已有规则与目标优先引用、不覆盖；Agent／记忆基线和持久 Hook 分别披露并取得授权，入口完成不代表研究授权。交接到选定阶段；普通修改留在当前阶段。
 
 ## 显式完整工作区
 
@@ -190,10 +209,11 @@ paper_pipeline/
 | 当前状态 | 起点 |
 |---|---|
 | 只有研究想法 | Stage 1：logic 通用构思 |
-| 不清楚研究现状 | literature-review，然后返回 Stage 1 |
+| 不清楚研究现状 | literature-review；核查未改变原判断时回到提出需求的阶段 |
 | 已有论文集合，需要比较 | literature-triage-matrix |
 | 主张清楚但缺少证据计划 | Stage 2 |
 | 已有结果但数据、统计或不确定性未核验 | Stage 3 |
+| 这一轮已分析，想补实验或寻找下一方向 | 从 Stage 3 出口回看原问题；不先重建项目，也不要求 HTML |
 | 需要可分享研究简报 | Stage 4 |
 | 需要图件、图注、风格锁定或图件 QA | 可选图件支线，然后返回 Stage 5 |
 | 已有 `.tex`，需要重组或接入配置 | Stage 5 |
@@ -208,7 +228,7 @@ paper_pipeline/
 只有明确要求完整八阶段时，才从仓库根目录生成：
 
 ```powershell
-python -X utf8 -B ".\10-paper-build\latex-paper-build-skill\scripts\create_paper_pipeline.py" `
+python -X utf8 -B ".\10-paper-build\workflow-tools\latex-paper-build-skill\scripts\create_paper_pipeline.py" `
   --project "D:\path\to\paper_pipeline" `
   --title "Paper Title"
 ```
@@ -218,21 +238,27 @@ python -X utf8 -B ".\10-paper-build\latex-paper-build-skill\scripts\create_paper
 验证本分类：
 
 ```powershell
-Get-ChildItem .\10-paper-build -Directory | ForEach-Object {
-    if (Test-Path (Join-Path $_.FullName 'SKILL.md')) {
-        python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" $_.FullName
-    }
+$paperGroups = 'workflow-tools', 'research-cycle', 'figures-and-reports', 'manuscript-review'
+$entries = @(foreach ($group in $paperGroups) {
+    Get-ChildItem -Path ".\10-paper-build\$group\*\SKILL.md" -File -ErrorAction Stop
+})
+if ($entries.Count -ne 13) { throw "Expected 13 paper Skills, found $($entries.Count)" }
+foreach ($entry in $entries) {
+    python -X utf8 -B "$env:USERPROFILE\.codex\skills\.system\skill-creator\scripts\quick_validate.py" $entry.DirectoryName
+    if ($LASTEXITCODE -ne 0) { throw "Validation failed: $entry" }
 }
 
 python -X utf8 -B -m unittest discover `
-  -s ".\10-paper-build\latex-paper-build-skill\tests" `
+  -s ".\10-paper-build\workflow-tools\latex-paper-build-skill\tests" `
   -p "test_*.py"
 ```
 
 ## 迁移、来源与许可
 
-2026-09-24，本目录从已退役的 `jiaqi-Sun2020/S_paper_skills` 仓库 `main` 快照导入八个 Skill（源提交 `dcd573b1768e48e794975100f8548dc0f1bcb50e`），与既有 `academic-figure-workflow` 共同构成九个同级 Skill。旧目录 `data-analsys-skill/` 已规范为 `data-analysis/`；旧 wrapper、`util_skills/` 层和快捷方式不再使用。原仓库 MIT 声明保存在 [`S_PAPER_SKILLS_LICENSE`](S_PAPER_SKILLS_LICENSE)。
+2026-11-24，13 个 Skill 包从本目录下移一层至上表的四组。外部脚本若写死旧源码路径，请按表更新；已有论文工作区不用迁移。初始化预览绑定工具路径，迁移前未执行完的预览不要直接重放：先检查现状，再重新预览并核对授权。
 
-图件工作流借鉴了 [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure) 的论点驱动多面板、语义配色和投稿 QA 思路，以及 [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill) 的数据先行可视化顾问思路。它的可选 Apple-inspired 学术图件参考仅在用户明确选择时才生效，独立改编自两个固定 MIT 来源；不使用 Apple 资产，不改变现有 Style Manifest、科学保护或 QA 门禁。另附 PLOS 的 CC0 `Ten Simple Rules for Better Figures` 作为通用设计阅读材料，而非期刊要求或科学证据。具体出版规范来源记录在 [`publisher-visual-source-map.md`](academic-figure-workflow/references/publisher-visual-source-map.md)。借鉴不表示原作者对本项目背书，第三方材料继续遵守其原始许可证和通知要求。
+2026-09-24，本目录从已退役的 `jiaqi-Sun2020/S_paper_skills` 仓库 `main` 快照导入八个 Skill（源提交 `dcd573b1768e48e794975100f8548dc0f1bcb50e`），与既有 `academic-figure-workflow` 共同构成九个同级 Skill。旧目录 `data-analsys-skill/` 当时规范为 `data-analysis/`；旧 wrapper、`util_skills/` 层和快捷方式不再使用。原仓库 MIT 声明保存在 [`S_PAPER_SKILLS_LICENSE`](S_PAPER_SKILLS_LICENSE)。
+
+图件工作流借鉴了 [`nature-figure`](https://github.com/Yuan1z0825/nature-skills/tree/main/skills/nature-figure) 的论点驱动多面板、语义配色和投稿 QA 思路，以及 [`scipilot-figure-skill`](https://github.com/Haojae/scipilot-figure-skill) 的数据先行可视化顾问思路。它的可选 Apple-inspired 学术图件参考仅在用户明确选择时才生效，独立改编自两个固定 MIT 来源；不使用 Apple 资产，不改变现有 Style Manifest、科学保护或 QA 门禁。另附 PLOS 的 CC0 `Ten Simple Rules for Better Figures` 作为通用设计阅读材料，而非期刊要求或科学证据。具体出版规范来源记录在 [`publisher-visual-source-map.md`](figures-and-reports/academic-figure-workflow/references/publisher-visual-source-map.md)。借鉴不表示原作者对本项目背书，第三方材料继续遵守其原始许可证和通知要求。
 
 文献、科学推理、整稿预审和图件工作流的固定上游提交、适配范围及 MIT、Apache-2.0、CC0 来源说明见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。本分类现为 13 个 Skill；历史八项导入加图件仍是原来的九项来源，不改写历史记录。

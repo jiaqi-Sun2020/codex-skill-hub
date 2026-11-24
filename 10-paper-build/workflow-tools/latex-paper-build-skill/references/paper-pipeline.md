@@ -94,7 +94,7 @@ Read `references/paper-config.md` before creating or editing `paper_config.json`
 
 ## Stage 1: Research Logic
 
-Sibling skill: `../research-logic-skill/SKILL.md`
+Sibling skill: `../../../research-cycle/research-logic-skill/SKILL.md`
 
 Use when the question, contribution, assumptions or method combination is unclear.
 
@@ -123,10 +123,10 @@ Exit gate:
 
 ## Optional Literature Lane (Stages 0–1, Revisited As Needed)
 
-Use `../literature-review/SKILL.md` for unknown context, discovery, screening,
-appraisal and synthesis. Use `../literature-triage-matrix/SKILL.md` for a known
-paper set. Research-logic can form initial alternatives, check sources here,
-and reopen ideation.
+Use `../../../research-cycle/literature-review/SKILL.md` for unknown context, discovery, screening,
+appraisal and synthesis. Use `../../../research-cycle/literature-triage-matrix/SKILL.md` for a known
+paper set. Return the findings to the stage that requested them. Reopen Stage 1
+only if the source check materially changes the question, a hypothesis or the contribution boundary.
 These are on-demand agent routes. The generator creates scaffolding and does
 not execute either literature Skill, retrieve papers or search databases.
 
@@ -152,7 +152,7 @@ passes do not constitute independent dual review.
 
 ## Stage 2: Experiment Design
 
-Sibling skill: `../experiment-design-skill/SKILL.md`
+Sibling skill: `../../../research-cycle/experiment-design-skill/SKILL.md`
 
 Use after the central claim is known, before running or rewriting experiments.
 
@@ -191,7 +191,7 @@ Exit gate:
 Use the project's domain method or execution workflow to produce evidence.
 Theoretical, qualitative and literature work may use direct reasoning or source
 synthesis without new experiments. For
-quantitative results, use sibling skill `../data-analysis/SKILL.md` to check
+quantitative results, use sibling skill `../../../research-cycle/data-analysis/SKILL.md` to check
 data provenance, units, missingness, statistical design, uncertainty, and the
 claim boundary before a submission-facing plot is produced. Non-quantitative
 projects may provide other reviewable evidence and mark statistical analysis
@@ -229,11 +229,30 @@ Exit gate:
 - training-specific reproducibility fields are required only for projects that
   actually train models.
 
+### After analysis
+
+When a round yields an interpretable result **or a finding that the evidence is unreliable or insufficient**, briefly revisit the affected claim before choosing the next action. A round answers a question, not one run, seed or plot. Use the existing analysis or report; no HTML, new file, interview or restart at intake is required. If the same evidence, question and decision have already been reviewed, reuse that judgment.
+
+In a few sentences: **Which question and evidence version? What was observed, and what does that change about the explanation or its scope? What single next action would distinguish the remaining possibilities, and when would we stop?** If the author is choosing between directions, explain what each would settle; do not choose a new scientific goal for them.
+
+For an inference that depends on an anomalous result, check its reliability first. Then distinguish **a challenged premise** from **a missing comparison**: the question can stay the same even when one explanation must change. Imprecision or a non-significant difference alone does not invalidate a prediction. An author may pose a separate new question at Stage 1 without waiting for unrelated checks; the disputed result is not evidence for it.
+
+| What changed? | Smallest return |
+|---|---|
+| Inputs, code or analysis may not match the design | Stay at **Stage 3**: check the disputed input, version or transformation before interpreting the result. An implementation mismatch belongs with the executor for correction and recheck; if the code faithfully implements an unfair comparison, repair the design at Stage 2 instead. Withhold only dependent inferences. |
+| Reliable evidence challenges a key premise or prediction within its stated scope | Reopen only the affected hypothesis at **Stage 1**. Retain the question and findings that still stand; consider rival explanations. Return to **Stage 2** to design evidence distinguishing them, then to Stage 3 under the applicable authority. A hypothesis prompted by this result is exploratory; that observation is not independent confirmation. |
+| Same question, no key premise challenged; only a condition, comparison or source is missing | Use existing evidence first. If a new comparison is needed, return to **Stage 2** for just that comparison and its decision criterion. If the design already covers it, skip redesign: hand off to **Stage 3** within the approved budget and authority, or pause for the missing permission. Do not reopen Stage 1. |
+| A bounded answer is sufficient, no useful discriminator remains, or resources/permission are missing | Hand off what the evidence warrants (including a negative or inconclusive result), or pause with a condition for resuming. Keep unresolved alternatives; do not run until a positive result appears. Other claims need not wait. |
+
+A proposed route is not permission to run, edit or publish. If saving a change is authorized, link the evidence version and reason in the existing question or design artifact (or its formal equivalent); preserve the earlier decision and mark post-outcome changes. If the gap came from a figure, manuscript or review, return to that item and reopen only what depended on the changed evidence. Use the [goal-clarification protocol](goal-clarification.md) only for a consequential blocker, not as a routine second review.
+
 ## Stage 4: Research HTML Report
 
-Sibling skill: `../research-html-report/SKILL.md`
+Sibling skill: `../../../figures-and-reports/research-html-report/SKILL.md`
 
 Use when the user wants a shareable research brief, a paper-planning dashboard, or a printable pre-paper report.
+
+A report may display the existing [after-analysis decision](#after-analysis) at any round. It neither triggers another decision nor gates further research.
 
 Artifact:
 
@@ -249,14 +268,14 @@ Exit gate:
 
 ## Optional Figure Evidence Lane
 
-Sibling skill: `../academic-figure-workflow/SKILL.md`
+Sibling skill: `../../../figures-and-reports/academic-figure-workflow/SKILL.md`
 
 Activate this lane only when the paper needs a diagram, data plot, image plate,
 multi-panel figure, editable PowerPoint kit, or submission-quality figure QA.
 Do not require it for a figure-free theoretical, qualitative, or short paper.
 
 Before drawing, apply the figure handoff in
-`../academic-figure-workflow/references/figure-argument-contract.md`. The
+`../../../figures-and-reports/academic-figure-workflow/references/figure-argument-contract.md`. The
 handoff states the figure ID, target manuscript section, claim anchor, source
 materials, evidence/statistics readiness, panel roles, target venue and final
 size, required sources/exports, and unresolved scientific decisions.
@@ -288,6 +307,8 @@ draft and do not call it submission-ready.
 ## Stage 5: Config-Driven Chinese Author-Review LaTeX Manuscript Architecture
 
 This skill owns this stage. By default in the hub's `10-paper-build` workflow, generated author-review prose should be Chinese while preserving PRL/PRA paper logic. The English finalization is a later, approval-gated stage.
+
+Use the evidence version for each claim. An open research branch need not hold up unrelated drafting; return a substantive gap to the [after-analysis decision](#after-analysis), not to project initialization.
 
 Paper metadata config: read `references/paper-config.md`. Create or preserve root-level `paper_config.json` and use it as the source of truth for title, authors, affiliations, correspondence address/email, keywords, acknowledgments, venue, and author-review abstract.
 
@@ -334,13 +355,13 @@ Exit gate:
 ## Stage 6: User Scientific/Content Review Gate
 
 For a completed draft without an applicable equivalent review, use
-[paper-audit](../../paper-audit/SKILL.md) for a single read-only mock-review
+[paper-audit](../../../manuscript-review/paper-audit/SKILL.md) for a single read-only mock-review
 report before the author decision. For a revised draft,
 reuse identifiable prior concerns and verify their closure against the new text;
 never close them on an author's assertion alone. Review may be standalone and
 must not create or rebuild a Pipeline.
 
-Apply the shared [final-manuscript handoff](../../paper-audit/SKILL.md#final-manuscript-handoff):
+Apply the shared [final-manuscript handoff](../../../manuscript-review/paper-audit/SKILL.md#final-manuscript-handoff):
 locate an applicable whole-paper pre-review or equivalent human review, its
 version, coverage, unresolved issues and author disposition. This is not a
 second state ledger. Existing report locations and legacy formats may be reused.
@@ -373,7 +394,7 @@ Exit gate:
 
 ## Stage 7: Post-Approval English Polishing And Submission
 
-Sibling skill: `../paper-polishing-skill/SKILL.md`
+Sibling skill: `../../../manuscript-review/paper-polishing-skill/SKILL.md`
 
 Use after the review gate to translate and polish the approved Chinese manuscript into the requested Nature, PRL, or PRA style.
 
@@ -441,10 +462,10 @@ literature placeholders. Optional literature work creates only needed artifacts.
 ## Routing Rules
 
 - Unknown research context routes to literature-review; an explicit known set
-  routes to literature-triage-matrix. Reopen research-logic after evidence checks.
+  routes to literature-triage-matrix. A source check alone does not reopen Stage 1; use the return rule in the optional literature lane.
 
 - If the user asks "is this idea a paper?", start at Stage 1 after creating or checking `paper_config.json`.
-- If the idea is clear but evidence is weak, start at Stage 2.
+- If the question is clear but a comparison is missing from the design, start at Stage 2. For an existing result, use the [after-analysis route](#after-analysis).
 - If the experiments exist but code/results are messy, start at Stage 3.
 - If quantitative evidence exists but its integrity, uncertainty, or
   statistics are not reviewed, stay at Stage 3 and use `data-analysis` before

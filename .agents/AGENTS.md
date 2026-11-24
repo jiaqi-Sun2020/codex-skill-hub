@@ -65,6 +65,9 @@ codex-skill-hub/
   core Skill sources under `50-core-utils/`, and the nine real-time visual-computing
   Skills under `60-visual-computing/`; these thirty-seven active Skills remain
   canonical at their designated paths.
+- Paper Skill sources live under `10-paper-build/<group>/<skill>/`, using
+  `workflow-tools`, `research-cycle`, `figures-and-reports`, or `manuscript-review`.
+  The four source groups do not change invocation names or paper-workspace stages.
 - `paper-project-initializer` creates only approved minimal paper entries and
   returns to the selected stage. Agent/memory/Hook are separately approved;
   routine maintenance stays with Neat-Freak.

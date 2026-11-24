@@ -9,7 +9,7 @@ Borrow the robust document-handling discipline of GPT-Academic-style LaTeX trans
 ## Preflight
 
 1. Identify the active main `.tex`, `.bib`, figure directory, document class, build command, labels, citations, equations, tables, and figures.
-2. Read the sibling `../latex-paper-build-skill/SKILL.md` when available to preserve the project layout and build conventions.
+2. Read the sibling `../../../workflow-tools/latex-paper-build-skill/SKILL.md` when available to preserve the project layout and build conventions.
 3. Decode and write `.tex` as UTF-8 first; on Windows, set `PYTHONUTF8=1` for Python-based extraction, validation, and rebuild scripts. Fall back to `gb18030`/`cp936` only if UTF-8 fails and record that exception.
 4. If a prior English version exists, verify whether its Chinese source is identical to the current source. When it is identical, reuse it as the safest base, then polish it instead of retranslating from scratch.
 5. Create a new English output file or directory. Do not overwrite the source manuscript unless explicitly requested.

@@ -9,9 +9,9 @@ from pathlib import Path
 
 
 SKILL_DIR = Path(__file__).resolve().parents[1]
-HUB_DIR = SKILL_DIR.parent
+HUB_DIR = SKILL_DIR.parent.parent
 SCRIPT_PATH = SKILL_DIR / "scripts" / "create_paper_pipeline.py"
-FIGURE_SKILL_DIR = HUB_DIR / "academic-figure-workflow"
+FIGURE_SKILL_DIR = HUB_DIR / "figures-and-reports" / "academic-figure-workflow"
 
 
 def load_pipeline_module():

@@ -6,6 +6,8 @@
 
 本仓库当前直接维护 37 个活动 Skill：`10-paper-build` 13 个、`20-project-build` 6 个、`50-core-utils` 9 个、`60-visual-computing` 9 个。版本注册基础设施、外部项目快捷入口、暂存区和归档区不计入活动 Skill。
 
+论文 Skill 按用途分为工作流工具、研究与证据、图件与报告、稿件与审稿四组；可从[论文分类索引](10-paper-build/README.md)直达各入口。分组不改变调用名或论文阶段。
+
 > 仓库可以公开可复用指令、脚本、测试、模板和文档。论文原文、实验数据、学习画像、会话记录、凭据、令牌及机器私有状态不属于公开内容。
 
 ## 整体框架
@@ -87,13 +89,13 @@
 
 | 当前目标 | 入口 |
 |---|---|
-| 初始化或检查论文项目入口 | 使用 [paper-project-initializer](10-paper-build/paper-project-initializer/SKILL.md)；Agent／记忆／Hook 需专项授权 |
+| 初始化或检查论文项目入口 | 使用 [paper-project-initializer](10-paper-build/workflow-tools/paper-project-initializer/SKILL.md)；Agent／记忆／Hook 需专项授权 |
 | 新研究项目或尚未接入的遗留项目 | 从 [20-project-build](20-project-build/README.md) 的一次性接入流程开始 |
 | 已接入项目的合同、证据或状态发生变化 | 使用项目构建框架中的重复研究管理流程 |
 | 寻找研究背景或比较已有文献 | 使用 [10-paper-build](10-paper-build/README.md) 的文献发现或矩阵入口 |
 | 把已有研究成果整理成论文 | 从 [10-paper-build](10-paper-build/README.md) 当前最早缺失的阶段进入 |
 | 更新已初始化项目的 README、`.agents` 或长期知识 | 使用 [50-core-utils](50-core-utils/README.md) 中的持续维护工具 |
-| 论文写完，需要模拟审稿或修订回审 | 使用 [paper-audit](10-paper-build/paper-audit/SKILL.md)；默认只读报告，不自动改稿 |
+| 论文写完，需要模拟审稿或修订回审 | 使用 [paper-audit](10-paper-build/manuscript-review/paper-audit/SKILL.md)；默认只读报告，不自动改稿 |
 | 审核一个 Skill 或整理训练代码 | 从核心工具分类选择对应 Skill |
 | 需要寻找、核验或比较外部 Skill | 使用 [50-core-utils](50-core-utils/README.md) 中的 `find-skills`；安装候选仍须先取得明确授权 |
 | 设计或改进落地页、作品集、品牌或产品展示页 | 使用 [Taste Skill](50-core-utils/taste-skill/SKILL.md)；仪表盘和应用屏幕不属于其默认范围 |
