@@ -13,6 +13,7 @@
 ```mermaid
 ---
 config:
+  htmlLabels: false
   flowchart:
     nodeSpacing: 14
     rankSpacing: 34
@@ -24,25 +25,29 @@ flowchart TD
     s0["0 · Intake<br/>and inventory"]
     s1["1 · Logic and<br/>optional literature"]
     s2["2 · Experiment and<br/>evidence design<br/>Claim → evidence"]
-    s3(["3 · Research execution<br/>and analysis<br/>↺ Suspect data/code?<br/>Stay at 3 to verify"])
+    s3["3 · Research<br/>execution and analysis"]
+    verify["Suspect data<br/>or code?<br/>Verify at 3"]
     s4["4 · Research brief<br/>Optional HTML"]
-    s5["5 · Figures and<br/>Chinese manuscript"]
+    s5["5 · Figures<br/>and Chinese<br/>manuscript"]
     s6["6 · Mock pre-review<br/>and author gate"]
-    s7["7 · English polishing<br/>and submission checks"]
+    s7["7 · English<br/>polishing and<br/>submission checks"]
     s0 --> s1
     s1 --> s2
     s2 --> s3
+    s3 -.-> verify
     s3 -.->|Unplanned<br/>control| s2
     s3 -.->|Reliable<br/>counterevidence:<br/>revisit hypothesis| s1
     s2 -.-> s4
     s3 -.-> s4
     s3 -->|Bounded answer| s5
     s5 --> s6
+    %% Layout only: stagger the side branches; this is not a workflow arrow.
+    verify ~~~ s4
     s6 -->|Author approves| s7
     classDef stage fill:#EAF0F1,stroke:#546A70,color:#182C32
     classDef focus fill:#115852,stroke:#115852,color:#FFFFFF
     classDef optional fill:#F8FAFA,stroke:#65787D,color:#33484D,stroke-dasharray:4 3
-    class s0,s1,s2,s5,s6,s7 stage
+    class s0,s1,s2,s5,s6,s7,verify stage
     class s3 focus
     class s4 optional
 ```

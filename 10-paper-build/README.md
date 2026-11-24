@@ -13,6 +13,7 @@
 ```mermaid
 ---
 config:
+  htmlLabels: false
   flowchart:
     nodeSpacing: 14
     rankSpacing: 34
@@ -24,7 +25,8 @@ flowchart TD
     s0["0 · 接收与盘点"]
     s1["1 · 研究逻辑与<br/>可选文献支线"]
     s2["2 · 实验与证据设计<br/>主张 → 所需证据"]
-    s3(["3 · 研究执行与分析<br/>↺ 数据或代码存疑<br/>留在 3 核查"])
+    s3["3 · 研究执行与分析"]
+    verify["数据/代码存疑<br/>留在 3 核查"]
     s4["4 · 研究简报<br/>可选 HTML"]
     s5["5 · 图件与中文稿"]
     s6["6 · 整稿预审与<br/>作者审核"]
@@ -32,17 +34,20 @@ flowchart TD
     s0 --> s1
     s1 --> s2
     s2 --> s3
+    s3 -.-> verify
     s3 -.->|缺计划外对照| s2
     s3 -.->|可靠反证<br/>只重审该假设| s1
     s2 -.-> s4
     s3 -.-> s4
     s3 -->|证据足以作答| s5
     s5 --> s6
+    %% 仅用于布局：两个侧注上下错开，不新增流程箭头。
+    verify ~~~ s4
     s6 -->|作者批准| s7
     classDef stage fill:#EAF0F1,stroke:#546A70,color:#182C32
     classDef focus fill:#115852,stroke:#115852,color:#FFFFFF
     classDef optional fill:#F8FAFA,stroke:#65787D,color:#33484D,stroke-dasharray:4 3
-    class s0,s1,s2,s5,s6,s7 stage
+    class s0,s1,s2,s5,s6,s7,verify stage
     class s3 focus
     class s4 optional
 ```
