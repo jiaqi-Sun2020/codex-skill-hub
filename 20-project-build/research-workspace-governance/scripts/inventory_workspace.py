@@ -236,6 +236,16 @@ def first_link_component(path: Path) -> Path | None:
 _OWNED_TEMP_FILES: dict[Path, tuple[int, int, int]] = {}
 
 
+def _stat_file_token(stat: os.stat_result) -> tuple[int, int, int]:
+    # Windows 3.12 fstat/stat can disagree on ctime; creation time is stable.
+    # Keep POSIX ctime so a metadata change still invalidates ownership there.
+    identity_time = (
+        getattr(stat, "st_birthtime_ns", stat.st_ctime_ns)
+        if os.name == "nt" else stat.st_ctime_ns
+    )
+    return stat.st_dev, stat.st_ino, identity_time
+
+
 def _target_identity(path: Path) -> str:
     normalized = os.path.normcase(os.path.abspath(os.path.normpath(os.fspath(path))))
     return hashlib.sha256(normalized.encode("utf-8", errors="surrogatepass")).hexdigest()
@@ -280,21 +290,13 @@ def _create_synced_sibling_temp(path: Path, content: bytes, purpose: str = "writ
         except FileExistsError:
             continue
         opened_stat = os.fstat(fd)
-        _OWNED_TEMP_FILES[temporary] = (
-            opened_stat.st_dev,
-            opened_stat.st_ino,
-            opened_stat.st_ctime_ns,
-        )
+        _OWNED_TEMP_FILES[temporary] = _stat_file_token(opened_stat)
         try:
             with os.fdopen(fd, "wb") as stream:
                 stream.write(content)
                 stream.flush()
                 written_stat = os.fstat(stream.fileno())
-                _OWNED_TEMP_FILES[temporary] = (
-                    written_stat.st_dev,
-                    written_stat.st_ino,
-                    written_stat.st_ctime_ns,
-                )
+                _OWNED_TEMP_FILES[temporary] = _stat_file_token(written_stat)
                 os.fsync(stream.fileno())
         except Exception:
             try:
@@ -337,8 +339,7 @@ def _fsync_parent_directory(path: Path) -> None:
 
 
 def _regular_file_token(path: Path) -> tuple[int, int, int]:
-    stat = path.stat()
-    return stat.st_dev, stat.st_ino, stat.st_ctime_ns
+    return _stat_file_token(path.stat())
 
 
 def _remove_owned_regular_file(path: Path, expected: tuple[int, int, int]) -> bool:

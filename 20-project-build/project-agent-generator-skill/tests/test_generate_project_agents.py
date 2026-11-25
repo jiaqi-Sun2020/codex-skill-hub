@@ -10,6 +10,7 @@ import tempfile
 import unittest
 from contextlib import redirect_stdout
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 
@@ -163,6 +164,31 @@ class GeneratorSafetyTests(unittest.TestCase):
             self.assertFalse(target.exists())
             self.assertTrue(temporary.exists())
             generator._cleanup_owned_temp(temporary)
+
+    def test_temp_cleanup_handles_windows_stat_time_semantics(self) -> None:
+        real_fstat = generator.os.fstat
+
+        def discrepant_fstat(fd: int) -> SimpleNamespace:
+            info = real_fstat(fd)
+            return SimpleNamespace(
+                st_dev=info.st_dev, st_ino=info.st_ino,
+                st_ctime_ns=info.st_ctime_ns + 1_000_000_000,
+                st_birthtime_ns=getattr(info, "st_birthtime_ns", info.st_ctime_ns) + birth_offset,
+            )
+
+        for platform, birth_offset in (("nt", 0), ("nt", 1_000_000_000), ("posix", 0)):
+            with self.subTest(platform=platform, birth_offset=birth_offset), tempfile.TemporaryDirectory() as raw:
+                proxy = SimpleNamespace(**vars(generator.os))
+                proxy.name, proxy.fstat = platform, discrepant_fstat
+                with mock.patch.object(generator, "os", proxy):
+                    temporary = generator.write_synced_temp(Path(raw) / "AGENTS.md", b"ours\n")
+                    if platform == "nt" and birth_offset == 0:
+                        self.assertTrue(generator._cleanup_owned_temp(temporary))
+                        self.assertFalse(temporary.exists())
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "changed identity"):
+                            generator._cleanup_owned_temp(temporary)
+                        self.assertEqual(temporary.read_bytes(), b"ours\n")
 
     def test_temp_cleanup_refuses_replaced_file(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

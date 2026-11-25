@@ -11,6 +11,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 
@@ -94,6 +95,31 @@ class ResearchPipelineTests(unittest.TestCase):
                     pipeline.write_json_new(raced, {"ours": True}, compact=True)
             self.assertEqual(raced.read_text(encoding="utf-8"), "external\n")
             self.assertEqual(list(root.glob(".tmp-*")), [])
+
+    def test_temp_cleanup_handles_windows_stat_time_semantics(self) -> None:
+        real_fstat = pipeline.os.fstat
+
+        def discrepant_fstat(fd: int) -> SimpleNamespace:
+            info = real_fstat(fd)
+            return SimpleNamespace(
+                st_dev=info.st_dev, st_ino=info.st_ino,
+                st_ctime_ns=info.st_ctime_ns + 1_000_000_000,
+                st_birthtime_ns=getattr(info, "st_birthtime_ns", info.st_ctime_ns) + birth_offset,
+            )
+
+        for platform, birth_offset in (("nt", 0), ("nt", 1_000_000_000), ("posix", 0)):
+            with self.subTest(platform=platform, birth_offset=birth_offset), tempfile.TemporaryDirectory() as raw:
+                proxy = SimpleNamespace(**vars(pipeline.os))
+                proxy.name, proxy.fstat = platform, discrepant_fstat
+                with mock.patch.object(pipeline, "os", proxy):
+                    temporary = pipeline._create_synced_sibling_temp(Path(raw) / "result.json", b"ours\n")
+                    if platform == "nt" and birth_offset == 0:
+                        self.assertTrue(pipeline._cleanup_owned_temp(temporary))
+                        self.assertFalse(temporary.exists())
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "changed identity"):
+                            pipeline._cleanup_owned_temp(temporary)
+                        self.assertEqual(temporary.read_bytes(), b"ours\n")
 
     def test_json_temp_cleanup_refuses_changed_identity(self) -> None:
         with tempfile.TemporaryDirectory() as raw:

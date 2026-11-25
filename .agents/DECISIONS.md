@@ -225,6 +225,13 @@
   and return location, and close only after matching the current draft and checking
   returned support. No new report, infrastructure or execution authority is implied.
 
+- 2026-11-25: Use Windows creation time (`st_birthtime_ns` when available) with
+  device/file IDs for descriptor/path ownership checks; retain POSIX change time.
+  Python 3.12 Windows descriptor and path `st_ctime_ns` can disagree for the same
+  owned file. Apply the same token conversion to Generator, Onboarding and
+  Governance writers, preserving replacement, no-clobber and rollback checks.
+  Require two external-directory runs of their Python 3.12 suites in Windows CI.
+
 ## Open Questions
 
 - Should central utilities later be registered once at user scope for automatic

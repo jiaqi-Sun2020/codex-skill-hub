@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 
 
@@ -20,6 +21,31 @@ SPEC.loader.exec_module(inventory)
 
 
 class InventoryWorkspaceTests(unittest.TestCase):
+    def test_temp_cleanup_handles_windows_stat_time_semantics(self) -> None:
+        real_fstat = inventory.os.fstat
+
+        def discrepant_fstat(fd: int) -> SimpleNamespace:
+            info = real_fstat(fd)
+            return SimpleNamespace(
+                st_dev=info.st_dev, st_ino=info.st_ino,
+                st_ctime_ns=info.st_ctime_ns + 1_000_000_000,
+                st_birthtime_ns=getattr(info, "st_birthtime_ns", info.st_ctime_ns) + birth_offset,
+            )
+
+        for platform, birth_offset in (("nt", 0), ("nt", 1_000_000_000), ("posix", 0)):
+            with self.subTest(platform=platform, birth_offset=birth_offset), tempfile.TemporaryDirectory() as raw:
+                proxy = SimpleNamespace(**vars(inventory.os))
+                proxy.name, proxy.fstat = platform, discrepant_fstat
+                with mock.patch.object(inventory, "os", proxy):
+                    temporary = inventory._create_synced_sibling_temp(Path(raw) / "inventory.json", b"ours\n")
+                    if platform == "nt" and birth_offset == 0:
+                        self.assertTrue(inventory._cleanup_owned_temp(temporary))
+                        self.assertFalse(temporary.exists())
+                    else:
+                        with self.assertRaisesRegex(RuntimeError, "changed identity"):
+                            inventory._cleanup_owned_temp(temporary)
+                        self.assertEqual(temporary.read_bytes(), b"ours\n")
+
     def make_project(self, parent: Path) -> Path:
         project = parent / "legacy-research"
         (project / "data" / "raw").mkdir(parents=True)

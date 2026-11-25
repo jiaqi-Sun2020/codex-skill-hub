@@ -191,6 +191,50 @@ jobs:
           }
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
+      - name: Set up Python 3.12 for file-safety checks
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Run Python 3.12 file-safety suites
+        id: python312_safety
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $repoRoot = (Get-Location).Path
+          $externalCwd = Join-Path ([System.IO.Path]::GetTempPath()) ("skill-hub-python312-" + [guid]::NewGuid().ToString('N'))
+          New-Item -ItemType Directory -Path $externalCwd | Out-Null
+          $beforeStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          $env:PYTHONPATH = ''
+          $env:PYTHONNOUSERSITE = '1'
+          $env:PYTHONHASHSEED = '0'
+          $suites = @(
+            (Join-Path $repoRoot '20-project-build\project-agent-generator-skill\tests'),
+            (Join-Path $repoRoot '20-project-build\research-project-pipeline\tests'),
+            (Join-Path $repoRoot '20-project-build\research-workspace-governance\tests')
+          )
+          $failedSuites = @()
+          Push-Location $externalCwd
+          try {
+            foreach ($iteration in 1..2) {
+              foreach ($suite in $suites) {
+                python -X utf8 -B -c "import sys,unittest; s=unittest.defaultTestLoader.discover(sys.argv[1],pattern='test_*.py'); n=s.countTestCases(); print('Discovered:',n); sys.exit(2 if n==0 else 0)" $suite
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "discovery-$iteration`:$suite"; continue }
+                python -X utf8 -B -m unittest discover -s $suite -p 'test_*.py'
+                if ($LASTEXITCODE -ne 0) { $failedSuites += "iteration-$iteration`:$suite" }
+              }
+            }
+          } finally {
+            Pop-Location
+          }
+          $afterStatus = (& git -C $repoRoot status --porcelain=v1 --untracked-files=all) -join "`n"
+          if ($afterStatus -ne $beforeStatus) { throw 'Python 3.12 file-safety suites changed the repository worktree' }
+          if ($failedSuites.Count -gt 0) {
+            Write-Host "Failed Python 3.12 file-safety suites: $($failedSuites -join ', ')"
+            exit 1
+          }
+
       - name: Enforce required Windows checks
         if: ${{ always() }}
         shell: pwsh
@@ -199,12 +243,14 @@ jobs:
           READER_SMOKE_OUTCOME: ${{ steps.reader_smoke.outcome }}
           REGISTRY_KNOWLEDGE_OUTCOME: ${{ steps.registry_knowledge.outcome }}
           REPOSITORY_INTEGRITY_OUTCOME: ${{ steps.repository_integrity.outcome }}
+          PYTHON312_SAFETY_OUTCOME: ${{ steps.python312_safety.outcome }}
         run: |
           $outcomes = [ordered]@{
             'unit-suites' = $env:UNIT_SUITES_OUTCOME
             'reader-smoke' = $env:READER_SMOKE_OUTCOME
             'registry-knowledge' = $env:REGISTRY_KNOWLEDGE_OUTCOME
             'repository-integrity' = $env:REPOSITORY_INTEGRITY_OUTCOME
+            'python312-file-safety' = $env:PYTHON312_SAFETY_OUTCOME
           }
           $failedChecks = @($outcomes.GetEnumerator() | Where-Object { $_.Value -ne 'success' })
           foreach ($check in $outcomes.GetEnumerator()) {

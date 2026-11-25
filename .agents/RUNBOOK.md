@@ -57,6 +57,8 @@
 9. Treat `.github/workflows/ci.yml` as the executable CI contract: keep action
    references pinned to reviewed commit SHAs and keep repository-integrity checks
    inline unless a real reusable test module is later justified.
+   Windows requires the Python 3.11 core checks and two Python 3.12 runs of the
+   Generator, Onboarding and Governance file-safety suites from an external directory.
 
 Paper initialization: from repository root, run
 `python -X utf8 -B .\10-paper-build\workflow-tools\paper-project-initializer\scripts\initialize_paper_project.py inspect --project "<existing-project>"`.
